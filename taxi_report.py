@@ -3,6 +3,8 @@
 
 import psycopg2
 import sys
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from collections import defaultdict
 import os
@@ -14,7 +16,6 @@ DB_CONFIG = {
     'host': 'localhost'
 }
 
-# Создаём папку для изображений
 os.makedirs('docs', exist_ok=True)
 
 def get_connection():
@@ -23,6 +24,12 @@ def get_connection():
     except psycopg2.Error as e:
         print(f"Ошибка подключения: {e}")
         sys.exit(1)
+
+def file_exists(filename, force=False):
+    if not force and os.path.exists(filename):
+        response = input(f"Файл {filename} уже существует. Перезаписать? (y/N): ")
+        return response.lower() != 'y'
+    return False
 
 def print_header(col_widths, headers):
     print('┌' + '┬'.join('─' * (w + 2) for w in col_widths) + '┐')
@@ -231,8 +238,7 @@ def task2_pivot_table(class_param=None):
     cur.close()
     conn.close()
 
-def task3_chart():
-    """Задача 3: График динамики - автоматическое сохранение в docs/"""
+def task3_chart(force=False):
     conn = get_connection()
     cur = conn.cursor()
     
@@ -276,15 +282,16 @@ def task3_chart():
     plt.xticks(rotation=45, ha='right')
     fig.tight_layout()
     
-    # Сохраняем в папку docs
     filename = 'docs/task3_chart.png'
-    plt.savefig(filename, dpi=150, bbox_inches='tight')
-    print(f" График сохранён в {filename}")
+    if not file_exists(filename, force):
+        plt.savefig(filename, dpi=150, bbox_inches='tight')
+        print(f" График сохранён в {filename}")
+    else:
+        print(" Сохранение отменено")
     
-    plt.show()
+    plt.close()
 
-def task4_chart(driver_param=None):
-    """Задача 4: Круговая диаграмма - автоматическое сохранение в docs/"""
+def task4_chart(driver_param=None, force=False):
     conn = get_connection()
     cur = conn.cursor()
     
@@ -340,11 +347,20 @@ def task4_chart(driver_param=None):
     plt.title(title)
     plt.axis('equal')
     
-    # Сохраняем в папку docs
-    plt.savefig(filename, dpi=150, bbox_inches='tight')
-    print(f" Диаграмма сохранена в {filename}")
+    if not file_exists(filename, force):
+        plt.savefig(filename, dpi=150, bbox_inches='tight')
+        print(f" Диаграмма сохранена в {filename}")
+    else:
+        print(" Сохранение отменено")
     
-    plt.show()
+    plt.close()
+
+def save_all(force=False):
+    print("Сохранение всех графиков и диаграмм...")
+    task3_chart(force)
+    task4_chart(force=force)
+    task4_chart("Волков", force=force)
+    print("Все изображения сохранены в папку docs/")
 
 def show_help():
     print("=" * 60)
@@ -354,8 +370,9 @@ def show_help():
     print("Использование:")
     print("  python taxi_report.py task1 [водитель] [класс]")
     print("  python taxi_report.py task2 [класс]")
-    print("  python taxi_report.py task3")
-    print("  python taxi_report.py task4 [водитель]")
+    print("  python taxi_report.py task3 [--force]")
+    print("  python taxi_report.py task4 [водитель] [--force]")
+    print("  python taxi_report.py save-all [--force]")
     print()
     print("Примеры:")
     print("  python taxi_report.py task1")
@@ -363,7 +380,9 @@ def show_help():
     print("  python taxi_report.py task2")
     print("  python taxi_report.py task2 бизнес")
     print("  python taxi_report.py task3")
+    print("  python taxi_report.py task3 --force")
     print("  python taxi_report.py task4 Волков")
+    print("  python taxi_report.py save-all --force")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -371,18 +390,21 @@ if __name__ == "__main__":
         sys.exit(0)
     
     command = sys.argv[1].lower()
+    force = '--force' in sys.argv
     
     if command == "task1":
-        driver_param = sys.argv[2] if len(sys.argv) > 2 else None
-        class_param = sys.argv[3] if len(sys.argv) > 3 else None
+        driver_param = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] not in ['--force'] else None
+        class_param = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] not in ['--force'] else None
         task1_report(driver_param, class_param)
     elif command == "task2":
-        class_param = sys.argv[2] if len(sys.argv) > 2 else None
+        class_param = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] not in ['--force'] else None
         task2_pivot_table(class_param)
     elif command == "task3":
-        task3_chart()
+        task3_chart(force)
     elif command == "task4":
-        driver_param = sys.argv[2] if len(sys.argv) > 2 else None
-        task4_chart(driver_param)
+        driver_param = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] not in ['--force'] else None
+        task4_chart(driver_param, force)
+    elif command == "save-all":
+        save_all(force)
     else:
         show_help()
