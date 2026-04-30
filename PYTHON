@@ -16,6 +16,8 @@ show_help() {
     echo "  ./PYTHON task1 [водитель] [класс]             - отчёт по водителю и классу"
     echo "  ./PYTHON task2                                - сводная таблица (водители × классы)"
     echo "  ./PYTHON task2 [класс]                        - сводная таблица с фильтром по классу"
+    echo "  ./PYTHON task3                                - график динамики выручки и поездок"
+    echo "  ./PYTHON task4 [водитель]                     - круговая диаграмма по классам"
     echo "  ./PYTHON all                                  - выполнить все задачи"
     echo ""
     echo "ПРИМЕРЫ:"
@@ -23,30 +25,45 @@ show_help() {
     echo "  ./PYTHON task1 Волков"
     echo "  ./PYTHON task1 Волков бизнес"
     echo "  ./PYTHON task2"
-    echo "  ./PYTHON task2 комфорт"
+    echo "  ./PYTHON task2 бизнес"
+    echo "  ./PYTHON task3"
+    echo "  ./PYTHON task4 Волков"
     echo "  ./PYTHON all"
 }
 
 case "$1" in
     task1)
         if [ -z "$2" ]; then
-            echo " Выполняется отчёт по всем водителям..."
+            echo "▶ Выполняется отчёт по всем водителям..."
             python3 taxi_report.py task1
         elif [ -z "$3" ]; then
-            echo " Выполняется отчёт по водителю: $2..."
+            echo "▶ Выполняется отчёт по водителю: $2..."
             python3 taxi_report.py task1 "$2"
         else
-            echo " Выполняется отчёт по водителю: $2, класс: $3..."
+            echo "▶ Выполняется отчёт по водителю: $2, класс: $3..."
             python3 taxi_report.py task1 "$2" "$3"
         fi
         ;;
     task2)
         if [ -z "$2" ]; then
-            echo " Выполняется сводная таблица по всем классам..."
+            echo "▶ Выполняется сводная таблица по всем классам..."
             python3 taxi_report.py task2
         else
-            echo " Выполняется сводная таблица по классу: $2..."
+            echo "▶ Выполняется сводная таблица по классу: $2..."
             python3 taxi_report.py task2 "$2"
+        fi
+        ;;
+    task3)
+        echo "▶ Построение графика динамики выручки и поездок..."
+        python3 taxi_report.py task3
+        ;;
+    task4)
+        if [ -z "$2" ]; then
+            echo "▶ Построение круговой диаграммы по всем водителям..."
+            python3 taxi_report.py task4
+        else
+            echo "▶ Построение круговой диаграммы для водителя: $2..."
+            python3 taxi_report.py task4 "$2"
         fi
         ;;
     all)
@@ -60,6 +77,16 @@ case "$1" in
         echo ""
         echo "--- ЗАДАЧА 2: СВОДНАЯ ТАБЛИЦА ---"
         python3 taxi_report.py task2
+        
+        echo ""
+        echo "--- ЗАДАЧА 3: ГРАФИК ДИНАМИКИ ---"
+        echo "  График откроется в новом окне"
+        python3 taxi_report.py task3
+        
+        echo ""
+        echo "--- ЗАДАЧА 4: КРУГОВАЯ ДИАГРАММА ---"
+        echo "  Диаграмма откроется в новом окне"
+        python3 taxi_report.py task4
         ;;
     *)
         show_help
