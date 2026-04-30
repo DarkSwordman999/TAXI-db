@@ -5,6 +5,7 @@ import psycopg2
 import sys
 import matplotlib.pyplot as plt
 from collections import defaultdict
+import os
 
 DB_CONFIG = {
     'dbname': 'taxi_lab5',
@@ -12,6 +13,9 @@ DB_CONFIG = {
     'password': '',
     'host': 'localhost'
 }
+
+# Создаём папку для изображений
+os.makedirs('docs', exist_ok=True)
 
 def get_connection():
     try:
@@ -41,7 +45,6 @@ def print_footer(col_widths):
     print('└' + '┴'.join('─' * (w + 2) for w in col_widths) + '┘')
 
 def task1_report(driver_param=None, class_param=None):
-    """Задача 1: Отчёт о выручке по водителям (x) и классам (y)"""
     conn = get_connection()
     cur = conn.cursor()
     
@@ -128,7 +131,6 @@ def task1_report(driver_param=None, class_param=None):
     conn.close()
 
 def task2_pivot_table(class_param=None):
-    """Задача 2: Сводная таблица (водители × классы) с матрицами T и nT"""
     conn = get_connection()
     cur = conn.cursor()
     
@@ -146,7 +148,6 @@ def task2_pivot_table(class_param=None):
     cur.execute(sql, (class_pattern, class_pattern))
     rows = cur.fetchall()
     
-    # Формирование матриц
     data_T = {}
     data_nT = {}
     drivers_set = set()
@@ -177,7 +178,6 @@ def task2_pivot_table(class_param=None):
     col_widths = [4, 22] + [10] * len(classes) + [10]
     headers = ['№', 'Водитель (x)'] + [c for c in classes] + ['Итого']
     
-    # Матрица T (выручка)
     print()
     print("  [МАТРИЦА T: ВЫРУЧКА]")
     print_header(col_widths, headers)
@@ -195,7 +195,6 @@ def task2_pivot_table(class_param=None):
         row.append(f'{driver_total:.2f}')
         print_row(row, col_widths)
     
-    # Итого по столбцам
     print_separator(col_widths)
     total_row = ['', 'ИТОГ по столбцам']
     for class_name in classes:
@@ -204,7 +203,6 @@ def task2_pivot_table(class_param=None):
     print_row(total_row, col_widths)
     print_footer(col_widths)
     
-    # Матрица nT (количество поездок)
     print()
     print("  [МАТРИЦА nT: КОЛИЧЕСТВО ПОЕЗДОК]")
     print_header(col_widths, headers)
@@ -234,7 +232,7 @@ def task2_pivot_table(class_param=None):
     conn.close()
 
 def task3_chart():
-    """Задача 3: График динамики выручки и количества поездок по месяцам"""
+    """Задача 3: График динамики - автоматическое сохранение в docs/"""
     conn = get_connection()
     cur = conn.cursor()
     
@@ -277,10 +275,16 @@ def task3_chart():
     plt.title('Динамика выручки и количества поездок по месяцам')
     plt.xticks(rotation=45, ha='right')
     fig.tight_layout()
+    
+    # Сохраняем в папку docs
+    filename = 'docs/task3_chart.png'
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
+    print(f" График сохранён в {filename}")
+    
     plt.show()
 
 def task4_chart(driver_param=None):
-    """Задача 4: Круговая диаграмма распределения выручки по классам"""
+    """Задача 4: Круговая диаграмма - автоматическое сохранение в docs/"""
     conn = get_connection()
     cur = conn.cursor()
     
@@ -297,6 +301,7 @@ def task4_chart(driver_param=None):
         ORDER BY выручка DESC
         """
         cur.execute(sql, (f"%{driver_param}%",))
+        filename = f'docs/task4_chart_{driver_param}.png'
         title = f'Распределение выручки по классам (водитель: {driver_param})'
     else:
         sql = """
@@ -309,6 +314,7 @@ def task4_chart(driver_param=None):
         ORDER BY выручка DESC
         """
         cur.execute(sql)
+        filename = 'docs/task4_chart.png'
         title = 'Распределение выручки по классам (все водители)'
     
     rows = cur.fetchall()
@@ -333,6 +339,11 @@ def task4_chart(driver_param=None):
     plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)
     plt.title(title)
     plt.axis('equal')
+    
+    # Сохраняем в папку docs
+    plt.savefig(filename, dpi=150, bbox_inches='tight')
+    print(f" Диаграмма сохранена в {filename}")
+    
     plt.show()
 
 def show_help():
@@ -345,6 +356,14 @@ def show_help():
     print("  python taxi_report.py task2 [класс]")
     print("  python taxi_report.py task3")
     print("  python taxi_report.py task4 [водитель]")
+    print()
+    print("Примеры:")
+    print("  python taxi_report.py task1")
+    print("  python taxi_report.py task1 Волков")
+    print("  python taxi_report.py task2")
+    print("  python taxi_report.py task2 бизнес")
+    print("  python taxi_report.py task3")
+    print("  python taxi_report.py task4 Волков")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
