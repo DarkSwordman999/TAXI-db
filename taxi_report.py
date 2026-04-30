@@ -79,7 +79,7 @@ def task1_report(driver_param=None, class_param=None):
         conn.close()
         return
     
-    col_widths = [4, 22, 12, 12, 10]
+    col_widths = [4, 22, 12, 14, 8]
     headers = ['№', 'Водитель (x)', 'Класс (y)', 'Выручка (F)', 'Поездок']
     
     print_header(col_widths, headers)
@@ -91,27 +91,24 @@ def task1_report(driver_param=None, class_param=None):
     grand_count = 0
     row_num = 1
     first_in_group = True
-    group_total_shown = False
     
     for driver, class_name, revenue, rides in rows:
+        revenue = float(revenue)
+        rides = int(rides)
+        
         if current_driver != driver:
-            # Вывод итога по группе (в первой строке с новым x)
-            if current_driver is not None and not group_total_shown:
-                print_row(['', current_driver[:20], 'ИТОГО по группе:', f'{driver_total:.2f}', str(driver_count)], col_widths)
-                print_separator(col_widths)
-                group_total_shown = True
-            
             if current_driver is not None:
+                print_row(['', current_driver[:20], 'ИТОГ:', f'{driver_total:.2f}', str(driver_count)], col_widths)
+                print_separator(col_widths)
                 row_num = 1
             
             current_driver = driver
             driver_total = 0
             driver_count = 0
             first_in_group = True
-            group_total_shown = False
         
         driver_display = driver if first_in_group else ''
-        print_row([row_num if first_in_group else '', driver_display[:20], class_name, f'{revenue:.2f}', str(int(rides))], col_widths)
+        print_row([row_num if first_in_group else '', driver_display[:20], class_name, f'{revenue:.2f}', str(rides)], col_widths)
         
         driver_total += revenue
         driver_count += rides
@@ -120,12 +117,10 @@ def task1_report(driver_param=None, class_param=None):
         row_num += 1
         first_in_group = False
     
-    # Итог последней группы
-    if current_driver is not None and not group_total_shown:
-        print_row(['', current_driver[:20], 'ИТОГО по группе:', f'{driver_total:.2f}', str(driver_count)], col_widths)
+    if current_driver is not None:
+        print_row(['', current_driver[:20], 'ИТОГ:', f'{driver_total:.2f}', str(driver_count)], col_widths)
         print_separator(col_widths)
     
-    # Общий итог
     print_row(['', 'ВСЕГО', '', f'{grand_total:.2f}', str(grand_count)], col_widths)
     print_footer(col_widths)
     
@@ -151,13 +146,15 @@ def task2_pivot_table(class_param=None):
     cur.execute(sql, (class_pattern, class_pattern))
     rows = cur.fetchall()
     
-    # Формирование матриц T (выручка) и nT (количество)
+    # Формирование матриц
     data_T = {}
     data_nT = {}
     drivers_set = set()
     classes_set = set()
     
     for driver, class_name, revenue, rides in rows:
+        revenue = float(revenue)
+        rides = int(rides)
         if driver not in data_T:
             data_T[driver] = {}
             data_nT[driver] = {}
@@ -177,13 +174,10 @@ def task2_pivot_table(class_param=None):
         print(f'  Параметр: класс = {class_param}')
     print('-' * 70)
     
-    # Ширины колонок
     col_widths = [4, 22] + [10] * len(classes) + [10]
     headers = ['№', 'Водитель (x)'] + [c for c in classes] + ['Итого']
     
-    print_header(col_widths, headers)
-    
-    # Вывод матрицы T (выручка)
+    # Матрица T (выручка)
     print()
     print("  [МАТРИЦА T: ВЫРУЧКА]")
     print_header(col_widths, headers)
@@ -193,7 +187,7 @@ def task2_pivot_table(class_param=None):
     for i, driver in enumerate(drivers, 1):
         row = [i, driver[:20]]
         driver_total = 0
-        for j, class_name in enumerate(classes):
+        for class_name in classes:
             val = data_T.get(driver, {}).get(class_name, 0)
             row.append(f'{val:.2f}')
             driver_total += val
@@ -203,19 +197,19 @@ def task2_pivot_table(class_param=None):
     
     # Итого по столбцам
     print_separator(col_widths)
-    total_row = ['', 'ИТОГО по столбцам']
+    total_row = ['', 'ИТОГ по столбцам']
     for class_name in classes:
         total_row.append(f'{class_totals[class_name]:.2f}')
     total_row.append(f'{sum(class_totals.values()):.2f}')
     print_row(total_row, col_widths)
     print_footer(col_widths)
     
-    # Вывод матрицы nT (количество поездок)
+    # Матрица nT (количество поездок)
     print()
     print("  [МАТРИЦА nT: КОЛИЧЕСТВО ПОЕЗДОК]")
     print_header(col_widths, headers)
     
-    class_totals_nT = defaultdict(float)
+    class_totals_nT = defaultdict(int)
     
     for i, driver in enumerate(drivers, 1):
         row = [i, driver[:20]]
@@ -229,7 +223,7 @@ def task2_pivot_table(class_param=None):
         print_row(row, col_widths)
     
     print_separator(col_widths)
-    total_row_nT = ['', 'ИТОГО по столбцам']
+    total_row_nT = ['', 'ИТОГ по столбцам']
     for class_name in classes:
         total_row_nT.append(f'{int(class_totals_nT[class_name])}')
     total_row_nT.append(f'{int(sum(class_totals_nT.values()))}')
@@ -265,8 +259,8 @@ def task3_chart():
         return
     
     months = [row[0] for row in rows]
-    revenues = [row[1] for row in rows]
-    rides = [row[2] for row in rows]
+    revenues = [float(row[1]) for row in rows]
+    rides = [int(row[2]) for row in rows]
     
     fig, ax1 = plt.subplots(figsize=(12, 5))
     
@@ -286,7 +280,7 @@ def task3_chart():
     plt.show()
 
 def task4_chart(driver_param=None):
-    """Задача 4: Круговая диаграмма распределения выручки по классам для водителя"""
+    """Задача 4: Круговая диаграмма распределения выручки по классам"""
     conn = get_connection()
     cur = conn.cursor()
     
@@ -326,9 +320,8 @@ def task4_chart(driver_param=None):
         return
     
     labels = [row[0] for row in rows]
-    sizes = [row[1] for row in rows]
+    sizes = [float(row[1]) for row in rows]
     
-    # Фильтруем нулевые значения
     filtered = [(l, s) for l, s in zip(labels, sizes) if s > 0]
     if not filtered:
         print("Нет положительной выручки для отображения")
@@ -352,14 +345,6 @@ def show_help():
     print("  python taxi_report.py task2 [класс]")
     print("  python taxi_report.py task3")
     print("  python taxi_report.py task4 [водитель]")
-    print()
-    print("Примеры:")
-    print("  python taxi_report.py task1")
-    print("  python taxi_report.py task1 Волков")
-    print("  python taxi_report.py task2")
-    print("  python taxi_report.py task2 бизнес")
-    print("  python taxi_report.py task3")
-    print("  python taxi_report.py task4 Волков")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
