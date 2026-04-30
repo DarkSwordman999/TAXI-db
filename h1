@@ -1,0 +1,19 @@
+#!/bin/bash
+DATABASE="taxi_lab5"
+
+if [ -z "$1" ]; then
+    echo "Использование: ./h1 файл.sql [параметр]"
+    echo "Пример: ./h1 queries/subqueries/06_rides_above_avg_param.sql Иванов"
+    exit 1
+fi
+
+if [ ! -f "$1" ]; then
+    echo "ОШИБКА: Файл $1 не найден"
+    exit 1
+fi
+
+if [ -z "$2" ]; then
+    psql -c "\pset pager off" -d "$DATABASE" -f "$1"
+else
+    psql -c "\pset pager off" -d "$DATABASE" -f "$1" -v arg1="$2"
+fi
