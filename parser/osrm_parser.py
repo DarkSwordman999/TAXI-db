@@ -5,6 +5,7 @@ import os
 import psycopg2
 from datetime import datetime
 import uuid
+import hashlib
 
 DB_CONFIG = {
     'host': os.environ.get('DB_HOST', 'localhost'),
@@ -28,6 +29,59 @@ LOCATIONS = [
 
 OSRM_URL = "http://router.project-osrm.org/route/v1/driving/"
 
+# Множество для хранения существующих уникальных ключей
+existing_keys = set()
+
+def load_existing_csv_keys(csv_file):
+    """Загружает существующие run_id + маршруты из CSV"""
+    global existing_keys
+    if os.path.isfile(csv_file) and os.path.getsize(csv_file) > 0:
+        try:
+            with open(csv_file, 'r', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                next(reader, None)  # пропускаем заголовок
+                for row in reader:
+                    if len(row) >= 4:
+                        # Ключ: run_id + from_loc + to_loc
+                        key = f"{row[0]}_{row[2]}_{row[3]}"
+                        existing_keys.add(key)
+            print(f"Загружено {len(existing_keys)} существующих записей из CSV")
+        except Exception as e:
+            print(f"Ошибка чтения CSV: {e}")
+
+def load_existing_db_keys():
+    """Загружает существующие записи из PostgreSQL"""
+    global existing_keys
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT DISTINCT дата, from_loc, to_loc 
+            FROM (
+                SELECT 
+                    дата, 
+                    'Красная площадь' as from_loc, 
+                    'Лужники' as to_loc 
+                FROM ПОЕЗДКИ 
+                WHERE FALSE
+            ) AS empty
+        """)
+        # Временно отключаем проверку БД, используем только CSV
+        cur.close()
+        conn.close()
+    except Exception as e:
+        print(f"Ошибка проверки БД: {e}")
+
+def is_record_exists(run_id, from_name, to_name):
+    """Проверяет, существует ли уже запись"""
+    key = f"{run_id}_{from_name}_{to_name}"
+    return key in existing_keys
+
+def add_to_existing(run_id, from_name, to_name):
+    """Добавляет ключ в множество существующих"""
+    key = f"{run_id}_{from_name}_{to_name}"
+    existing_keys.add(key)
+
 def parse_osrm_route(start_lat, start_lon, end_lat, end_lon):
     coordinates = f"{start_lon},{start_lat};{end_lon},{end_lat}"
     url = f"{OSRM_URL}{coordinates}?overview=false"
@@ -45,36 +99,59 @@ def parse_osrm_route(start_lat, start_lon, end_lat, end_lon):
         return None, None
 
 def main():
-    print("OSRM REAL ROUTE PARSER (APPEND MODE)")
+    print("="*60)
+    print("OSRM REAL ROUTE PARSER (UNIQUE CHECK)")
+    print("Source: OpenStreetMap")
+    print("="*60)
+    
     os.makedirs('data', exist_ok=True)
     csv_file = 'data/rides.csv'
+    
+    # Загружаем существующие записи
+    load_existing_csv_keys(csv_file)
+    
+    # Генерируем уникальный ID для этого запуска
+    run_id = str(uuid.uuid4())[:8]
+    timestamp = datetime.now()
+    
     file_exists = os.path.isfile(csv_file) and os.path.getsize(csv_file) > 0
+    
+    saved = 0
+    skipped = 0
     
     with open(csv_file, 'a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         if not file_exists:
             writer.writerow(['run_id', 'timestamp', 'from_loc', 'to_loc', 'distance_km', 'duration_min', 'price_rub'])
         
-        run_id = str(uuid.uuid4())[:8]
-        saved = 0
-        timestamp = datetime.now()
-        
         for i, (from_name, from_lat, from_lon) in enumerate(LOCATIONS):
             for j, (to_name, to_lat, to_lon) in enumerate(LOCATIONS):
                 if i == j:
                     continue
+                
+                # Проверка на существование
+                if is_record_exists(run_id, from_name, to_name):
+                    skipped += 1
+                    continue
+                
                 distance, duration = parse_osrm_route(from_lat, from_lon, to_lat, to_lon)
+                
                 if distance:
                     price = int(99 + distance * 25)
                     saved += 1
-                    writer.writerow([run_id, timestamp.isoformat(), from_name, to_name, distance, duration, price])
                     
+                    # Записываем в CSV
+                    writer.writerow([run_id, timestamp.isoformat(), from_name, to_name, distance, duration, price])
+                    add_to_existing(run_id, from_name, to_name)
+                    
+                    # Записываем в PostgreSQL
                     try:
                         conn = psycopg2.connect(**DB_CONFIG)
                         cur = conn.cursor()
                         cur.execute("""
                             CREATE TABLE IF NOT EXISTS ПОЕЗДКИ (
                                 код_поездки SERIAL PRIMARY KEY,
+                                run_id TEXT,
                                 дата TIMESTAMP,
                                 стоимость NUMERIC,
                                 водитель INTEGER,
@@ -85,18 +162,27 @@ def main():
                             )
                         """)
                         cur.execute("""
-                            INSERT INTO ПОЕЗДКИ (дата, стоимость, водитель, автомобиль, клиент, расстояние_км, время_мин)
-                            VALUES (%s, %s, %s, %s, %s, %s, %s)
-                        """, (timestamp, price, saved % 32 + 1, saved % 30 + 1, saved % 250 + 1, distance, duration))
+                            INSERT INTO ПОЕЗДКИ (run_id, дата, стоимость, водитель, автомобиль, клиент, расстояние_км, время_мин)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                        """, (run_id, timestamp, price, saved % 32 + 1, saved % 30 + 1, saved % 250 + 1, distance, duration))
                         conn.commit()
                         cur.close()
                         conn.close()
-                        print(f"[{saved}] {from_name} → {to_name}: {distance} км, {price} руб")
+                        print(f"[{saved}]  {from_name} → {to_name}: {distance} км, {price} руб")
                     except Exception as e:
-                        print(f"DB error: {e}")
+                        print(f"  DB error: {e}")
+                else:
+                    print(f"[{saved+skipped+1}]  {from_name} → {to_name}: Ошибка парсинга")
     
-    print(f"\n CSV дописан: {csv_file} (+{saved} записей, run_id={run_id})")
-    print(f" PostgreSQL добавлено: {saved} записей")
+    print(f"\n{'='*60}")
+    print(f"  РЕЗУЛЬТАТЫ ЗАПУСКА (run_id: {run_id})")
+    print(f"{'='*60}")
+    print(f" Добавлено новых записей: {saved}")
+    print(f" Пропущено (дубликаты): {skipped}")
+    print(f" CSV файл: {csv_file}")
+    print(f" PostgreSQL: {saved} записей")
+    print(f" Всего в CSV: {saved + skipped} записей")
+    print(f"{'='*60}")
 
 if __name__ == "__main__":
     main()
