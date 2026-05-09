@@ -92,6 +92,7 @@ if [ -z "$1" ]; then
     echo "================== ЗАПУСК SQL ФАЙЛОВ =================="
     echo "  ./h файл.sql [параметр] - выполнить SQL-файл"
     echo "  ./h h1 файл.sql [параметр] - выполнить SQL-файл через h1"
+    echo "  ./h loadcsv - загрузить данные из CSV в PostgreSQL"
     exit 1
 fi
 
@@ -116,6 +117,7 @@ if [ "$1" = "h1" ]; then
 fi
 
 case "$1" in
+    loadcsv) ./load_csv_to_db.sh ;;
     task1) psql -d "$DATABASE" -f queries/tasks/01_revenue_by_season.sql ;;
     task2) psql -d "$DATABASE" -f queries/tasks/02_revenue_by_season_and_class.sql ;;
     task3) psql -d "$DATABASE" -f queries/tasks/03_revenue_by_day_and_driver.sql ;;
