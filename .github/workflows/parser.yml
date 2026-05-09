@@ -1,0 +1,34 @@
+name: Taxi Parser
+
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      
+      - name: Install dependencies
+        run: pip install psycopg2-binary
+      
+      - name: Run parser
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          DB_SSLMODE: ${{ secrets.DB_SSLMODE }}
+        run: python parser/osrm_parser.py
+      
+      - uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "Auto-update taxi data"
+          file_pattern: "data/*.csv"
