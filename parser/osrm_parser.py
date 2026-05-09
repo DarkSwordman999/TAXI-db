@@ -4,6 +4,7 @@ import csv
 import os
 import psycopg2
 from datetime import datetime
+import uuid
 
 DB_CONFIG = {
     'host': os.environ.get('DB_HOST', 'localhost'),
@@ -30,7 +31,6 @@ OSRM_URL = "http://router.project-osrm.org/route/v1/driving/"
 def parse_osrm_route(start_lat, start_lon, end_lat, end_lon):
     coordinates = f"{start_lon},{start_lat};{end_lon},{end_lat}"
     url = f"{OSRM_URL}{coordinates}?overview=false"
-    
     try:
         response = requests.get(url, timeout=10)
         if response.status_code == 200:
@@ -46,23 +46,16 @@ def parse_osrm_route(start_lat, start_lon, end_lat, end_lon):
 
 def main():
     print("OSRM REAL ROUTE PARSER (APPEND MODE)")
-    print("Source: OpenStreetMap")
-    
-    # Создаём папку data если нет
     os.makedirs('data', exist_ok=True)
     csv_file = 'data/rides.csv'
-    
-    # Определяем, нужно ли писать заголовок
     file_exists = os.path.isfile(csv_file) and os.path.getsize(csv_file) > 0
     
-    # Открываем в режиме добавления (append)
     with open(csv_file, 'a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
-        
-        # Заголовок только если файл новый или пустой
         if not file_exists:
-            writer.writerow(['timestamp', 'from_loc', 'to_loc', 'distance_km', 'duration_min', 'price_rub'])
+            writer.writerow(['run_id', 'timestamp', 'from_loc', 'to_loc', 'distance_km', 'duration_min', 'price_rub'])
         
+        run_id = str(uuid.uuid4())[:8]
         saved = 0
         timestamp = datetime.now()
         
@@ -70,17 +63,12 @@ def main():
             for j, (to_name, to_lat, to_lon) in enumerate(LOCATIONS):
                 if i == j:
                     continue
-                
                 distance, duration = parse_osrm_route(from_lat, from_lon, to_lat, to_lon)
-                
                 if distance:
                     price = int(99 + distance * 25)
                     saved += 1
+                    writer.writerow([run_id, timestamp.isoformat(), from_name, to_name, distance, duration, price])
                     
-                    # Дописываем в CSV
-                    writer.writerow([timestamp.isoformat(), from_name, to_name, distance, duration, price])
-                    
-                    # Сохраняем в PostgreSQL
                     try:
                         conn = psycopg2.connect(**DB_CONFIG)
                         cur = conn.cursor()
@@ -107,9 +95,8 @@ def main():
                     except Exception as e:
                         print(f"DB error: {e}")
     
-    print(f"\n CSV дописан: {csv_file} (+{saved} записей)")
+    print(f"\n CSV дописан: {csv_file} (+{saved} записей, run_id={run_id})")
     print(f" PostgreSQL добавлено: {saved} записей")
-    print(f" Источник: OpenStreetMap (реальные маршруты)")
 
 if __name__ == "__main__":
     main()
