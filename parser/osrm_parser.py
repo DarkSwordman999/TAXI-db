@@ -45,51 +45,71 @@ def parse_osrm_route(start_lat, start_lon, end_lat, end_lon):
         return None, None
 
 def main():
-    print("OSRM REAL ROUTE PARSER")
+    print("OSRM REAL ROUTE PARSER (APPEND MODE)")
     print("Source: OpenStreetMap")
     
-    saved = 0
-    timestamp = datetime.now()
+    # Создаём папку data если нет
+    os.makedirs('data', exist_ok=True)
+    csv_file = 'data/rides.csv'
     
-    for i, (from_name, from_lat, from_lon) in enumerate(LOCATIONS):
-        for j, (to_name, to_lat, to_lon) in enumerate(LOCATIONS):
-            if i == j:
-                continue
-            
-            distance, duration = parse_osrm_route(from_lat, from_lon, to_lat, to_lon)
-            
-            if distance:
-                price = int(99 + distance * 25)
-                saved += 1
+    # Определяем, нужно ли писать заголовок
+    file_exists = os.path.isfile(csv_file) and os.path.getsize(csv_file) > 0
+    
+    # Открываем в режиме добавления (append)
+    with open(csv_file, 'a', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        
+        # Заголовок только если файл новый или пустой
+        if not file_exists:
+            writer.writerow(['timestamp', 'from_loc', 'to_loc', 'distance_km', 'duration_min', 'price_rub'])
+        
+        saved = 0
+        timestamp = datetime.now()
+        
+        for i, (from_name, from_lat, from_lon) in enumerate(LOCATIONS):
+            for j, (to_name, to_lat, to_lon) in enumerate(LOCATIONS):
+                if i == j:
+                    continue
                 
-                # Подключаемся к БД
-                try:
-                    conn = psycopg2.connect(**DB_CONFIG)
-                    cur = conn.cursor()
-                    cur.execute("""
-                        CREATE TABLE IF NOT EXISTS ПОЕЗДКИ (
-                            код_поездки SERIAL PRIMARY KEY,
-                            дата TIMESTAMP,
-                            стоимость NUMERIC,
-                            водитель INTEGER,
-                            автомобиль INTEGER,
-                            клиент INTEGER,
-                            расстояние_км NUMERIC,
-                            время_мин INTEGER
-                        )
-                    """)
-                    cur.execute("""
-                        INSERT INTO ПОЕЗДКИ (дата, стоимость, водитель, автомобиль, клиент, расстояние_км, время_мин)
-                        VALUES (%s, %s, %s, %s, %s, %s, %s)
-                    """, (timestamp, price, saved % 32 + 1, saved % 30 + 1, saved % 250 + 1, distance, duration))
-                    conn.commit()
-                    cur.close()
-                    conn.close()
-                    print(f"[{saved}] {from_name} → {to_name}: {distance} км, {price} руб")
-                except Exception as e:
-                    print(f"DB error: {e}")
+                distance, duration = parse_osrm_route(from_lat, from_lon, to_lat, to_lon)
+                
+                if distance:
+                    price = int(99 + distance * 25)
+                    saved += 1
+                    
+                    # Дописываем в CSV
+                    writer.writerow([timestamp.isoformat(), from_name, to_name, distance, duration, price])
+                    
+                    # Сохраняем в PostgreSQL
+                    try:
+                        conn = psycopg2.connect(**DB_CONFIG)
+                        cur = conn.cursor()
+                        cur.execute("""
+                            CREATE TABLE IF NOT EXISTS ПОЕЗДКИ (
+                                код_поездки SERIAL PRIMARY KEY,
+                                дата TIMESTAMP,
+                                стоимость NUMERIC,
+                                водитель INTEGER,
+                                автомобиль INTEGER,
+                                клиент INTEGER,
+                                расстояние_км NUMERIC,
+                                время_мин INTEGER
+                            )
+                        """)
+                        cur.execute("""
+                            INSERT INTO ПОЕЗДКИ (дата, стоимость, водитель, автомобиль, клиент, расстояние_км, время_мин)
+                            VALUES (%s, %s, %s, %s, %s, %s, %s)
+                        """, (timestamp, price, saved % 32 + 1, saved % 30 + 1, saved % 250 + 1, distance, duration))
+                        conn.commit()
+                        cur.close()
+                        conn.close()
+                        print(f"[{saved}] {from_name} → {to_name}: {distance} км, {price} руб")
+                    except Exception as e:
+                        print(f"DB error: {e}")
     
-    print(f"Saved {saved} routes to PostgreSQL")
+    print(f"\n CSV дописан: {csv_file} (+{saved} записей)")
+    print(f" PostgreSQL добавлено: {saved} записей")
+    print(f" Источник: OpenStreetMap (реальные маршруты)")
 
 if __name__ == "__main__":
     main()
