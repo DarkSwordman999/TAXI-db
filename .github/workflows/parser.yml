@@ -1,9 +1,11 @@
 name: Taxi Parser
 
 on:
+  schedule:
+    - cron: '0 */6 * * *'
   workflow_dispatch:
   push:
-    branches: [ create_parser, main ]
+    branches: [ main, create_parser ]
 
 jobs:
   parse:
@@ -16,11 +18,9 @@ jobs:
           python-version: '3.11'
       
       - name: Install dependencies
-        run: |
-          pip install psycopg2-binary
-          pip install requests
+        run: pip install psycopg2-binary requests
       
-      - name: Test PostgreSQL connection
+      - name: Run OSRM parser
         env:
           DB_HOST: ${{ secrets.DB_HOST }}
           DB_PORT: ${{ secrets.DB_PORT }}
@@ -29,36 +29,13 @@ jobs:
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_SSLMODE: ${{ secrets.DB_SSLMODE }}
         run: |
-          python -c "
-          import psycopg2, os
-          print('Connecting to:', os.environ['DB_HOST'])
-          try:
-              conn = psycopg2.connect(
-                  host=os.environ['DB_HOST'],
-                  port=os.environ['DB_PORT'],
-                  dbname=os.environ['DB_NAME'],
-                  user=os.environ['DB_USER'],
-                  password=os.environ['DB_PASSWORD'],
-                  sslmode=os.environ['DB_SSLMODE']
-              )
-              print(' Connection successful!')
-              conn.close()
-          except Exception as e:
-              print(f' Connection failed: {e}')
-              exit(1)
-          "
+          python parser/osrm_parser.py
+          ls -la data/
+          head -5 data/rides.csv
       
-      - name: Run parser
-        env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_SSLMODE: ${{ secrets.DB_SSLMODE }}
-        run: python parser/osrm_parser.py
-      
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - name: Commit and push CSV changes
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Auto-update taxi data"
+          commit_message: "Auto-update: новые маршруты OSRM"
           file_pattern: "data/*.csv"
+          branch: create_parser
