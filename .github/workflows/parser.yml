@@ -28,14 +28,11 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
           DB_SSLMODE: ${{ secrets.DB_SSLMODE }}
-        run: |
-          python parser/osrm_parser.py
-          ls -la data/
-          head -5 data/rides.csv
+        run: python parser/osrm_parser.py
       
-      - name: Commit and push CSV changes
+      - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Auto-update: новые маршруты OSRM"
           file_pattern: "data/*.csv"
-          branch: create_parser
+          branch: ${{ github.head_ref || github.ref_name }}
