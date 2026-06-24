@@ -1,88 +1,73 @@
 #!/bin/bash
 
-# =============================================
-# ЛАБОРАТОРНАЯ РАБОТА №8 - TAXI
-# Скрипт для запуска отчётов на Python
-# =============================================
-
 show_help() {
     echo "============================================="
     echo "  ЛАБОРАТОРНАЯ РАБОТА №8 - TAXI"
     echo "============================================="
     echo ""
-    echo "КОМАНДЫ:"
-    echo "  ./PYTHON 1 [водитель] [класс]    - отчёт по водителям и классам"
-    echo "  ./PYTHON 2 [класс]               - сводная таблица"
-    echo "  ./PYTHON 3                       - график динамики"
-    echo "  ./PYTHON 4 [водитель]            - круговая диаграмма"
-    echo "  ./PYTHON all                     - выполнить всё"
-    echo "  ./PYTHON save                    - сохранить все графики"
-    echo "  ./PYTHON save --force            - сохранить с перезаписью"
+    echo "ОПИСАНИЕ КОМАНД:"
+    echo "  ./PYTHON 1 [водитель] [класс]         - отчёт по водителям и классам"
+    echo "  ./PYTHON 1s [водитель] [класс]        - отчёт со звездочкой * в углу"
+    echo "  ./PYTHON 2 [класс]                    - сводная таблица"
+    echo "  ./PYTHON 3                            - график динамики"
+    echo "  ./PYTHON 4 [водитель]                 - круговая диаграмма"
+    echo "  ./PYTHON all                          - выполнить всё"
+    echo "  ./PYTHON save                         - сохранить все графики"
+    echo "  ./PYTHON save --force                 - сохранить с перезаписью"
     echo ""
     echo "ПРИМЕРЫ:"
     echo "  ./PYTHON 1"
+    echo "  ./PYTHON 1s"
     echo "  ./PYTHON 1 Волков"
-    echo "  ./PYTHON 1 Волков бизнес"
+    echo "  ./PYTHON 1s Волков"
     echo "  ./PYTHON 2"
-    echo "  ./PYTHON 2 бизнес"
     echo "  ./PYTHON 3"
-    echo "  ./PYTHON 4"
     echo "  ./PYTHON 4 Волков"
-    echo "  ./PYTHON save --force"
 }
 
 case "$1" in
     1)
         if [ -z "$2" ]; then
-            echo "▶ Отчёт по всем водителям..."
             python3 taxi_report.py task1
         elif [ -z "$3" ]; then
-            echo "▶ Отчёт по водителю: $2..."
             python3 taxi_report.py task1 "$2"
         else
-            echo "▶ Отчёт по водителю: $2, класс: $3..."
             python3 taxi_report.py task1 "$2" "$3"
+        fi
+        ;;
+    1s)
+        if [ -z "$2" ]; then
+            echo " ✸ Отчёт со звездочкой *"
+            python3 taxi_report.py task1s
+        elif [ -z "$3" ]; then
+            echo " ✸ Отчёт со звездочкой * (водитель: $2)"
+            python3 taxi_report.py task1s "$2"
+        else
+            echo " ✸ Отчёт со звездочкой * (водитель: $2, класс: $3)"
+            python3 taxi_report.py task1s "$2" "$3"
         fi
         ;;
     2)
         if [ -z "$2" ]; then
-            echo "▶ Сводная таблица по всем классам..."
             python3 taxi_report.py task2
         else
-            echo "▶ Сводная таблица по классу: $2..."
             python3 taxi_report.py task2 "$2"
         fi
         ;;
     3)
-        if [ "$2" = "--force" ]; then
-            echo "▶ График динамики (перезапись)..."
-            python3 taxi_report.py task3 --force
-        else
-            echo "▶ График динамики..."
-            python3 taxi_report.py task3
-        fi
+        python3 taxi_report.py task3
         ;;
     4)
         if [ -z "$2" ]; then
-            echo "▶ Круговая диаграмма по всем водителям..."
             python3 taxi_report.py task4
-        elif [ "$2" = "--force" ]; then
-            echo "▶ Круговая диаграмма (перезапись)..."
-            python3 taxi_report.py task4 --force
-        elif [ "$3" = "--force" ]; then
-            echo "▶ Круговая диаграмма для водителя: $2 (перезапись)..."
-            python3 taxi_report.py task4 "$2" --force
         else
-            echo "▶ Круговая диаграмма для водителя: $2..."
             python3 taxi_report.py task4 "$2"
         fi
         ;;
     save)
         if [ "$2" = "--force" ]; then
-            echo "▶ Сохранение всех графиков (перезапись)..."
             python3 taxi_report.py save-all --force
         else
-            echo "▶ Сохранение всех графиков..."
             python3 taxi_report.py save-all
         fi
         ;;
@@ -93,6 +78,9 @@ case "$1" in
         echo ""
         echo "--- ЗАДАЧА 1: ОТЧЁТ ---"
         python3 taxi_report.py task1
+        echo ""
+        echo "--- ЗАДАЧА 1s: ОТЧЁТ СО ЗВЕЗДОЧКОЙ * ---"
+        python3 taxi_report.py task1s
         echo ""
         echo "--- ЗАДАЧА 2: СВОДНАЯ ТАБЛИЦА ---"
         python3 taxi_report.py task2

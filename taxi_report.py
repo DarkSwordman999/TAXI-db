@@ -31,51 +31,73 @@ def file_exists(filename, force=False):
         return response.lower() != 'y'
     return False
 
-def print_header(col_widths, headers):
+def print_header(col_widths, headers, alignments):
     print('┌' + '┬'.join('─' * (w + 2) for w in col_widths) + '┐')
     row = '│'
     for i, h in enumerate(headers):
-        row += f' {h:<{col_widths[i]}} │'
+        if alignments[i] == 'r':
+            row += f' {h:>{col_widths[i]}} │'
+        else:
+            row += f' {h:<{col_widths[i]}} │'
     print(row)
     print('├' + '┼'.join('─' * (w + 2) for w in col_widths) + '┤')
 
-def print_row(cells, col_widths):
+def print_row(cells, col_widths, alignments):
     row = '│'
     for i, cell in enumerate(cells):
-        row += f' {str(cell):<{col_widths[i]}} │'
+        if alignments[i] == 'r':
+            row += f' {str(cell):>{col_widths[i]}} │'
+        else:
+            row += f' {str(cell):<{col_widths[i]}} │'
     print(row)
 
 def print_separator(col_widths):
     print('├' + '┼'.join('─' * (w + 2) for w in col_widths) + '┤')
 
-def print_footer(col_widths):
-    print('└' + '┴'.join('─' * (w + 2) for w in col_widths) + '┘')
+def print_footer(col_widths, star_bottom=False):
+    if star_bottom:
+        # Вместо левого нижнего угла ставим звездочку
+        print('*' + '┴'.join('─' * (w + 2) for w in col_widths) + '┘')
+    else:
+        print('└' + '┴'.join('─' * (w + 2) for w in col_widths) + '┘')
 
-def task1_report(driver_param=None, class_param=None):
+def task1_report(driver_param=None, class_param=None, star_bottom=False):
     conn = get_connection()
     cur = conn.cursor()
     
     sql = """
     SELECT 
-        водитель,
-        класс,
-        выручка,
-        количество_поездок
-    FROM v_report_data
-    WHERE (LOWER(водитель) LIKE LOWER(%s) OR %s IS NULL)
-      AND (LOWER(класс) LIKE LOWER(%s) OR %s IS NULL)
+        d.фамилия || ' ' || d.имя AS водитель,
+        a.класс,
+        COALESCE(SUM(p.стоимость), 0) AS выручка,
+        COUNT(p.код_поездки) AS количество_поездок
+    FROM ВОДИТЕЛИ d
+    CROSS JOIN АВТОМОБИЛИ a
+    LEFT JOIN ПОЕЗДКИ p ON p.водитель = d.код AND p.автомобиль = a.код
+    GROUP BY d.код, d.фамилия, d.имя, a.класс
     ORDER BY водитель, класс
     """
     
-    driver_pattern = f"%{driver_param}%" if driver_param else None
-    class_pattern = f"%{class_param}%" if class_param else None
-    
-    cur.execute(sql, (driver_pattern, driver_pattern, class_pattern, class_pattern))
+    cur.execute(sql)
     rows = cur.fetchall()
+    
+    # Фильтрация
+    if driver_param or class_param:
+        filtered = []
+        for driver, class_name, revenue, rides in rows:
+            if driver_param and driver_param.lower() not in driver.lower():
+                continue
+            if class_param and class_param.lower() not in class_name.lower():
+                continue
+            filtered.append((driver, class_name, revenue, rides))
+        rows = filtered
     
     print()
     print('=' * 70)
-    print('  ОТЧЁТ: ВЫРУЧКА ПО ВОДИТЕЛЯМ И КЛАССАМ АВТО')
+    if star_bottom:
+        print('  ОТЧЁТ: ВЫРУЧКА ПО ВОДИТЕЛЯМ И КЛАССАМ АВТО *')
+    else:
+        print('  ОТЧЁТ: ВЫРУЧКА ПО ВОДИТЕЛЯМ И КЛАССАМ АВТО')
     print('=' * 70)
     if driver_param:
         print(f'  Параметр: водитель = {driver_param}')
@@ -91,16 +113,16 @@ def task1_report(driver_param=None, class_param=None):
     
     col_widths = [4, 22, 12, 14, 8]
     headers = ['№', 'Водитель (x)', 'Класс (y)', 'Выручка (F)', 'Поездок']
+    alignments = ['r', 'l', 'l', 'r', 'r']
     
-    print_header(col_widths, headers)
+    print_header(col_widths, headers, alignments)
     
     current_driver = None
     driver_total = 0
     driver_count = 0
     grand_total = 0
     grand_count = 0
-    row_num = 1
-    first_in_group = True
+    global_row_num = 1
     
     for driver, class_name, revenue, rides in rows:
         revenue = float(revenue)
@@ -108,34 +130,34 @@ def task1_report(driver_param=None, class_param=None):
         
         if current_driver != driver:
             if current_driver is not None:
-                print_row(['', current_driver[:20], 'ИТОГ:', f'{driver_total:.2f}', str(driver_count)], col_widths)
+                print_row(['', current_driver[:20], 'ИТОГ:', f'{driver_total:.2f}', str(driver_count)], col_widths, alignments)
                 print_separator(col_widths)
-                row_num = 1
             
             current_driver = driver
             driver_total = 0
             driver_count = 0
-            first_in_group = True
         
-        driver_display = driver if first_in_group else ''
-        print_row([row_num if first_in_group else '', driver_display[:20], class_name, f'{revenue:.2f}', str(rides)], col_widths)
+        print_row([global_row_num, driver[:20], class_name, f'{revenue:.2f}', str(rides)], col_widths, alignments)
         
         driver_total += revenue
         driver_count += rides
         grand_total += revenue
         grand_count += rides
-        row_num += 1
-        first_in_group = False
+        global_row_num += 1
     
     if current_driver is not None:
-        print_row(['', current_driver[:20], 'ИТОГ:', f'{driver_total:.2f}', str(driver_count)], col_widths)
+        print_row(['', current_driver[:20], 'ИТОГ:', f'{driver_total:.2f}', str(driver_count)], col_widths, alignments)
         print_separator(col_widths)
     
-    print_row(['', 'ВСЕГО', '', f'{grand_total:.2f}', str(grand_count)], col_widths)
-    print_footer(col_widths)
+    print_row(['', 'ВСЕГО', '', f'{grand_total:.2f}', str(grand_count)], col_widths, alignments)
+    print_footer(col_widths, star_bottom)
     
     cur.close()
     conn.close()
+
+def task1_star_report(driver_param=None, class_param=None):
+    """Отчет со звездочкой вместо левого нижнего угла"""
+    task1_report(driver_param, class_param, star_bottom=True)
 
 def task2_pivot_table(class_param=None):
     conn = get_connection()
@@ -143,14 +165,18 @@ def task2_pivot_table(class_param=None):
     
     sql = """
     SELECT 
-        водитель,
-        класс,
-        выручка,
-        количество_поездок
-    FROM v_report_data
-    WHERE (LOWER(класс) LIKE LOWER(%s) OR %s IS NULL)
-    ORDER BY водитель, класс
+        d.фамилия || ' ' || d.имя AS водитель,
+        a.класс,
+        COALESCE(SUM(p.стоимость), 0) AS выручка,
+        COUNT(p.код_поездки) AS количество_поездок
+    FROM ВОДИТЕЛИ d
+    CROSS JOIN АВТОМОБИЛИ a
+    LEFT JOIN ПОЕЗДКИ p ON p.водитель = d.код AND p.автомобиль = a.код
+    WHERE (LOWER(a.класс) LIKE LOWER(%s) OR %s IS NULL)
+    GROUP BY d.код, d.фамилия, d.имя, a.класс
+    ORDER BY d.фамилия, d.имя, a.класс
     """
+    
     class_pattern = f"%{class_param}%" if class_param else None
     cur.execute(sql, (class_pattern, class_pattern))
     rows = cur.fetchall()
@@ -182,12 +208,13 @@ def task2_pivot_table(class_param=None):
         print(f'  Параметр: класс = {class_param}')
     print('-' * 70)
     
-    col_widths = [4, 22] + [10] * len(classes) + [10]
+    col_widths = [4, 22] + [12] * len(classes) + [12]
     headers = ['№', 'Водитель (x)'] + [c for c in classes] + ['Итого']
+    alignments = ['r', 'l'] + ['r'] * (len(classes) + 1)
     
     print()
     print("  [МАТРИЦА T: ВЫРУЧКА]")
-    print_header(col_widths, headers)
+    print_header(col_widths, headers, alignments)
     
     class_totals = defaultdict(float)
     
@@ -200,19 +227,19 @@ def task2_pivot_table(class_param=None):
             driver_total += val
             class_totals[class_name] += val
         row.append(f'{driver_total:.2f}')
-        print_row(row, col_widths)
+        print_row(row, col_widths, alignments)
     
     print_separator(col_widths)
     total_row = ['', 'ИТОГ по столбцам']
     for class_name in classes:
         total_row.append(f'{class_totals[class_name]:.2f}')
     total_row.append(f'{sum(class_totals.values()):.2f}')
-    print_row(total_row, col_widths)
+    print_row(total_row, col_widths, alignments)
     print_footer(col_widths)
     
     print()
     print("  [МАТРИЦА nT: КОЛИЧЕСТВО ПОЕЗДОК]")
-    print_header(col_widths, headers)
+    print_header(col_widths, headers, alignments)
     
     class_totals_nT = defaultdict(int)
     
@@ -225,14 +252,14 @@ def task2_pivot_table(class_param=None):
             driver_total += val
             class_totals_nT[class_name] += val
         row.append(f'{int(driver_total)}')
-        print_row(row, col_widths)
+        print_row(row, col_widths, alignments)
     
     print_separator(col_widths)
     total_row_nT = ['', 'ИТОГ по столбцам']
     for class_name in classes:
         total_row_nT.append(f'{int(class_totals_nT[class_name])}')
     total_row_nT.append(f'{int(sum(class_totals_nT.values()))}')
-    print_row(total_row_nT, col_widths)
+    print_row(total_row_nT, col_widths, alignments)
     print_footer(col_widths)
     
     cur.close()
@@ -298,13 +325,13 @@ def task4_chart(driver_param=None, force=False):
     if driver_param:
         sql = """
         SELECT 
-            А.класс,
-            COALESCE(SUM(П.стоимость), 0) as выручка
-        FROM ВОДИТЕЛИ В
-        CROSS JOIN АВТОМОБИЛИ А
-        LEFT JOIN ПОЕЗДКИ П ON П.водитель = В.код AND П.автомобиль = А.код
-        WHERE В.фамилия || ' ' || В.имя LIKE %s
-        GROUP BY А.класс
+            a.класс,
+            COALESCE(SUM(p.стоимость), 0) as выручка
+        FROM ВОДИТЕЛИ d
+        CROSS JOIN АВТОМОБИЛИ a
+        LEFT JOIN ПОЕЗДКИ p ON p.водитель = d.код AND p.автомобиль = a.код
+        WHERE d.фамилия || ' ' || d.имя LIKE %s
+        GROUP BY a.класс
         ORDER BY выручка DESC
         """
         cur.execute(sql, (f"%{driver_param}%",))
@@ -313,11 +340,11 @@ def task4_chart(driver_param=None, force=False):
     else:
         sql = """
         SELECT 
-            А.класс,
-            COALESCE(SUM(П.стоимость), 0) as выручка
-        FROM АВТОМОБИЛИ А
-        LEFT JOIN ПОЕЗДКИ П ON П.автомобиль = А.код
-        GROUP BY А.класс
+            a.класс,
+            COALESCE(SUM(p.стоимость), 0) as выручка
+        FROM АВТОМОБИЛИ a
+        LEFT JOIN ПОЕЗДКИ p ON p.автомобиль = a.код
+        GROUP BY a.класс
         ORDER BY выручка DESC
         """
         cur.execute(sql)
@@ -369,6 +396,7 @@ def show_help():
     print()
     print("Использование:")
     print("  python taxi_report.py task1 [водитель] [класс]")
+    print("  python taxi_report.py task1s [водитель] [класс]   - со звездочкой *")
     print("  python taxi_report.py task2 [класс]")
     print("  python taxi_report.py task3 [--force]")
     print("  python taxi_report.py task4 [водитель] [--force]")
@@ -376,13 +404,11 @@ def show_help():
     print()
     print("Примеры:")
     print("  python taxi_report.py task1")
-    print("  python taxi_report.py task1 Волков")
+    print("  python taxi_report.py task1s")
+    print("  python taxi_report.py task1s Волков")
     print("  python taxi_report.py task2")
-    print("  python taxi_report.py task2 бизнес")
-    print("  python taxi_report.py task3")
     print("  python taxi_report.py task3 --force")
     print("  python taxi_report.py task4 Волков")
-    print("  python taxi_report.py save-all --force")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -395,7 +421,11 @@ if __name__ == "__main__":
     if command == "task1":
         driver_param = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] not in ['--force'] else None
         class_param = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] not in ['--force'] else None
-        task1_report(driver_param, class_param)
+        task1_report(driver_param, class_param, star_bottom=False)
+    elif command == "task1s":
+        driver_param = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] not in ['--force'] else None
+        class_param = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3] not in ['--force'] else None
+        task1_report(driver_param, class_param, star_bottom=True)
     elif command == "task2":
         class_param = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] not in ['--force'] else None
         task2_pivot_table(class_param)
