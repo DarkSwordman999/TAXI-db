@@ -47,7 +47,7 @@ class TaxiApp:
         self.last_rows = []
         self.last_cols = []
         self.status_var = tk.StringVar(value="Готово")
-        self.filter_field_var = tk.StringVar(value="без фильтра")
+        self.filter_field_var = tk.StringVar(value="класс")
         self.filter_value_var = tk.StringVar(value="")
         self.limit_var = tk.StringVar(value="100")
         self.search_var = tk.StringVar(value="")
@@ -88,7 +88,6 @@ class TaxiApp:
         file_menu.add_command(label="Бэкап БД", command=self.backup_db)
         file_menu.add_separator()
         file_menu.add_command(label="Запустить SQL-файл", command=self.run_sql_file)
-        file_menu.add_command(label="SQL-скрипты проекта", command=self.sql_scripts_manager)
         file_menu.add_separator()
         file_menu.add_command(label="Выход", command=self.root.quit)
         menubar.add_cascade(label="Файл", menu=file_menu)
@@ -166,7 +165,6 @@ class TaxiApp:
             ("Экспорт всех таблиц", self.export_all_tables_csv),
             ("Бэкап", self.backup_db),
             ("SQL-файл", self.run_sql_file),
-            ("SQL-скрипты проекта", self.sql_scripts_manager),
         ])
 
         right = ttk.Frame(main)
@@ -178,38 +176,29 @@ class TaxiApp:
         ttk.Label(filters, text="Количество:").grid(row=0, column=0, sticky="w", padx=4, pady=3)
         ttk.Spinbox(filters, from_=1, to=5000, textvariable=self.limit_var, width=8).grid(row=0, column=1, sticky="w", padx=4, pady=3)
 
-        ttk.Label(filters, text="Фильтр поездок по полю:").grid(row=0, column=2, sticky="w", padx=4, pady=3)
+        ttk.Label(filters, text="Фильтр:").grid(row=0, column=2, sticky="w", padx=4, pady=3)
         self.filter_field_combo = ttk.Combobox(
             filters,
             textvariable=self.filter_field_var,
-            values=[
-                "без фильтра", "класс", "марка", "модель", "гос_номер",
-                "водитель", "клиент", "телефон", "дата",
-                "стоимость >=", "стоимость <=", "расстояние >=", "расстояние <=",
-                "время >=", "время <=",
-            ],
-            width=18,
+            values=["класс", "марка", "модель", "гос_номер", "водитель", "клиент", "телефон", "дата"],
+            width=16,
             state="readonly",
         )
         self.filter_field_combo.grid(row=0, column=3, sticky="w", padx=4, pady=3)
         self.filter_field_combo.bind("<<ComboboxSelected>>", lambda e: self.filter_value_var.set(""))
 
-        ttk.Label(filters, text="Значение:").grid(row=0, column=4, sticky="w", padx=4, pady=3)
-        self.filter_value_entry = ttk.Entry(filters, textvariable=self.filter_value_var, width=28)
-        self.filter_value_entry.grid(row=0, column=5, sticky="w", padx=4, pady=3)
-        self.filter_value_entry.bind("<Return>", lambda e: self.latest_rides())
+        self.filter_value_combo = ttk.Combobox(filters, textvariable=self.filter_value_var, width=28)
+        self.filter_value_combo.grid(row=0, column=4, sticky="w", padx=4, pady=3)
+        self.filter_value_combo.bind("<KeyRelease>", self.on_filter_typing)
 
-        ttk.Button(filters, text="Применить", command=self.latest_rides).grid(row=0, column=6, sticky="w", padx=4, pady=3)
-        ttk.Button(filters, text="Сбросить", command=self.clear_filters).grid(row=0, column=7, sticky="w", padx=4, pady=3)
+        ttk.Button(filters, text="Применить к поездкам", command=self.latest_rides).grid(row=0, column=5, sticky="w", padx=4, pady=3)
+        ttk.Button(filters, text="Очистить", command=self.clear_filters).grid(row=0, column=6, sticky="w", padx=4, pady=3)
 
-        hint = "Примеры: класс = эконом; дата = 2026-05-09; стоимость >= 500"
-        ttk.Label(filters, text=hint, foreground="#666").grid(row=1, column=2, columnspan=6, sticky="w", padx=4, pady=1)
-
-        ttk.Label(filters, text="Быстрый поиск:").grid(row=2, column=0, sticky="w", padx=4, pady=3)
+        ttk.Label(filters, text="Быстрый поиск:").grid(row=1, column=0, sticky="w", padx=4, pady=3)
         search_entry = ttk.Entry(filters, textvariable=self.search_var, width=32)
-        search_entry.grid(row=2, column=1, columnspan=2, sticky="w", padx=4, pady=3)
+        search_entry.grid(row=1, column=1, columnspan=2, sticky="w", padx=4, pady=3)
         search_entry.bind("<Return>", lambda e: self.quick_search())
-        ttk.Button(filters, text="Искать", command=self.quick_search).grid(row=2, column=3, sticky="w", padx=4, pady=3)
+        ttk.Button(filters, text="Искать", command=self.quick_search).grid(row=1, column=3, sticky="w", padx=4, pady=3)
 
         self.result = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=("Menlo", 11), state=tk.DISABLED)
         self.result.pack(fill=tk.BOTH, expand=True)
@@ -329,58 +318,39 @@ class TaxiApp:
             self.conn.rollback()
 
     def on_filter_typing(self, event=None):
-        """Оставлено для совместимости со старыми привязками. В новой версии подсказки не создают отдельное поле."""
-        return
+        field = self.filter_field_var.get()
+        text = self.filter_value_var.get().lower().strip()
+        values = self.autocomplete.get(field, [])
+        if not text:
+            self.filter_value_combo["values"] = values[:20]
+            return
+        matches = [v for v in values if text in str(v).lower()][:20]
+        self.filter_value_combo["values"] = matches
 
     def clear_filters(self):
-        self.filter_field_var.set("без фильтра")
         self.filter_value_var.set("")
         self.search_var.set("")
         self.latest_rides()
 
     def build_ride_filter(self):
-        field = self.filter_field_var.get().strip()
+        field = self.filter_field_var.get()
         value = self.filter_value_var.get().strip()
-        if field == "без фильтра" or not value:
+        if not value:
             return "", []
-
-        like_value = f"%{value}%"
-        text_mapping = {
-            "класс": ("a.класс ILIKE %s", [like_value]),
-            "марка": ("a.марка ILIKE %s", [like_value]),
-            "модель": ("a.модель ILIKE %s", [like_value]),
-            "гос_номер": ("a.гос_номер ILIKE %s", [like_value]),
-            "водитель": ("(v.фамилия ILIKE %s OR v.имя ILIKE %s OR (v.фамилия || ' ' || v.имя) ILIKE %s)", [like_value, like_value, like_value]),
-            "клиент": ("(k.фамилия ILIKE %s OR k.имя ILIKE %s OR (COALESCE(k.фамилия,'') || ' ' || k.имя) ILIKE %s)", [like_value, like_value, like_value]),
-            "телефон": ("(v.телефон ILIKE %s OR k.телефон ILIKE %s)", [like_value, like_value]),
+        mapping = {
+            "класс": "a.класс ILIKE %s",
+            "марка": "a.марка ILIKE %s",
+            "модель": "a.модель ILIKE %s",
+            "гос_номер": "a.гос_номер ILIKE %s",
+            "водитель": "(v.фамилия ILIKE %s OR v.имя ILIKE %s)",
+            "клиент": "(k.фамилия ILIKE %s OR k.имя ILIKE %s)",
+            "телефон": "(v.телефон ILIKE %s OR k.телефон ILIKE %s)",
+            "дата": "CAST(p.дата AS TEXT) ILIKE %s",
         }
-        if field in text_mapping:
-            cond, params = text_mapping[field]
-            return " AND " + cond, params
-
-        if field == "дата":
-            # Для даты можно вводить точную дату 2026-05-09 или часть даты/времени.
-            if len(value) == 10 and value[4] == "-" and value[7] == "-":
-                return " AND p.дата::date = %s", [value]
-            return " AND CAST(p.дата AS TEXT) ILIKE %s", [like_value]
-
-        numeric_mapping = {
-            "стоимость >=": ("p.стоимость >= %s", float),
-            "стоимость <=": ("p.стоимость <= %s", float),
-            "расстояние >=": ("p.расстояние_км >= %s", float),
-            "расстояние <=": ("p.расстояние_км <= %s", float),
-            "время >=": ("p.время_мин >= %s", int),
-            "время <=": ("p.время_мин <= %s", int),
-        }
-        if field in numeric_mapping:
-            cond, caster = numeric_mapping[field]
-            try:
-                return " AND " + cond, [caster(value.replace(",", "."))]
-            except Exception:
-                messagebox.showerror("Ошибка фильтра", f"Для фильтра '{field}' нужно ввести число.")
-                return " AND 1=0", []
-
-        return "", []
+        cond = mapping.get(field, "a.класс ILIKE %s")
+        if cond.count("%s") == 2:
+            return " AND " + cond, [f"%{value}%", f"%{value}%"]
+        return " AND " + cond, [f"%{value}%"]
 
     # ------------------------- просмотр и отчёты -------------------------
     def db_stats(self):
@@ -1387,265 +1357,6 @@ class TaxiApp:
             messagebox.showinfo("Бэкап", f"Бэкап создан: {filename}")
         except Exception as e:
             messagebox.showerror("Ошибка бэкапа", str(e))
-
-
-    # ------------------------------------------------------------------
-    # Работа с SQL-файлами проекта
-    # ------------------------------------------------------------------
-    def project_root(self):
-        """Корень проекта TAXI: файл GUI лежит в папке app, корень на уровень выше."""
-        return Path(__file__).resolve().parents[1]
-
-    def project_sql_directories(self):
-        """Папки проекта, где обычно лежат SQL-скрипты."""
-        return [
-            "schema",
-            "data",
-            "helper",
-            "queries",
-            "functions",
-            "generation",
-            "control",
-        ]
-
-    def find_project_sql_files(self):
-        """Находит все .sql файлы в основных папках проекта."""
-        root = self.project_root()
-        files = []
-        for folder in self.project_sql_directories():
-            base = root / folder
-            if base.exists():
-                files.extend(sorted(base.rglob("*.sql")))
-        return sorted(set(files), key=lambda p: str(p.relative_to(root)).lower())
-
-    def read_sql_text(self, path):
-        """Читает SQL-файл с учётом возможной кодировки."""
-        path = Path(path)
-        for enc in ("utf-8", "utf-8-sig", "cp1251"):
-            try:
-                return path.read_text(encoding=enc)
-            except UnicodeDecodeError:
-                continue
-        return path.read_text(encoding="utf-8", errors="replace")
-
-    def prepare_sql_with_params(self, sql_text, params_text=None):
-        """
-        Простая подстановка параметров для учебных SQL-файлов.
-        Поддерживает $1, $2, :param1, :param2.
-        """
-        if params_text is None:
-            needs_params = any(marker in sql_text for marker in ("$1", ":param1", ":1"))
-            if needs_params:
-                params_text = simpledialog.askstring(
-                    "Параметры SQL-файла",
-                    "Введите параметры через пробел. Например: эконом Иванов\nМожно оставить пустым:",
-                    parent=self.root,
-                )
-            else:
-                params_text = ""
-        params = [] if not params_text else params_text.split()
-        prepared = sql_text
-        for idx, value in enumerate(params, start=1):
-            safe = value.replace("'", "''")
-            quoted = f"'{safe}'"
-            prepared = prepared.replace(f"$${idx}", quoted)
-            prepared = prepared.replace(f"${idx}", quoted)
-            prepared = prepared.replace(f":param{idx}", quoted)
-            prepared = prepared.replace(f":{idx}", quoted)
-        return prepared
-
-    def run_project_sql_file(self, path, use_psql=False):
-        """Выполняет выбранный SQL-файл проекта и выводит результат в главное окно."""
-        path = Path(path)
-        if not path.exists():
-            messagebox.showerror("SQL-файл", f"Файл не найден:\n{path}")
-            return
-
-        if use_psql:
-            self.run_project_sql_file_psql(path)
-            return
-
-        try:
-            sql_text = self.read_sql_text(path)
-            sql_text = self.prepare_sql_with_params(sql_text)
-            title = f"SQL-файл проекта: {path.relative_to(self.project_root())}"
-            result = self.execute(sql_text, title=title, fetch=True)
-            self.display(result)
-            self.set_status(f"Выполнен SQL-файл: {path.name}")
-        except Exception as e:
-            messagebox.showerror("Ошибка SQL-файла", str(e))
-
-    def run_project_sql_file_psql(self, path):
-        """
-        Запуск SQL через psql. Это полезно для файлов, где есть psql-команды.
-        Результат выводится в главное окно приложения.
-        """
-        path = Path(path)
-        env = os.environ.copy()
-        if DB_CONFIG.get("password"):
-            env["PGPASSWORD"] = str(DB_CONFIG.get("password"))
-        cmd = [
-            "psql",
-            "-h", str(DB_CONFIG.get("host", "localhost")),
-            "-p", str(DB_CONFIG.get("port", 5432)),
-            "-U", str(DB_CONFIG.get("user", "")),
-            "-d", str(DB_CONFIG.get("dbname", "")),
-            "-f", str(path),
-        ]
-        try:
-            proc = subprocess.run(cmd, env=env, capture_output=True, text=True)
-            title = f"psql: {path.relative_to(self.project_root())}"
-            out = [title, "=" * len(title), ""]
-            if proc.stdout:
-                out.append(proc.stdout)
-            if proc.stderr:
-                out.append("\nСообщения/ошибки psql:\n" + proc.stderr)
-            out.append(f"\nКод завершения: {proc.returncode}")
-            self.display("\n".join(out))
-            self.set_status(f"psql выполнен: {path.name}")
-        except FileNotFoundError:
-            messagebox.showerror("psql", "Команда psql не найдена. Проверьте установку PostgreSQL и PATH.")
-        except Exception as e:
-            messagebox.showerror("Ошибка psql", str(e))
-
-    def run_sql_directory(self):
-        """Запускает все SQL-файлы из выбранной папки проекта по порядку."""
-        root = self.project_root()
-        directory = filedialog.askdirectory(initialdir=str(root), title="Выберите папку с SQL-файлами")
-        if not directory:
-            return
-        folder = Path(directory)
-        files = sorted(folder.rglob("*.sql"))
-        if not files:
-            messagebox.showinfo("SQL-папка", "В выбранной папке нет .sql файлов.")
-            return
-        ok = messagebox.askyesno(
-            "Запуск папки SQL",
-            f"Будет выполнено {len(files)} SQL-файлов из папки:\n{folder}\n\n"
-            "Внимание: среди них могут быть INSERT, UPDATE, DELETE или DROP. Продолжить?",
-        )
-        if not ok:
-            return
-
-        reports = []
-        for file in files:
-            try:
-                sql_text = self.read_sql_text(file)
-                sql_text = self.prepare_sql_with_params(sql_text, params_text="")
-                result = self.execute(sql_text, title=str(file.relative_to(root)), fetch=True)
-                reports.append(result)
-            except Exception as e:
-                reports.append(f"{file.relative_to(root)}\nОшибка: {e}\n")
-        self.display("\n\n".join(reports))
-        self.set_status(f"Выполнена папка SQL: {folder.name}")
-
-    def sql_scripts_manager(self):
-        """Окно навигации по SQL-скриптам проекта."""
-        root = self.project_root()
-        win = tk.Toplevel(self.root)
-        win.title("SQL-скрипты проекта TAXI")
-        win.geometry("1200x720")
-        win.transient(self.root)
-
-        top = ttk.Frame(win, padding=6)
-        top.pack(fill=tk.X)
-        ttk.Label(top, text="Поиск:").pack(side=tk.LEFT, padx=(0, 4))
-        search_var = tk.StringVar()
-        search_entry = ttk.Entry(top, textvariable=search_var, width=42)
-        search_entry.pack(side=tk.LEFT, padx=4)
-
-        body = ttk.PanedWindow(win, orient=tk.HORIZONTAL)
-        body.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
-
-        left = ttk.Frame(body)
-        right = ttk.Frame(body)
-        body.add(left, weight=1)
-        body.add(right, weight=2)
-
-        listbox = tk.Listbox(left, font=("Menlo", 10), exportselection=False)
-        list_scroll = ttk.Scrollbar(left, orient=tk.VERTICAL, command=listbox.yview)
-        listbox.configure(yscrollcommand=list_scroll.set)
-        listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        list_scroll.pack(side=tk.RIGHT, fill=tk.Y)
-
-        preview = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=("Menlo", 11))
-        preview.pack(fill=tk.BOTH, expand=True)
-
-        all_files = self.find_project_sql_files()
-        visible_files = []
-
-        def rel(path):
-            try:
-                return str(path.relative_to(root))
-            except Exception:
-                return str(path)
-
-        def refresh_list(*_):
-            query = search_var.get().strip().lower()
-            listbox.delete(0, tk.END)
-            visible_files.clear()
-            for file in all_files:
-                name = rel(file)
-                if not query or query in name.lower():
-                    visible_files.append(file)
-                    listbox.insert(tk.END, name)
-            if visible_files:
-                listbox.selection_set(0)
-                show_preview()
-            else:
-                preview.delete("1.0", tk.END)
-                preview.insert(tk.END, "SQL-файлы не найдены.")
-
-        def selected_file():
-            sel = listbox.curselection()
-            if not sel:
-                return None
-            return visible_files[sel[0]]
-
-        def show_preview(*_):
-            file = selected_file()
-            preview.config(state=tk.NORMAL)
-            preview.delete("1.0", tk.END)
-            if not file:
-                preview.insert(tk.END, "Выберите SQL-файл слева.")
-                return
-            try:
-                text = self.read_sql_text(file)
-                header = f"-- {rel(file)}\n-- Размер: {file.stat().st_size} байт\n\n"
-                preview.insert(tk.END, header + text)
-            except Exception as e:
-                preview.insert(tk.END, f"Ошибка чтения файла: {e}")
-
-        def run_selected_python():
-            file = selected_file()
-            if file:
-                self.run_project_sql_file(file, use_psql=False)
-
-        def run_selected_psql():
-            file = selected_file()
-            if file:
-                self.run_project_sql_file(file, use_psql=True)
-
-        def copy_path():
-            file = selected_file()
-            if file:
-                self.root.clipboard_clear()
-                self.root.clipboard_append(str(file))
-                self.set_status("Путь к SQL-файлу скопирован")
-
-        actions = ttk.Frame(win, padding=6)
-        actions.pack(fill=tk.X)
-        ttk.Button(actions, text="Выполнить выбранный SQL", command=run_selected_python).pack(side=tk.LEFT, padx=4)
-        ttk.Button(actions, text="Выполнить через psql", command=run_selected_psql).pack(side=tk.LEFT, padx=4)
-        ttk.Button(actions, text="Выполнить папку SQL", command=self.run_sql_directory).pack(side=tk.LEFT, padx=4)
-        ttk.Button(actions, text="Скопировать путь", command=copy_path).pack(side=tk.LEFT, padx=4)
-        ttk.Button(actions, text="Обновить список", command=refresh_list).pack(side=tk.LEFT, padx=4)
-        ttk.Button(actions, text="Закрыть", command=win.destroy).pack(side=tk.RIGHT, padx=4)
-
-        search_var.trace_add("write", refresh_list)
-        listbox.bind("<<ListboxSelect>>", show_preview)
-        search_entry.bind("<Return>", lambda e: refresh_list())
-        refresh_list()
 
     def run_sql_file(self):
         filename = filedialog.askopenfilename(filetypes=[("SQL files", "*.sql"), ("All files", "*.*")])
