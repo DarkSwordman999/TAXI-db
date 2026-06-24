@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+*.bak
+.DS_Store
+
+app/gui_old*.py
+app/gui_improved_old.py
+app/gui_before*.py
