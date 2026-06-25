@@ -31,9 +31,11 @@ if [ -z "$1" ]; then
     echo ""
     echo "================== ЛАБА 5 ПОКАЗАТЬ ДО/ПОСЛЕ =================="
     echo "  ./h 60 - ДО UPDATE"
-    echo "  ./h 61 - ПОСЛЕ UPDATE"
-    echo "  ./h 62 - ДО DELETE"
-    echo "  ./h 63 - ПОСЛЕ DELETE"
+    echo "  ./h 61 - ВЫПОЛНИТЬ UPDATE"
+    echo "  ./h 62 - ПОСЛЕ UPDATE"
+    echo "  ./h 63 - ДО DELETE"
+    echo "  ./h 64 - ВЫПОЛНИТЬ DELETE"
+    echo "  ./h 65 - ПОСЛЕ DELETE"
     echo ""
     echo "================== ЛАБА 5 АНАЛИТИКА =================="
     echo "  ./h 17 - топ-10 авто по выручке"
@@ -174,8 +176,10 @@ case "$1" in
     46) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./h 46 код рейтинг"; else psql -d "$DATABASE" -c "UPDATE ВОДИТЕЛИ SET рейтинг = $3 WHERE код = $2; SELECT * FROM ВОДИТЕЛИ WHERE код = $2;"; fi ;;
     60) psql -d "$DATABASE" -f helper/60_before_update.sql ;;
     61) psql -d "$DATABASE" -f helper/61_do_update.sql ;;
-    62) psql -d "$DATABASE" -f helper/63_before_delete.sql ;;
-    63) psql -d "$DATABASE" -f helper/65_after_delete.sql ;;
+    62) psql -d "$DATABASE" -f helper/62_after_update.sql ;;
+    63) psql -d "$DATABASE" -f helper/63_before_delete.sql ;;
+    64) psql -d "$DATABASE" -f helper/64_do_delete.sql ;;
+    65) psql -d "$DATABASE" -f helper/65_after_delete.sql ;;
     100) psql -d "$DATABASE" -f queries/views/01_create_rides_view.sql ;;
     101) psql -d "$DATABASE" -f queries/views/02_create_rides_tech.sql ;;
     102) psql -d "$DATABASE" -f queries/views/03_check_views.sql ;;

@@ -4,7 +4,7 @@ CREATE TABLE ПОЕЗДКИ (
     автомобиль INTEGER REFERENCES АВТОМОБИЛИ(код),
     водитель INTEGER REFERENCES ВОДИТЕЛИ(код),
     клиент INTEGER REFERENCES КЛИЕНТЫ(код),
-    расстояние_км DECIMAL(10,2) NOT NULL,
-    время_мин INTEGER NOT NULL,
-    стоимость DECIMAL(10,2) NOT NULL
+    расстояние_км DECIMAL(10,2) NOT NULL CHECK (расстояние_км > 0),
+    время_мин INTEGER NOT NULL CHECK (время_мин > 0),
+    стоимость DECIMAL(10,2) NOT NULL CHECK (стоимость >= 0)
 );

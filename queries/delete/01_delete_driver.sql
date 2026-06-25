@@ -3,8 +3,13 @@
 
 \echo '=== ДО DELETE ==='
 SELECT * FROM ВОДИТЕЛИ WHERE код = 30;
+SELECT COUNT(*) AS поездок_водителя FROM ПОЕЗДКИ WHERE водитель = 30;
 
+BEGIN;
+DELETE FROM ПОЕЗДКИ WHERE водитель = 30;
 DELETE FROM ВОДИТЕЛИ WHERE код = 30;
+COMMIT;
 
 \echo '=== ПОСЛЕ DELETE ==='
 SELECT * FROM ВОДИТЕЛИ WHERE код = 30;
+SELECT COUNT(*) AS поездок_водителя FROM ПОЕЗДКИ WHERE водитель = 30;

@@ -3,6 +3,10 @@ __pycache__/
 *.pyo
 *.bak
 .DS_Store
+.env
+*.csv
+*.dump
+*.backup
 
 app/gui_old*.py
 app/gui_improved_old.py
