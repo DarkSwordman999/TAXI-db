@@ -41,6 +41,8 @@ BEGIN
         В.рейтинг
     FROM ВОДИТЕЛИ В
     WHERE get_driver_revenue(В.код) >= p_min_revenue
-    ORDER BY выручка DESC;
+    -- по номеру колонки: имя "выручка" совпадает с OUT-параметром,
+    -- и PL/pgSQL подставил бы вместо него значение переменной (NULL)
+    ORDER BY 4 DESC;
 END;
 $$ LANGUAGE PLpgSQL;
