@@ -1,3 +1,13 @@
-.env
 __pycache__/
 *.pyc
+*.pyo
+*.bak
+.DS_Store
+.env
+*.csv
+*.dump
+*.backup
+
+app/gui_old*.py
+app/gui_improved_old.py
+app/gui_before*.py

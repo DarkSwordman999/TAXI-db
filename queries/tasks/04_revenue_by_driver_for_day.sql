@@ -9,6 +9,6 @@ SELECT
     SUM(ПОЕЗДКИ.стоимость) AS "Выручка"
 FROM ПОЕЗДКИ
 INNER JOIN ВОДИТЕЛИ ON ВОДИТЕЛИ.код = ПОЕЗДКИ.водитель
-WHERE EXTRACT(DOW FROM ПОЕЗДКИ.дата) = (:arg1 % 7)
-GROUP BY ВОДИТЕЛИ.фамилия, ВОДИТЕЛИ.имя
+WHERE EXTRACT(ISODOW FROM ПОЕЗДКИ.дата) = :arg1
+GROUP BY ВОДИТЕЛИ.код, ВОДИТЕЛИ.фамилия, ВОДИТЕЛИ.имя
 ORDER BY "Выручка" DESC;

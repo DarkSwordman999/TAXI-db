@@ -19,7 +19,7 @@ LATERAL (
     JOIN ПОЕЗДКИ П ON П.водитель = В.код
     JOIN АВТОМОБИЛИ А ON А.код = П.автомобиль
     WHERE А.класс = классы.класс
-    GROUP BY В.фамилия, В.имя
+    GROUP BY В.код, В.фамилия, В.имя
     ORDER BY выручка DESC
     LIMIT 3
 ) AS top
