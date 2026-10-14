@@ -19,10 +19,10 @@ DROP FUNCTION IF EXISTS random_date(DATE, DATE);
 DROP TABLE IF EXISTS ПОЕЗДКИ_АРХИВ;
 DROP TABLE IF EXISTS ПОЕЗДКИ;
 DROP TABLE IF EXISTS СЕЗОН;
-DROP TABLE IF EXISTS ТАРИФЫ;
 DROP TABLE IF EXISTS КЛИЕНТЫ;
 DROP TABLE IF EXISTS ВОДИТЕЛИ;
 DROP TABLE IF EXISTS АВТОМОБИЛИ;
+DROP TABLE IF EXISTS ТАРИФЫ;
 
 \echo '=== TAXI: создание таблиц ==='
 \ir ../schema/tables/01_create_cars.sql
@@ -34,11 +34,12 @@ DROP TABLE IF EXISTS АВТОМОБИЛИ;
 \ir ../schema/indexes/01_create_indexes.sql
 
 \echo '=== TAXI: загрузка справочников ==='
+-- тарифы раньше автомобилей: на них ссылается АВТОМОБИЛИ.класс
+\ir ../data/tariffs/01_insert_tariffs.sql
 \ir ../data/cars/01_insert_cars.sql
 \ir ../data/drivers/01_insert_drivers.sql
 \ir ../data/clients/01_insert_clients.sql
-\ir ../data/insert_200_clients_fixed.sql
-\ir ../data/tariffs/01_insert_tariffs.sql
+\ir ../data/insert_200_clients.sql
 \ir ../data/season/01_insert_season.sql
 
 \echo '=== TAXI: генерация поездок ==='
@@ -53,7 +54,7 @@ DROP TABLE IF EXISTS АВТОМОБИЛИ;
 \ir ../queries/views/02_create_rides_tech.sql
 \ir ../queries/lab7/01_create_functions_task1.sql
 \ir ../queries/lab7/02_create_functions_task2.sql
-\ir ../queries/lab7/03_create_functions_task3_fixed.sql
+\ir ../queries/lab7/03_create_functions_task3.sql
 
 \echo '=== TAXI: итоговые счетчики ==='
 SELECT 'АВТОМОБИЛИ' AS таблица, COUNT(*) AS строк FROM АВТОМОБИЛИ

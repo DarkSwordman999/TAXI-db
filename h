@@ -143,30 +143,30 @@ case "$1" in
     06) psql -d "$DATABASE" -c "SELECT код, фамилия, имя, телефон FROM КЛИЕНТЫ ORDER BY код;" ;;
     07) psql -d "$DATABASE" -c "SELECT П.код_поездки, А.марка, А.модель, В.фамилия, П.стоимость FROM ПОЕЗДКИ П INNER JOIN АВТОМОБИЛИ А ON П.автомобиль = А.код INNER JOIN ВОДИТЕЛИ В ON П.водитель = В.код LIMIT 10;" ;;
     08) psql -d "$DATABASE" -c "SELECT А.марка, А.модель, COUNT(П.код_поездки) as поездок FROM АВТОМОБИЛИ А LEFT JOIN ПОЕЗДКИ П ON А.код = П.автомобиль GROUP BY А.марка, А.модель ORDER BY поездок DESC LIMIT 10;" ;;
-    09) psql -d "$DATABASE" -c "SELECT К.фамилия, COUNT(П.код_поездки) as поездок FROM ПОЕЗДКИ П RIGHT JOIN КЛИЕНТЫ К ON П.клиент = К.код GROUP BY К.фамилия ORDER BY поездок DESC LIMIT 10;" ;;
+    09) psql -d "$DATABASE" -c "SELECT К.фамилия, COUNT(П.код_поездки) as поездок FROM ПОЕЗДКИ П RIGHT JOIN КЛИЕНТЫ К ON П.клиент = К.код GROUP BY К.код, К.фамилия ORDER BY поездок DESC LIMIT 10;" ;;
     10) psql -d "$DATABASE" -c "SELECT А.марка, К.фамилия FROM АВТОМОБИЛИ А FULL JOIN КЛИЕНТЫ К ON А.код = К.код LIMIT 10;" ;;
     11) psql -d "$DATABASE" -c "SELECT А.марка, В.фамилия FROM АВТОМОБИЛИ А CROSS JOIN ВОДИТЕЛИ В LIMIT 10;" ;;
     12) psql -d "$DATABASE" -c "SELECT В1.фамилия, В1.стаж_лет, В2.фамилия, В2.стаж_лет FROM ВОДИТЕЛИ В1, ВОДИТЕЛИ В2 WHERE В1.стаж_лет > В2.стаж_лет AND В1.код != В2.код LIMIT 10;" ;;
     16) psql -d "$DATABASE" -c "\d" ;;
     17) psql -d "$DATABASE" -c "SELECT А.марка, А.модель, SUM(П.стоимость) as выручка FROM ПОЕЗДКИ П JOIN АВТОМОБИЛИ А ON П.автомобиль = А.код GROUP BY А.марка, А.модель ORDER BY выручка DESC LIMIT 10;" ;;
-    18) psql -d "$DATABASE" -c "SELECT В.фамилия, В.имя, SUM(П.стоимость) as выручка FROM ПОЕЗДКИ П JOIN ВОДИТЕЛИ В ON П.водитель = В.код GROUP BY В.фамилия, В.имя ORDER BY выручка DESC LIMIT 10;" ;;
+    18) psql -d "$DATABASE" -c "SELECT В.фамилия, В.имя, SUM(П.стоимость) as выручка FROM ПОЕЗДКИ П JOIN ВОДИТЕЛИ В ON П.водитель = В.код GROUP BY В.код, В.фамилия, В.имя ORDER BY выручка DESC LIMIT 10;" ;;
     19) psql -d "$DATABASE" -c "SELECT EXTRACT(MONTH FROM дата) as месяц, SUM(стоимость) as выручка FROM ПОЕЗДКИ GROUP BY месяц ORDER BY месяц;" ;;
     20) psql -d "$DATABASE" -c "SELECT AVG(стоимость) as средний, MIN(стоимость) as мин, MAX(стоимость) as макс FROM ПОЕЗДКИ;" ;;
     21) psql -d "$DATABASE" -c "SELECT EXTRACT(HOUR FROM дата) as час, COUNT(*) as поездок, SUM(стоимость) as выручка FROM ПОЕЗДКИ GROUP BY час ORDER BY час;" ;;
     22) psql -d "$DATABASE" -c "SELECT А.класс, COUNT(*) as поездок, AVG(П.стоимость) as сред_чек FROM ПОЕЗДКИ П JOIN АВТОМОБИЛИ А ON П.автомобиль = А.код GROUP BY А.класс;" ;;
-    23) psql -d "$DATABASE" -c "SELECT В.фамилия, COUNT(П.код_поездки) as поездок FROM ВОДИТЕЛИ В JOIN ПОЕЗДКИ П ON В.код = П.водитель GROUP BY В.фамилия ORDER BY поездок DESC LIMIT 10;" ;;
+    23) psql -d "$DATABASE" -c "SELECT В.фамилия, COUNT(П.код_поездки) as поездок FROM ВОДИТЕЛИ В JOIN ПОЕЗДКИ П ON В.код = П.водитель GROUP BY В.код, В.фамилия ORDER BY поездок DESC LIMIT 10;" ;;
     24) psql -d "$DATABASE" -c "SELECT класс, AVG(цена_за_км) as цена_км FROM ТАРИФЫ GROUP BY класс;" ;;
-    25) psql -d "$DATABASE" -c "SELECT EXTRACT(DOW FROM дата) as день, SUM(стоимость) as выручка FROM ПОЕЗДКИ GROUP BY день ORDER BY день;" ;;
-    26) psql -d "$DATABASE" -c "SELECT К.фамилия, SUM(П.стоимость) as сумма FROM КЛИЕНТЫ К JOIN ПОЕЗДКИ П ON К.код = П.клиент GROUP BY К.фамилия ORDER BY сумма DESC LIMIT 5;" ;;
+    25) psql -d "$DATABASE" -c "SELECT EXTRACT(ISODOW FROM дата) as день, SUM(стоимость) as выручка FROM ПОЕЗДКИ GROUP BY день ORDER BY день;" ;;
+    26) psql -d "$DATABASE" -c "SELECT К.фамилия, SUM(П.стоимость) as сумма FROM КЛИЕНТЫ К JOIN ПОЕЗДКИ П ON К.код = П.клиент GROUP BY К.код, К.фамилия ORDER BY сумма DESC LIMIT 5;" ;;
     27) psql -d "$DATABASE" -c "SELECT А.класс, AVG(П.расстояние_км) as пробег FROM ПОЕЗДКИ П JOIN АВТОМОБИЛИ А ON П.автомобиль = А.код GROUP BY А.класс;" ;;
     28) psql -d "$DATABASE" -c "SELECT EXTRACT(HOUR FROM дата) as час, COUNT(*) as поездок, ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) as процент FROM ПОЕЗДКИ GROUP BY час ORDER BY час;" ;;
     29) psql -d "$DATABASE" -c "SELECT EXTRACT(HOUR FROM дата) as час, AVG(стоимость) as средний_чек FROM ПОЕЗДКИ GROUP BY час ORDER BY час;" ;;
-    30) psql -d "$DATABASE" -c "SELECT В.фамилия, В.рейтинг, SUM(П.стоимость) as выручка FROM ПОЕЗДКИ П JOIN ВОДИТЕЛИ В ON П.водитель = В.код GROUP BY В.фамилия, В.рейтинг ORDER BY выручка DESC LIMIT 10;" ;;
+    30) psql -d "$DATABASE" -c "SELECT В.фамилия, В.рейтинг, SUM(П.стоимость) as выручка FROM ПОЕЗДКИ П JOIN ВОДИТЕЛИ В ON П.водитель = В.код GROUP BY В.код, В.фамилия, В.рейтинг ORDER BY выручка DESC LIMIT 10;" ;;
     31) if [ -z "$2" ]; then echo "Укажите класс: ./h 31 бизнес"; else psql -d "$DATABASE" -c "SELECT * FROM АВТОМОБИЛИ WHERE класс = '$2';"; fi ;;
     32) if [ -z "$2" ]; then echo "Укажите код: ./h 32 1"; else psql -d "$DATABASE" -c "SELECT * FROM ВОДИТЕЛИ WHERE код = $2;"; fi ;;
     33) if [ -z "$2" ]; then echo "Укажите код: ./h 33 1"; else psql -d "$DATABASE" -c "SELECT * FROM ПОЕЗДКИ WHERE автомобиль = $2 ORDER BY дата DESC LIMIT 10;"; fi ;;
     34) if [ -z "$2" ]; then echo "Укажите сумму: ./h 34 500"; else psql -d "$DATABASE" -c "SELECT * FROM ПОЕЗДКИ WHERE стоимость > $2 ORDER BY стоимость DESC LIMIT 10;"; fi ;;
-    35) if [ -z "$2" ]; then echo "Укажите сумму: ./h 35 10000"; else psql -d "$DATABASE" -c "SELECT В.фамилия, SUM(П.стоимость) as выручка FROM ВОДИТЕЛИ В JOIN ПОЕЗДКИ П ON В.код = П.водитель GROUP BY В.фамилия HAVING SUM(П.стоимость) > $2 ORDER BY выручка DESC;"; fi ;;
+    35) if [ -z "$2" ]; then echo "Укажите сумму: ./h 35 10000"; else psql -d "$DATABASE" -c "SELECT В.фамилия, SUM(П.стоимость) as выручка FROM ВОДИТЕЛИ В JOIN ПОЕЗДКИ П ON В.код = П.водитель GROUP BY В.код, В.фамилия HAVING SUM(П.стоимость) > $2 ORDER BY выручка DESC;"; fi ;;
     40) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./h 40 код номер"; else psql -d "$DATABASE" -c "UPDATE АВТОМОБИЛИ SET гос_номер = '$3' WHERE код = $2; SELECT * FROM АВТОМОБИЛИ WHERE код = $2;"; fi ;;
     41) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./h 41 код телефон"; else psql -d "$DATABASE" -c "UPDATE ВОДИТЕЛИ SET телефон = '$3' WHERE код = $2; SELECT * FROM ВОДИТЕЛИ WHERE код = $2;"; fi ;;
     42) if [ -z "$2" ]; then echo "Использование: ./h 42 код"; else psql -d "$DATABASE" -c "DELETE FROM ПОЕЗДКИ WHERE водитель = $2; DELETE FROM ВОДИТЕЛИ WHERE код = $2;"; echo "Водитель удалён"; fi ;;
@@ -212,7 +212,7 @@ case "$1" in
         echo "============================================="
         psql -d "$DATABASE" -f queries/lab7/01_create_functions_task1.sql
         psql -d "$DATABASE" -f queries/lab7/02_create_functions_task2.sql
-        psql -d "$DATABASE" -f queries/lab7/03_create_functions_task3_fixed.sql
+        psql -d "$DATABASE" -f queries/lab7/03_create_functions_task3.sql
         echo " Все функции созданы"
         ;;
     201)

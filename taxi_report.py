@@ -330,11 +330,14 @@ def task4_chart(driver_param=None, force=False):
         FROM ВОДИТЕЛИ d
         CROSS JOIN АВТОМОБИЛИ a
         LEFT JOIN ПОЕЗДКИ p ON p.водитель = d.код AND p.автомобиль = a.код
-        WHERE d.фамилия || ' ' || d.имя LIKE %s
+        WHERE LOWER(d.фамилия) = LOWER(%s)
+           OR LOWER(d.фамилия || ' ' || d.имя) = LOWER(%s)
         GROUP BY a.класс
         ORDER BY выручка DESC
         """
-        cur.execute(sql, (f"%{driver_param}%",))
+        # точное совпадение: по подстроке "Волков" попал бы и "Волкова",
+        # и выручка двух водителей сложилась бы в одну диаграмму
+        cur.execute(sql, (driver_param, driver_param))
         filename = f'docs/task4_chart_{driver_param}.png'
         title = f'Распределение выручки по классам (водитель: {driver_param})'
     else:

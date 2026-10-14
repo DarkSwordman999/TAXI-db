@@ -32,17 +32,19 @@ RETURNS TABLE(
 ) AS $$
 BEGIN
     RETURN QUERY
-    SELECT 
-        В.код,
-        В.фамилия,
-        В.имя,
-        get_driver_revenue(В.код),
-        В.стаж_лет,
-        В.рейтинг
-    FROM ВОДИТЕЛИ В
-    WHERE get_driver_revenue(В.код) >= p_min_revenue
-    -- по номеру колонки: имя "выручка" совпадает с OUT-параметром,
-    -- и PL/pgSQL подставил бы вместо него значение переменной (NULL)
-    ORDER BY 4 DESC;
+    SELECT
+        Р.код,
+        Р.фамилия,
+        Р.имя,
+        Р.сумма,
+        Р.стаж_лет,
+        Р.рейтинг
+    FROM (
+        -- выручка считается один раз на водителя, а не в SELECT и WHERE отдельно
+        SELECT В.*, get_driver_revenue(В.код) AS сумма
+        FROM ВОДИТЕЛИ В
+    ) Р
+    WHERE Р.сумма >= p_min_revenue
+    ORDER BY Р.сумма DESC;
 END;
 $$ LANGUAGE PLpgSQL;
