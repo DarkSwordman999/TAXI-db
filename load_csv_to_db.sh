@@ -1,11 +1,17 @@
 #!/bin/bash
 
-# Параметры подключения к Render PostgreSQL
-DB_HOST="dpg-d7vjcc67r5hc73at1hbg-a.frankfurt-postgres.render.com"
-DB_PORT="5432"
-DB_NAME="taxi_lab5"
-DB_USER="taxis_user"
-DB_PASSWORD="i05JtXBqRwzNfmCqN7rLGTzREAoNTQCQ"
+# Параметры подключения к Render PostgreSQL — НЕ хранить в репозитории.
+# Задаются переменными окружения или в файле .env (он в .gitignore):
+#   DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD
+[ -f "$(dirname "$0")/.env" ] && set -a && . "$(dirname "$0")/.env" && set +a
+DB_PORT="${DB_PORT:-5432}"
+DB_NAME="${DB_NAME:-taxi_lab5}"
+for var in DB_HOST DB_USER DB_PASSWORD; do
+    if [ -z "${!var}" ]; then
+        echo "Ошибка: не задана переменная $var (окружение или .env)"
+        exit 1
+    fi
+done
 
 CSV_FILE="data/rides.csv"
 
