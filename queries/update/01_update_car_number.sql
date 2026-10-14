@@ -6,7 +6,7 @@ BEGIN;
 \echo '=== ДО UPDATE ==='
 SELECT * FROM АВТОМОБИЛИ WHERE код = 1;
 
-UPDATE АВТОМОБИЛИ SET гос_номер = 'A888AA' WHERE код = 1;
+UPDATE АВТОМОБИЛИ SET гос_номер = 'А888АА' WHERE код = 1;
 
 \echo '=== ПОСЛЕ UPDATE ==='
 SELECT * FROM АВТОМОБИЛИ WHERE код = 1;

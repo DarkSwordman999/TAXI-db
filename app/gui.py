@@ -1917,7 +1917,7 @@ class TaxiApp:
             ("task1", "Выручка по сезонам", lambda: self.run_h("task1", title="./help.sh task1 — выручка по сезонам")),
             ("task2", "Выручка по сезонам и классам авто", lambda: self.run_h("task2", title="./help.sh task2 — выручка по сезонам и классам")),
             ("task3", "Выручка по дням недели и водителям", lambda: self.run_h("task3", title="./help.sh task3 — дни недели и водители")),
-            ("task4", "Выручка по водителям за выбранный день", lambda: self.run_h_with_fields("task4", "./help.sh task4 — день", [("day", "День/дата", "2026-05-09")]))
+            ("task4", "Выручка по водителям за выбранный день", lambda: self.run_h_with_fields("task4", "./help.sh task4 — день", [("day", "День недели: 1 — пн ... 7 — вс", "1")]))
         ])
 
         self.add_command_section(body, "Просмотр данных", [
