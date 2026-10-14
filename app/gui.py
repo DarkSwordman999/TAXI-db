@@ -91,8 +91,8 @@ class TaxiApp:
         file_menu.add_command(label="Запустить SQL-файл", command=self.run_sql_file)
         file_menu.add_command(label="SQL-скрипты проекта", command=self.sql_scripts_manager)
         file_menu.add_separator()
-        file_menu.add_command(label="Команды ./h", command=self.h_commands_window)
-        file_menu.add_command(label="Команды ./PYTHON", command=self.python_commands_window)
+        file_menu.add_command(label="Команды ./help.sh", command=self.h_commands_window)
+        file_menu.add_command(label="Команды ./python_reports.sh", command=self.python_commands_window)
         file_menu.add_separator()
         file_menu.add_command(label="Выход", command=self.root.quit)
         menubar.add_cascade(label="Файл", menu=file_menu)
@@ -103,8 +103,8 @@ class TaxiApp:
         db_menu.add_command(label="Статистика БД", command=self.db_stats)
         db_menu.add_command(label="Создать pg_trgm", command=self.ensure_pg_trgm)
         db_menu.add_separator()
-        db_menu.add_command(label="Команды ./h", command=self.h_commands_window)
-        db_menu.add_command(label="Команды ./PYTHON", command=self.python_commands_window)
+        db_menu.add_command(label="Команды ./help.sh", command=self.h_commands_window)
+        db_menu.add_command(label="Команды ./python_reports.sh", command=self.python_commands_window)
         menubar.add_cascade(label="База данных", menu=db_menu)
 
         help_menu = tk.Menu(menubar, tearoff=0)
@@ -165,8 +165,8 @@ class TaxiApp:
             ("Проверка связей", self.data_quality_check),
         ])
         self.add_button_group(left, "Полное меню", [
-            ("Команды ./h", self.h_commands_window),
-            ("Команды ./PYTHON", self.python_commands_window),
+            ("Команды ./help.sh", self.h_commands_window),
+            ("Команды ./python_reports.sh", self.python_commands_window),
             ("SQL-скрипты проекта", self.sql_scripts_manager),
         ])
         self.add_button_group(left, "Администрирование", [
@@ -1806,9 +1806,9 @@ class TaxiApp:
         self.set_status("SQL-файл выполнен")
 
 
-    # ------------------------- полное покрытие ./h и ./PYTHON -------------------------
+    # ------------------------- полное покрытие ./help.sh и ./python_reports.sh -------------------------
     def run_shell_tool(self, tool_name, args=None, title=None, timeout=180):
-        """Запускает ./h или ./PYTHON из корня проекта и выводит результат в окно GUI."""
+        """Запускает ./help.sh или ./python_reports.sh из корня проекта и выводит результат в окно GUI."""
         args = [str(a) for a in (args or []) if str(a) != ""]
         root = self.project_root()
         tool_path = root / tool_name
@@ -1850,10 +1850,10 @@ class TaxiApp:
             self.set_status("Ошибка запуска команды")
 
     def run_h(self, *args, title=None):
-        self.run_shell_tool("h", list(args), title=title or "./h " + " ".join(map(str, args)))
+        self.run_shell_tool("help.sh", list(args), title=title or "./help.sh " + " ".join(map(str, args)))
 
     def run_python_lab(self, *args, title=None):
-        self.run_shell_tool("PYTHON", list(args), title=title or "./PYTHON " + " ".join(map(str, args)), timeout=240)
+        self.run_shell_tool("python_reports.sh", list(args), title=title or "./python_reports.sh " + " ".join(map(str, args)), timeout=240)
 
     def run_h_with_fields(self, command, title, fields):
         data = self.ask_fields(title, fields)
@@ -1863,12 +1863,12 @@ class TaxiApp:
         self.run_h(*args, title=title)
 
     def run_h_confirm_delete_driver(self):
-        data = self.ask_fields("./h 42 — удалить водителя", [("code", "Код водителя", "32")])
+        data = self.ask_fields("./help.sh 42 — удалить водителя", [("code", "Код водителя", "32")])
         if not data:
             return
-        if not messagebox.askyesno("Подтверждение", f"Удалить водителя с кодом {data['code']} через ./h 42?"):
+        if not messagebox.askyesno("Подтверждение", f"Удалить водителя с кодом {data['code']} через ./help.sh 42?"):
             return
-        self.run_h("42", data["code"], title="./h 42 — удалить водителя")
+        self.run_h("42", data["code"], title="./help.sh 42 — удалить водителя")
 
     def run_python_with_optional_fields(self, command, title, fields):
         data = self.ask_fields(title, fields)
@@ -1906,127 +1906,127 @@ class TaxiApp:
             ttk.Label(row, text=desc, wraplength=470, justify=tk.LEFT).pack(side=tk.LEFT, fill=tk.X, expand=True)
 
     def h_commands_window(self):
-        win, body = self.make_scrollable_window("Команды ./h — полное меню TAXI")
+        win, body = self.make_scrollable_window("Команды ./help.sh — полное меню TAXI")
         ttk.Label(
             body,
-            text="Здесь собраны команды из ./h. Простые команды запускаются сразу, параметрические открывают окно ввода.",
+            text="Здесь собраны команды из ./help.sh. Простые команды запускаются сразу, параметрические открывают окно ввода.",
             wraplength=680,
         ).pack(anchor="w", pady=(0, 8))
 
         self.add_command_section(body, "Лаба 5 — основные задачи", [
-            ("task1", "Выручка по сезонам", lambda: self.run_h("task1", title="./h task1 — выручка по сезонам")),
-            ("task2", "Выручка по сезонам и классам авто", lambda: self.run_h("task2", title="./h task2 — выручка по сезонам и классам")),
-            ("task3", "Выручка по дням недели и водителям", lambda: self.run_h("task3", title="./h task3 — дни недели и водители")),
-            ("task4", "Выручка по водителям за выбранный день", lambda: self.run_h_with_fields("task4", "./h task4 — день", [("day", "День/дата", "2026-05-09")]))
+            ("task1", "Выручка по сезонам", lambda: self.run_h("task1", title="./help.sh task1 — выручка по сезонам")),
+            ("task2", "Выручка по сезонам и классам авто", lambda: self.run_h("task2", title="./help.sh task2 — выручка по сезонам и классам")),
+            ("task3", "Выручка по дням недели и водителям", lambda: self.run_h("task3", title="./help.sh task3 — дни недели и водители")),
+            ("task4", "Выручка по водителям за выбранный день", lambda: self.run_h_with_fields("task4", "./help.sh task4 — день", [("day", "День/дата", "2026-05-09")]))
         ])
 
         self.add_command_section(body, "Просмотр данных", [
-            ("01", "Все автомобили", lambda: self.run_h("01", title="./h 01 — все автомобили")),
-            ("02", "Все водители", lambda: self.run_h("02", title="./h 02 — все водители")),
-            ("03", "Первые 10 клиентов", lambda: self.run_h("03", title="./h 03 — клиенты первые 10")),
-            ("04", "Количество поездок", lambda: self.run_h("04", title="./h 04 — количество поездок")),
-            ("05", "Примеры поездок", lambda: self.run_h("05", title="./h 05 — примеры поездок")),
-            ("06", "Полный список клиентов", lambda: self.run_h("06", title="./h 06 — все клиенты")),
-            ("16", "Структура таблиц", lambda: self.run_h("16", title="./h 16 — структура таблиц")),
+            ("01", "Все автомобили", lambda: self.run_h("01", title="./help.sh 01 — все автомобили")),
+            ("02", "Все водители", lambda: self.run_h("02", title="./help.sh 02 — все водители")),
+            ("03", "Первые 10 клиентов", lambda: self.run_h("03", title="./help.sh 03 — клиенты первые 10")),
+            ("04", "Количество поездок", lambda: self.run_h("04", title="./help.sh 04 — количество поездок")),
+            ("05", "Примеры поездок", lambda: self.run_h("05", title="./help.sh 05 — примеры поездок")),
+            ("06", "Полный список клиентов", lambda: self.run_h("06", title="./help.sh 06 — все клиенты")),
+            ("16", "Структура таблиц", lambda: self.run_h("16", title="./help.sh 16 — структура таблиц")),
         ])
 
         self.add_command_section(body, "JOIN", [
-            ("07", "INNER JOIN", lambda: self.run_h("07", title="./h 07 — INNER JOIN")),
-            ("08", "LEFT JOIN", lambda: self.run_h("08", title="./h 08 — LEFT JOIN")),
-            ("09", "RIGHT JOIN", lambda: self.run_h("09", title="./h 09 — RIGHT JOIN")),
-            ("10", "FULL JOIN", lambda: self.run_h("10", title="./h 10 — FULL JOIN")),
-            ("11", "CROSS JOIN", lambda: self.run_h("11", title="./h 11 — CROSS JOIN")),
-            ("12", "SELF JOIN", lambda: self.run_h("12", title="./h 12 — SELF JOIN")),
+            ("07", "INNER JOIN", lambda: self.run_h("07", title="./help.sh 07 — INNER JOIN")),
+            ("08", "LEFT JOIN", lambda: self.run_h("08", title="./help.sh 08 — LEFT JOIN")),
+            ("09", "RIGHT JOIN", lambda: self.run_h("09", title="./help.sh 09 — RIGHT JOIN")),
+            ("10", "FULL JOIN", lambda: self.run_h("10", title="./help.sh 10 — FULL JOIN")),
+            ("11", "CROSS JOIN", lambda: self.run_h("11", title="./help.sh 11 — CROSS JOIN")),
+            ("12", "SELF JOIN", lambda: self.run_h("12", title="./help.sh 12 — SELF JOIN")),
         ])
 
         self.add_command_section(body, "Показать до/после", [
-            ("60", "ДО UPDATE", lambda: self.run_h("60", title="./h 60 — до UPDATE")),
-            ("61", "ПОСЛЕ UPDATE", lambda: self.run_h("61", title="./h 61 — после UPDATE")),
-            ("62", "ДО DELETE", lambda: self.run_h("62", title="./h 62 — до DELETE")),
-            ("63", "ПОСЛЕ DELETE", lambda: self.run_h("63", title="./h 63 — после DELETE")),
+            ("60", "ДО UPDATE", lambda: self.run_h("60", title="./help.sh 60 — до UPDATE")),
+            ("61", "ПОСЛЕ UPDATE", lambda: self.run_h("61", title="./help.sh 61 — после UPDATE")),
+            ("62", "ДО DELETE", lambda: self.run_h("62", title="./help.sh 62 — до DELETE")),
+            ("63", "ПОСЛЕ DELETE", lambda: self.run_h("63", title="./help.sh 63 — после DELETE")),
         ])
 
         self.add_command_section(body, "Аналитика", [
-            ("17", "Топ-10 авто по выручке", lambda: self.run_h("17", title="./h 17 — топ авто")),
-            ("18", "Топ-10 водителей по выручке", lambda: self.run_h("18", title="./h 18 — топ водителей")),
-            ("19", "Выручка по месяцам", lambda: self.run_h("19", title="./h 19 — выручка по месяцам")),
-            ("20", "Средний чек", lambda: self.run_h("20", title="./h 20 — средний чек")),
-            ("21", "Поездки по часам", lambda: self.run_h("21", title="./h 21 — поездки по часам")),
-            ("22", "Статистика по классам", lambda: self.run_h("22", title="./h 22 — статистика по классам")),
-            ("23", "Загруженность водителей", lambda: self.run_h("23", title="./h 23 — загруженность водителей")),
-            ("24", "Средняя стоимость по классам", lambda: self.run_h("24", title="./h 24 — средняя стоимость")),
-            ("25", "Выручка по дням недели", lambda: self.run_h("25", title="./h 25 — дни недели")),
-            ("26", "Топ-5 клиентов", lambda: self.run_h("26", title="./h 26 — топ клиентов")),
-            ("27", "Средний пробег по классам", lambda: self.run_h("27", title="./h 27 — средний пробег")),
-            ("28", "Распределение поездок по часам", lambda: self.run_h("28", title="./h 28 — распределение по часам")),
-            ("29", "Средний чек по часам", lambda: self.run_h("29", title="./h 29 — средний чек по часам")),
-            ("30", "Выручка по водителям с рейтингом", lambda: self.run_h("30", title="./h 30 — выручка с рейтингом")),
+            ("17", "Топ-10 авто по выручке", lambda: self.run_h("17", title="./help.sh 17 — топ авто")),
+            ("18", "Топ-10 водителей по выручке", lambda: self.run_h("18", title="./help.sh 18 — топ водителей")),
+            ("19", "Выручка по месяцам", lambda: self.run_h("19", title="./help.sh 19 — выручка по месяцам")),
+            ("20", "Средний чек", lambda: self.run_h("20", title="./help.sh 20 — средний чек")),
+            ("21", "Поездки по часам", lambda: self.run_h("21", title="./help.sh 21 — поездки по часам")),
+            ("22", "Статистика по классам", lambda: self.run_h("22", title="./help.sh 22 — статистика по классам")),
+            ("23", "Загруженность водителей", lambda: self.run_h("23", title="./help.sh 23 — загруженность водителей")),
+            ("24", "Средняя стоимость по классам", lambda: self.run_h("24", title="./help.sh 24 — средняя стоимость")),
+            ("25", "Выручка по дням недели", lambda: self.run_h("25", title="./help.sh 25 — дни недели")),
+            ("26", "Топ-5 клиентов", lambda: self.run_h("26", title="./help.sh 26 — топ клиентов")),
+            ("27", "Средний пробег по классам", lambda: self.run_h("27", title="./help.sh 27 — средний пробег")),
+            ("28", "Распределение поездок по часам", lambda: self.run_h("28", title="./help.sh 28 — распределение по часам")),
+            ("29", "Средний чек по часам", lambda: self.run_h("29", title="./help.sh 29 — средний чек по часам")),
+            ("30", "Выручка по водителям с рейтингом", lambda: self.run_h("30", title="./help.sh 30 — выручка с рейтингом")),
         ])
 
         self.add_command_section(body, "Запросы с параметрами", [
-            ("31", "Авто по классу", lambda: self.run_h_with_fields("31", "./h 31 — авто по классу", [("cls", "Класс", "эконом")])) ,
-            ("32", "Информация о водителе", lambda: self.run_h_with_fields("32", "./h 32 — водитель", [("code", "Код водителя", "1")])) ,
-            ("33", "История поездок авто", lambda: self.run_h_with_fields("33", "./h 33 — история авто", [("code", "Код автомобиля", "1")])) ,
-            ("34", "Поездки дороже суммы", lambda: self.run_h_with_fields("34", "./h 34 — поездки дороже суммы", [("amount", "Сумма", "500")])) ,
-            ("35", "Водители с выручкой выше суммы", lambda: self.run_h_with_fields("35", "./h 35 — выручка выше суммы", [("amount", "Сумма", "10000")])) ,
-            ("40", "Обновить госномер авто", lambda: self.run_h_with_fields("40", "./h 40 — обновить госномер", [("code", "Код авто", "1"), ("number", "Новый номер", "А999АА")])) ,
-            ("41", "Обновить телефон водителя", lambda: self.run_h_with_fields("41", "./h 41 — телефон водителя", [("code", "Код водителя", "1"), ("phone", "Новый телефон", "+79000000001")])) ,
+            ("31", "Авто по классу", lambda: self.run_h_with_fields("31", "./help.sh 31 — авто по классу", [("cls", "Класс", "эконом")])) ,
+            ("32", "Информация о водителе", lambda: self.run_h_with_fields("32", "./help.sh 32 — водитель", [("code", "Код водителя", "1")])) ,
+            ("33", "История поездок авто", lambda: self.run_h_with_fields("33", "./help.sh 33 — история авто", [("code", "Код автомобиля", "1")])) ,
+            ("34", "Поездки дороже суммы", lambda: self.run_h_with_fields("34", "./help.sh 34 — поездки дороже суммы", [("amount", "Сумма", "500")])) ,
+            ("35", "Водители с выручкой выше суммы", lambda: self.run_h_with_fields("35", "./help.sh 35 — выручка выше суммы", [("amount", "Сумма", "10000")])) ,
+            ("40", "Обновить госномер авто", lambda: self.run_h_with_fields("40", "./help.sh 40 — обновить госномер", [("code", "Код авто", "1"), ("number", "Новый номер", "А999АА")])) ,
+            ("41", "Обновить телефон водителя", lambda: self.run_h_with_fields("41", "./help.sh 41 — телефон водителя", [("code", "Код водителя", "1"), ("phone", "Новый телефон", "+79000000001")])) ,
             ("42", "Удалить водителя", self.run_h_confirm_delete_driver),
-            ("43", "Добавить авто", lambda: self.run_h_with_fields("43", "./h 43 — добавить авто", [("brand", "Марка", "Hyundai"), ("model", "Модель", "Solaris"), ("cls", "Класс", "эконом")])) ,
-            ("44", "Добавить водителя", lambda: self.run_h_with_fields("44", "./h 44 — добавить водителя", [("surname", "Фамилия", "Иванов"), ("name", "Имя", "Иван"), ("phone", "Телефон", "+79009999999")])) ,
-            ("45", "Изменить класс авто", lambda: self.run_h_with_fields("45", "./h 45 — изменить класс", [("code", "Код авто", "1"), ("cls", "Новый класс", "комфорт")])) ,
-            ("46", "Изменить рейтинг водителя", lambda: self.run_h_with_fields("46", "./h 46 — рейтинг водителя", [("code", "Код водителя", "1"), ("rating", "Новый рейтинг", "4.95")])) ,
+            ("43", "Добавить авто", lambda: self.run_h_with_fields("43", "./help.sh 43 — добавить авто", [("brand", "Марка", "Hyundai"), ("model", "Модель", "Solaris"), ("cls", "Класс", "эконом")])) ,
+            ("44", "Добавить водителя", lambda: self.run_h_with_fields("44", "./help.sh 44 — добавить водителя", [("surname", "Фамилия", "Иванов"), ("name", "Имя", "Иван"), ("phone", "Телефон", "+79009999999")])) ,
+            ("45", "Изменить класс авто", lambda: self.run_h_with_fields("45", "./help.sh 45 — изменить класс", [("code", "Код авто", "1"), ("cls", "Новый класс", "комфорт")])) ,
+            ("46", "Изменить рейтинг водителя", lambda: self.run_h_with_fields("46", "./help.sh 46 — рейтинг водителя", [("code", "Код водителя", "1"), ("rating", "Новый рейтинг", "4.95")])) ,
         ])
 
         self.add_command_section(body, "Лаба 6 — представления и подзапросы", [
-            ("100", "Создать пользовательское представление", lambda: self.run_h("100", title="./h 100 — view")),
-            ("101", "Создать технологическое представление", lambda: self.run_h("101", title="./h 101 — tech view")),
-            ("102", "Проверить представления", lambda: self.run_h("102", title="./h 102 — check views")),
-            ("110", "Отклонение стоимости поездки", lambda: self.run_h("110", title="./h 110 — подзапрос 1.1")),
-            ("111", "Рейтинг автомобилей", lambda: self.run_h("111", title="./h 111 — рейтинг авто")),
-            ("112", "Поездки дороже среднего по классу", lambda: self.run_h("112", title="./h 112 — выше среднего")),
-            ("113", "Статистика по классам", lambda: self.run_h("113", title="./h 113 — статистика классов")),
-            ("114", "Топ-3 водителя в каждом классе", lambda: self.run_h("114", title="./h 114 — топ-3")),
-            ("115", "Поездки дороже среднего по водителю", lambda: self.run_h_with_fields("115", "./h 115 — водитель по фамилии", [("surname", "Фамилия", "Волков")])) ,
-            ("116", "Водители без дешёвых поездок", lambda: self.run_h("116", title="./h 116 — без дешёвых")),
-            ("117", "Лучшие водители", lambda: self.run_h("117", title="./h 117 — лучшие водители")),
-            ("118", "Добавить дорогие поездки для теста", lambda: self.run_h("118", title="./h 118 — контрольные дорогие поездки")),
-            ("199", "Выполнить все задачи лабораторной 6", lambda: self.run_h("199", title="./h 199 — вся лаба 6")),
+            ("100", "Создать пользовательское представление", lambda: self.run_h("100", title="./help.sh 100 — view")),
+            ("101", "Создать технологическое представление", lambda: self.run_h("101", title="./help.sh 101 — tech view")),
+            ("102", "Проверить представления", lambda: self.run_h("102", title="./help.sh 102 — check views")),
+            ("110", "Отклонение стоимости поездки", lambda: self.run_h("110", title="./help.sh 110 — подзапрос 1.1")),
+            ("111", "Рейтинг автомобилей", lambda: self.run_h("111", title="./help.sh 111 — рейтинг авто")),
+            ("112", "Поездки дороже среднего по классу", lambda: self.run_h("112", title="./help.sh 112 — выше среднего")),
+            ("113", "Статистика по классам", lambda: self.run_h("113", title="./help.sh 113 — статистика классов")),
+            ("114", "Топ-3 водителя в каждом классе", lambda: self.run_h("114", title="./help.sh 114 — топ-3")),
+            ("115", "Поездки дороже среднего по водителю", lambda: self.run_h_with_fields("115", "./help.sh 115 — водитель по фамилии", [("surname", "Фамилия", "Волков")])) ,
+            ("116", "Водители без дешёвых поездок", lambda: self.run_h("116", title="./help.sh 116 — без дешёвых")),
+            ("117", "Лучшие водители", lambda: self.run_h("117", title="./help.sh 117 — лучшие водители")),
+            ("118", "Добавить дорогие поездки для теста", lambda: self.run_h("118", title="./help.sh 118 — контрольные дорогие поездки")),
+            ("199", "Выполнить все задачи лабораторной 6", lambda: self.run_h("199", title="./help.sh 199 — вся лаба 6")),
         ])
 
         self.add_command_section(body, "Лаба 7 — функции", [
-            ("200", "Создать все функции", lambda: self.run_h("200", title="./h 200 — создать функции")),
-            ("201", "Водители с выручкой выше порога", lambda: self.run_h_with_fields("201", "./h 201 — порог", [("amount", "Порог", "10000")])) ,
-            ("202", "Выручка по классам и сезонам", lambda: self.run_h("202", title="./h 202 — классы и сезоны")),
-            ("203", "Сводная таблица водители × классы", lambda: self.run_h("203", title="./h 203 — сводная")),
-            ("204", "Выполнить всё по функциям", lambda: self.run_h("204", title="./h 204 — вся лаба 7")),
+            ("200", "Создать все функции", lambda: self.run_h("200", title="./help.sh 200 — создать функции")),
+            ("201", "Водители с выручкой выше порога", lambda: self.run_h_with_fields("201", "./help.sh 201 — порог", [("amount", "Порог", "10000")])) ,
+            ("202", "Выручка по классам и сезонам", lambda: self.run_h("202", title="./help.sh 202 — классы и сезоны")),
+            ("203", "Сводная таблица водители × классы", lambda: self.run_h("203", title="./help.sh 203 — сводная")),
+            ("204", "Выполнить всё по функциям", lambda: self.run_h("204", title="./help.sh 204 — вся лаба 7")),
         ])
 
     def python_commands_window(self):
-        win, body = self.make_scrollable_window("Команды ./PYTHON — лабораторная 8 TAXI", width=720, height=560)
+        win, body = self.make_scrollable_window("Команды ./python_reports.sh — лабораторная 8 TAXI", width=720, height=560)
         ttk.Label(
             body,
-            text="Эти кнопки запускают тот же файл ./PYTHON, но из графического интерфейса. Графики сохраняются в docs/ проекта.",
+            text="Эти кнопки запускают тот же файл ./python_reports.sh, но из графического интерфейса. Графики сохраняются в docs/ проекта.",
             wraplength=640,
         ).pack(anchor="w", pady=(0, 8))
 
         self.add_command_section(body, "Отчёты", [
-            ("PYTHON 1", "Отчёт по водителям и классам; водитель и класс необязательны", lambda: self.run_python_with_optional_fields("1", "./PYTHON 1", [("driver", "Водитель, можно пусто", ""), ("cls", "Класс, можно пусто", "")])) ,
-            ("PYTHON 1s", "Отчёт со звёздочкой * в углу", lambda: self.run_python_with_optional_fields("1s", "./PYTHON 1s", [("driver", "Водитель, можно пусто", ""), ("cls", "Класс, можно пусто", "")])) ,
-            ("PYTHON 2", "Сводная таблица; класс необязателен", lambda: self.run_python_with_optional_fields("2", "./PYTHON 2", [("cls", "Класс, можно пусто", "")])) ,
-            ("PYTHON 3", "График динамики", lambda: self.run_python_lab("3", title="./PYTHON 3 — график динамики")),
-            ("PYTHON 4", "Круговая диаграмма; водитель необязателен", lambda: self.run_python_with_optional_fields("4", "./PYTHON 4", [("driver", "Водитель, можно пусто", "")])) ,
+            ("python_reports.sh 1", "Отчёт по водителям и классам; водитель и класс необязательны", lambda: self.run_python_with_optional_fields("1", "./python_reports.sh 1", [("driver", "Водитель, можно пусто", ""), ("cls", "Класс, можно пусто", "")])) ,
+            ("python_reports.sh 1s", "Отчёт со звёздочкой * в углу", lambda: self.run_python_with_optional_fields("1s", "./python_reports.sh 1s", [("driver", "Водитель, можно пусто", ""), ("cls", "Класс, можно пусто", "")])) ,
+            ("python_reports.sh 2", "Сводная таблица; класс необязателен", lambda: self.run_python_with_optional_fields("2", "./python_reports.sh 2", [("cls", "Класс, можно пусто", "")])) ,
+            ("python_reports.sh 3", "График динамики", lambda: self.run_python_lab("3", title="./python_reports.sh 3 — график динамики")),
+            ("python_reports.sh 4", "Круговая диаграмма; водитель необязателен", lambda: self.run_python_with_optional_fields("4", "./python_reports.sh 4", [("driver", "Водитель, можно пусто", "")])) ,
         ])
 
         self.add_command_section(body, "Пакетный запуск и сохранение", [
-            ("PYTHON all", "Выполнить всё", lambda: self.run_python_lab("all", title="./PYTHON all")),
-            ("PYTHON save", "Сохранить все графики", lambda: self.run_python_lab("save", title="./PYTHON save")),
-            ("PYTHON save --force", "Сохранить все графики с перезаписью", lambda: self.run_python_lab("save", "--force", title="./PYTHON save --force")),
+            ("python_reports.sh all", "Выполнить всё", lambda: self.run_python_lab("all", title="./python_reports.sh all")),
+            ("python_reports.sh save", "Сохранить все графики", lambda: self.run_python_lab("save", title="./python_reports.sh save")),
+            ("python_reports.sh save --force", "Сохранить все графики с перезаписью", lambda: self.run_python_lab("save", "--force", title="./python_reports.sh save --force")),
         ])
 
         self.add_command_section(body, "Дополнительно", [
             ("Открыть docs", "Показать папку docs в Finder", self.open_docs_folder),
-            ("Показать меню PYTHON", "Запустить ./PYTHON без параметров", lambda: self.run_python_lab(title="./PYTHON — меню")),
+            ("Показать меню python_reports.sh", "Запустить ./python_reports.sh без параметров", lambda: self.run_python_lab(title="./python_reports.sh — меню")),
         ])
 
     def open_docs_folder(self):

@@ -2,8 +2,8 @@
 DATABASE="taxi_lab5"
 
 if [ -z "$1" ]; then
-    echo "Использование: ./h1 файл.sql [параметр]"
-    echo "Пример: ./h1 queries/subqueries/06_rides_above_avg_param.sql Иванов"
+    echo "Использование: ./run_sql.sh файл.sql [параметр]"
+    echo "Пример: ./run_sql.sh queries/subqueries/06_rides_above_avg_param.sql Иванов"
     exit 1
 fi
 
