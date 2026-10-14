@@ -1,6 +1,7 @@
 #!/bin/bash
 
-cd "$HOME/Desktop/DATA_BASE/TAXI/app" || exit 1
+# папка app рядом со скриптом: проект можно положить куда угодно
+cd "$(dirname "$0")/app" || exit 1
 
 if [ ! -f "gui.py" ]; then
     echo "Не найден app/gui.py"

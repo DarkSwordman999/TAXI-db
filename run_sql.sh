@@ -1,5 +1,7 @@
 #!/bin/bash
-DATABASE="taxi_lab5"
+# настройки подключения: переменные PG* из окружения или из .env в корне проекта
+[ -f "$(dirname "$0")/.env" ] && set -a && . "$(dirname "$0")/.env" && set +a
+DATABASE="${PGDATABASE:-taxi_lab5}"
 
 if [ -z "$1" ]; then
     echo "Использование: ./run_sql.sh файл.sql [параметр]"

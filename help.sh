@@ -1,5 +1,8 @@
 #!/bin/bash
-DATABASE="taxi_lab5"
+cd "$(dirname "$0")" || exit 1
+# настройки подключения: переменные PG* из окружения или из .env в корне проекта
+[ -f .env ] && set -a && . .env && set +a
+DATABASE="${PGDATABASE:-taxi_lab5}"
 
 if [ -z "$1" ]; then
     echo "============================================="

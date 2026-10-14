@@ -3,8 +3,8 @@
 
 """
 GUI для базы данных TAXI.
-Положить файл в: ~/Desktop/DATA_BASE/TAXI/app/gui.py
-Запускать из папки app: python3 gui.py
+Запуск из корня проекта: ./run_app.sh (или python3 app/gui.py).
+Настройки подключения — app/scripts/db_config.py.
 """
 
 import csv
@@ -22,16 +22,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import psycopg2
 from psycopg2 import sql as psql
 
-try:
-    from scripts.db_config import DB_CONFIG
-except Exception:
-    DB_CONFIG = {
-        "host": "localhost",
-        "port": 5432,
-        "user": "uliavladimirovna",
-        "password": "",
-        "dbname": "taxi_lab5",
-    }
+from scripts.db_config import DB_CONFIG
 
 
 class TaxiApp:

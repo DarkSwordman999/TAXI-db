@@ -9,12 +9,9 @@ import matplotlib.pyplot as plt
 from collections import defaultdict
 import os
 
-DB_CONFIG = {
-    'dbname': 'taxi_lab5',
-    'user': 'uliavladimirovna',
-    'password': '',
-    'host': 'localhost'
-}
+# настройки подключения общие с GUI: app/scripts/db_config.py
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app'))
+from scripts.db_config import DB_CONFIG
 
 os.makedirs('docs', exist_ok=True)
 
