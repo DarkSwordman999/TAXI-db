@@ -1,6 +1,6 @@
 -- Полная пересборка базы TAXI: схема, справочники, представления и функции.
 -- Поездки загружает parser/load_rides.py; обе части вместе запускает setup/rebuild.sh.
--- Запуск только схемы: psql -d taxi_lab5 -f setup/rebuild_database.sql
+-- Запуск только схемы: psql -d taxi -f setup/rebuild_database.sql
 
 \echo '=== TAXI: очистка старых объектов ==='
 DROP VIEW IF EXISTS v_rides_tech;
@@ -20,7 +20,7 @@ DROP FUNCTION IF EXISTS get_driver_revenue_by_client(INT, VARCHAR);
 DROP FUNCTION IF EXISTS get_driver_revenue(INT);
 DROP FUNCTION IF EXISTS random_date(DATE, DATE);
 
--- включая таблицы прежней учебной схемы (АВТОМОБИЛИ, ТАРИФЫ)
+-- включая таблицы прежней схемы (АВТОМОБИЛИ, ТАРИФЫ)
 DROP TABLE IF EXISTS ПОЕЗДКИ_АРХИВ;
 DROP TABLE IF EXISTS ПОЕЗДКИ;
 DROP TABLE IF EXISTS СЕЗОН;
@@ -47,8 +47,8 @@ DROP TABLE IF EXISTS РАЙОНЫ;
 \echo '=== TAXI: создание представлений и функций ==='
 \ir ../queries/views/01_create_rides_view.sql
 \ir ../queries/views/02_create_rides_tech.sql
-\ir ../queries/lab7/01_create_functions_task1.sql
-\ir ../queries/lab7/02_create_functions_task2.sql
-\ir ../queries/lab7/03_create_functions_task3.sql
+\ir ../queries/functions/01_create_functions_task1.sql
+\ir ../queries/functions/02_create_functions_task2.sql
+\ir ../queries/functions/03_create_functions_task3.sql
 
 \echo '=== TAXI: схема готова, поездки загружает parser/load_rides.py ==='

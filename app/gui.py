@@ -1564,7 +1564,7 @@ class TaxiApp:
 
     def prepare_sql_with_params(self, sql_text, params_text=None):
         """
-        Простая подстановка параметров для учебных SQL-файлов.
+        Простая подстановка параметров для SQL-файлов проекта.
         Поддерживает $1, $2, :param1, :param2.
         """
         if params_text is None:
@@ -1843,7 +1843,7 @@ class TaxiApp:
     def run_h(self, *args, title=None):
         self.run_shell_tool("help.sh", list(args), title=title or "./help.sh " + " ".join(map(str, args)))
 
-    def run_python_lab(self, *args, title=None):
+    def run_python_report(self, *args, title=None):
         self.run_shell_tool("python_reports.sh", list(args), title=title or "./python_reports.sh " + " ".join(map(str, args)), timeout=240)
 
     def run_h_with_fields(self, command, title, fields):
@@ -1867,7 +1867,7 @@ class TaxiApp:
             return
         values = [data[key] for key, _, _ in fields]
         args = [command] + [v for v in values if v]
-        self.run_python_lab(*args, title=title)
+        self.run_python_report(*args, title=title)
 
     def make_scrollable_window(self, title, width=760, height=720):
         win = tk.Toplevel(self.root)
@@ -1904,7 +1904,7 @@ class TaxiApp:
             wraplength=680,
         ).pack(anchor="w", pady=(0, 8))
 
-        self.add_command_section(body, "Лаба 5 — основные задачи", [
+        self.add_command_section(body, "Основные задачи", [
             ("task1", "Выручка по сезонам", lambda: self.run_h("task1", title="./help.sh task1 — выручка по сезонам")),
             ("task2", "Выручка по сезонам и классам авто", lambda: self.run_h("task2", title="./help.sh task2 — выручка по сезонам и классам")),
             ("task3", "Выручка по дням недели и водителям", lambda: self.run_h("task3", title="./help.sh task3 — дни недели и водители")),
@@ -1969,7 +1969,7 @@ class TaxiApp:
             ("46", "Изменить рейтинг водителя", lambda: self.run_h_with_fields("46", "./help.sh 46 — рейтинг водителя", [("code", "Код водителя", "1"), ("rating", "Новый рейтинг", "4.95")])) ,
         ])
 
-        self.add_command_section(body, "Лаба 6 — представления и подзапросы", [
+        self.add_command_section(body, "Представления и подзапросы", [
             ("100", "Создать пользовательское представление", lambda: self.run_h("100", title="./help.sh 100 — view")),
             ("101", "Создать технологическое представление", lambda: self.run_h("101", title="./help.sh 101 — tech view")),
             ("102", "Проверить представления", lambda: self.run_h("102", title="./help.sh 102 — check views")),
@@ -1982,19 +1982,19 @@ class TaxiApp:
             ("116", "Водители без дешёвых поездок", lambda: self.run_h("116", title="./help.sh 116 — без дешёвых")),
             ("117", "Лучшие водители", lambda: self.run_h("117", title="./help.sh 117 — лучшие водители")),
             ("118", "Добавить дорогие поездки для теста", lambda: self.run_h("118", title="./help.sh 118 — контрольные дорогие поездки")),
-            ("199", "Выполнить все задачи лабораторной 6", lambda: self.run_h("199", title="./help.sh 199 — вся лаба 6")),
+            ("199", "Выполнить все запросы с подзапросами", lambda: self.run_h("199", title="./help.sh 199 — все подзапросы")),
         ])
 
-        self.add_command_section(body, "Лаба 7 — функции", [
+        self.add_command_section(body, "Функции", [
             ("200", "Создать все функции", lambda: self.run_h("200", title="./help.sh 200 — создать функции")),
             ("201", "Водители с выручкой выше порога", lambda: self.run_h_with_fields("201", "./help.sh 201 — порог", [("amount", "Порог", "10000")])) ,
             ("202", "Выручка по классам и сезонам", lambda: self.run_h("202", title="./help.sh 202 — классы и сезоны")),
             ("203", "Сводная таблица водители × классы", lambda: self.run_h("203", title="./help.sh 203 — сводная")),
-            ("204", "Выполнить всё по функциям", lambda: self.run_h("204", title="./help.sh 204 — вся лаба 7")),
+            ("204", "Выполнить всё по функциям", lambda: self.run_h("204", title="./help.sh 204 — все функции")),
         ])
 
     def python_commands_window(self):
-        win, body = self.make_scrollable_window("Команды ./python_reports.sh — лабораторная 8 TAXI", width=720, height=560)
+        win, body = self.make_scrollable_window("Команды ./python_reports.sh — отчёты TAXI", width=720, height=560)
         ttk.Label(
             body,
             text="Эти кнопки запускают тот же файл ./python_reports.sh, но из графического интерфейса. Графики сохраняются в docs/ проекта.",
@@ -2005,19 +2005,19 @@ class TaxiApp:
             ("python_reports.sh 1", "Отчёт по водителям и классам; водитель и класс необязательны", lambda: self.run_python_with_optional_fields("1", "./python_reports.sh 1", [("driver", "Водитель, можно пусто", ""), ("cls", "Класс, можно пусто", "")])) ,
             ("python_reports.sh 1s", "Отчёт со звёздочкой * в углу", lambda: self.run_python_with_optional_fields("1s", "./python_reports.sh 1s", [("driver", "Водитель, можно пусто", ""), ("cls", "Класс, можно пусто", "")])) ,
             ("python_reports.sh 2", "Сводная таблица; класс необязателен", lambda: self.run_python_with_optional_fields("2", "./python_reports.sh 2", [("cls", "Класс, можно пусто", "")])) ,
-            ("python_reports.sh 3", "График динамики", lambda: self.run_python_lab("3", title="./python_reports.sh 3 — график динамики")),
+            ("python_reports.sh 3", "График динамики", lambda: self.run_python_report("3", title="./python_reports.sh 3 — график динамики")),
             ("python_reports.sh 4", "Круговая диаграмма; водитель необязателен", lambda: self.run_python_with_optional_fields("4", "./python_reports.sh 4", [("driver", "Водитель, можно пусто", "")])) ,
         ])
 
         self.add_command_section(body, "Пакетный запуск и сохранение", [
-            ("python_reports.sh all", "Выполнить всё", lambda: self.run_python_lab("all", title="./python_reports.sh all")),
-            ("python_reports.sh save", "Сохранить все графики", lambda: self.run_python_lab("save", title="./python_reports.sh save")),
-            ("python_reports.sh save --force", "Сохранить все графики с перезаписью", lambda: self.run_python_lab("save", "--force", title="./python_reports.sh save --force")),
+            ("python_reports.sh all", "Выполнить всё", lambda: self.run_python_report("all", title="./python_reports.sh all")),
+            ("python_reports.sh save", "Сохранить все графики", lambda: self.run_python_report("save", title="./python_reports.sh save")),
+            ("python_reports.sh save --force", "Сохранить все графики с перезаписью", lambda: self.run_python_report("save", "--force", title="./python_reports.sh save --force")),
         ])
 
         self.add_command_section(body, "Дополнительно", [
             ("Открыть docs", "Показать папку docs в Finder", self.open_docs_folder),
-            ("Показать меню python_reports.sh", "Запустить ./python_reports.sh без параметров", lambda: self.run_python_lab(title="./python_reports.sh — меню")),
+            ("Показать меню python_reports.sh", "Запустить ./python_reports.sh без параметров", lambda: self.run_python_report(title="./python_reports.sh — меню")),
         ])
 
     def open_docs_folder(self):

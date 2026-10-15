@@ -1,5 +1,5 @@
 -- Быстрое переименование таксопарка
--- Использование: psql -d taxi_lab5 -v company_id=1 -v new_name='Новое название' -f helper/22_quick_update.sql
+-- Использование: psql -d taxi -v company_id=1 -v new_name='Новое название' -f helper/22_quick_update.sql
 
 BEGIN;
 

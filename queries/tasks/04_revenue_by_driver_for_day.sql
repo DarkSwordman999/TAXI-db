@@ -1,5 +1,5 @@
 -- ЗАДАЧА 4: Распределение объема выручки по водителям для дня недели, заданного параметром
--- Использование: psql -d taxi_lab5 -v arg1=1 -f queries/tasks/04_revenue_by_driver_for_day.sql
+-- Использование: psql -d taxi -v arg1=1 -f queries/tasks/04_revenue_by_driver_for_day.sql
 -- где arg1 = 1 (понедельник), 2 (вторник), ..., 7 (воскресенье)
 
 \echo '=== ВЫРУЧКА ПО ВОДИТЕЛЯМ ДЛЯ ДНЯ НЕДЕЛИ :arg1 (топ-20) ==='
