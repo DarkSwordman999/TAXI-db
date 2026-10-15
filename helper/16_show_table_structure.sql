@@ -1,23 +1,7 @@
-\echo '=== TABLE CARS ==='
-SELECT column_name, data_type, character_maximum_length, is_nullable, column_default
+-- Структура всех таблиц базы
+SELECT table_name AS таблица, column_name AS колонка, data_type AS тип,
+       character_maximum_length AS длина, is_nullable AS null_допустим, column_default AS по_умолчанию
 FROM information_schema.columns 
-WHERE table_name ILIKE '%АВТОМОБИЛИ%'
-ORDER BY ordinal_position;
-
-\echo '=== TABLE DRIVERS ==='
-SELECT column_name, data_type, character_maximum_length, is_nullable, column_default
-FROM information_schema.columns 
-WHERE table_name ILIKE '%ВОДИТЕЛИ%'
-ORDER BY ordinal_position;
-
-\echo '=== TABLE RIDES ==='
-SELECT column_name, data_type, character_maximum_length, is_nullable, column_default
-FROM information_schema.columns 
-WHERE table_name ILIKE '%ПОЕЗДКИ%'
-ORDER BY ordinal_position;
-
-\echo '=== TABLE CLIENTS ==='
-SELECT column_name, data_type, character_maximum_length, is_nullable, column_default
-FROM information_schema.columns 
-WHERE table_name ILIKE '%КЛИЕНТЫ%'
-ORDER BY ordinal_position;
+WHERE table_schema = 'public'
+  AND table_name IN ('ТАКСОПАРКИ', 'ВОДИТЕЛИ', 'КЛИЕНТЫ', 'РАЙОНЫ', 'ПОЕЗДКИ', 'СЕЗОН')
+ORDER BY table_name, ordinal_position;

@@ -1,5 +1,5 @@
 -- Состояние ДО UPDATE
 \echo '=== СОСТОЯНИЕ ДО UPDATE ==='
-SELECT 'АВТОМОБИЛИ (код=1)' as Объект, гос_номер as Значение FROM АВТОМОБИЛИ WHERE код = 1
+SELECT 'ТАКСОПАРКИ (код=1)' as Объект, название as Значение FROM ТАКСОПАРКИ WHERE код = 1
 UNION ALL
-SELECT 'ВОДИТЕЛИ (код=1)', телефон FROM ВОДИТЕЛИ WHERE код = 1;
+SELECT 'КЛИЕНТЫ (тип Unknown)', описание FROM КЛИЕНТЫ WHERE тип = 'Unknown';

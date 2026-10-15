@@ -4,14 +4,14 @@
 BEGIN;
 
 \echo '=== ДО DELETE ==='
-SELECT код, фамилия, имя FROM ВОДИТЕЛИ WHERE код = :driver_id;
+SELECT код, taxi_id FROM ВОДИТЕЛИ WHERE код = :driver_id;
 SELECT COUNT(*) AS поездок_водителя FROM ПОЕЗДКИ WHERE водитель = :driver_id;
 
 DELETE FROM ПОЕЗДКИ WHERE водитель = :driver_id;
 DELETE FROM ВОДИТЕЛИ WHERE код = :driver_id;
 
 \echo '=== ПОСЛЕ DELETE ==='
-SELECT код, фамилия, имя FROM ВОДИТЕЛИ WHERE код = :driver_id;
+SELECT код, taxi_id FROM ВОДИТЕЛИ WHERE код = :driver_id;
 SELECT COUNT(*) AS поездок_водителя FROM ПОЕЗДКИ WHERE водитель = :driver_id;
 
 -- Демонстрация: изменения откатываются, чтобы повторный запуск

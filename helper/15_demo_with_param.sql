@@ -1,8 +1,10 @@
--- ЗАПРОС С ПАРАМЕТРОМ (arg1)
--- Использование: psql -d taxi_lab5 -v arg1='бизнес' -f helper/15_demo_with_param.sql
+-- ЗАПРОС С ПАРАМЕТРОМ (arg1): таксопарки по части названия
+-- Использование: psql -d taxi_lab5 -v arg1='Cab' -f helper/15_demo_with_param.sql
 
-\echo '=== АВТОМОБИЛИ КЛАССА: ' :arg1 ' ==='
-SELECT код, марка, модель, гос_номер, год_выпуска
-FROM АВТОМОБИЛИ
-WHERE класс LIKE CONCAT('%', :'arg1', '%')
-ORDER BY код;
+\echo '=== ТАКСОПАРКИ, В НАЗВАНИИ КОТОРЫХ ЕСТЬ: ' :arg1 ' ==='
+SELECT Т.код, Т.название, COUNT(П.код_поездки) AS поездок
+FROM ТАКСОПАРКИ Т
+LEFT JOIN ПОЕЗДКИ П ON П.таксопарк = Т.код
+WHERE Т.название ILIKE CONCAT('%', :'arg1', '%')
+GROUP BY Т.код, Т.название
+ORDER BY поездок DESC;

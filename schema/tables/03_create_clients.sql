@@ -1,8 +1,7 @@
+-- Клиенты. О пассажирах город сообщает только способ оплаты,
+-- поэтому клиент описывается типом: как он платит за поездку.
 CREATE TABLE КЛИЕНТЫ (
     код SERIAL PRIMARY KEY,
-    фамилия VARCHAR(50),
-    имя VARCHAR(50) NOT NULL,
-    телефон VARCHAR(20) NOT NULL UNIQUE,
-    email VARCHAR(100),
-    дата_регистрации DATE
+    тип VARCHAR(30) NOT NULL UNIQUE,      -- значение из данных: Cash, Credit Card, ...
+    описание VARCHAR(50) NOT NULL         -- русское название для отчётов
 );

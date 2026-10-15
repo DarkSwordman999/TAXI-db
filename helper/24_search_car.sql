@@ -1,7 +1,7 @@
--- Быстрый поиск автомобиля по марке
--- Использование: psql -d taxi_lab5 -v mark='Hyundai' -f helper/24_search_car.sql
+-- Быстрый поиск района по названию
+-- Использование: psql -d taxi_lab5 -v mark='Park' -f helper/24_search_car.sql
 
-SELECT код, марка, модель, гос_номер, класс
-FROM АВТОМОБИЛИ
-WHERE марка LIKE CONCAT('%', :'mark', '%')
-ORDER BY марка, модель;
+SELECT код, название, широта, долгота
+FROM РАЙОНЫ
+WHERE название ILIKE CONCAT('%', :'mark', '%')
+ORDER BY название;

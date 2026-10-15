@@ -24,24 +24,20 @@ DROP FUNCTION IF EXISTS drivers_above_revenue(NUMERIC);
 CREATE OR REPLACE FUNCTION drivers_above_revenue(p_min_revenue NUMERIC DEFAULT 10000)
 RETURNS TABLE(
     водитель_код INT,
-    фамилия VARCHAR,
-    имя VARCHAR,
-    выручка NUMERIC(10,2),
-    стаж_лет INT,
-    рейтинг NUMERIC(3,2)
+    водитель TEXT,
+    поездок BIGINT,
+    выручка NUMERIC(10,2)
 ) AS $$
 BEGIN
     RETURN QUERY
     SELECT
         Р.код,
-        Р.фамилия,
-        Р.имя,
-        Р.сумма,
-        Р.стаж_лет,
-        Р.рейтинг
+        'Водитель №' || Р.код,
+        (SELECT COUNT(*) FROM ПОЕЗДКИ WHERE ПОЕЗДКИ.водитель = Р.код),
+        Р.сумма
     FROM (
         -- выручка считается один раз на водителя, а не в SELECT и WHERE отдельно
-        SELECT В.*, get_driver_revenue(В.код) AS сумма
+        SELECT В.код, get_driver_revenue(В.код) AS сумма
         FROM ВОДИТЕЛИ В
     ) Р
     WHERE Р.сумма >= p_min_revenue

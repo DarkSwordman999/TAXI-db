@@ -1,12 +1,13 @@
-\echo '=== РЕЙТИНГ АВТОМОБИЛЕЙ ПО ВЫРУЧКЕ ==='
+\echo '=== РЕЙТИНГ ТАКСОПАРКОВ ПО ВЫРУЧКЕ ==='
 
 SELECT 
-    А.марка || ' ' || А.модель AS автомобиль,
-    (SELECT SUM(стоимость) FROM ПОЕЗДКИ WHERE автомобиль = А.код) AS выручка,
-    (SELECT AVG(стоимость) FROM ПОЕЗДКИ) AS средняя_выручка,
-    ROUND((SELECT SUM(стоимость) FROM ПОЕЗДКИ WHERE автомобиль = А.код) - 
-          (SELECT AVG(стоимость) FROM ПОЕЗДКИ), 2) AS отклонение
-FROM АВТОМОБИЛИ А
-WHERE (SELECT COUNT(*) FROM ПОЕЗДКИ WHERE автомобиль = А.код) > 0
+    Т.название AS таксопарк,
+    (SELECT SUM(стоимость) FROM ПОЕЗДКИ WHERE таксопарк = Т.код) AS выручка,
+    ROUND((SELECT SUM(стоимость) FROM ПОЕЗДКИ) /
+          (SELECT COUNT(*) FROM ТАКСОПАРКИ), 2) AS средняя_по_таксопаркам,
+    ROUND((SELECT SUM(стоимость) FROM ПОЕЗДКИ WHERE таксопарк = Т.код) -
+          (SELECT SUM(стоимость) FROM ПОЕЗДКИ) / (SELECT COUNT(*) FROM ТАКСОПАРКИ), 2) AS отклонение
+FROM ТАКСОПАРКИ Т
+WHERE (SELECT COUNT(*) FROM ПОЕЗДКИ WHERE таксопарк = Т.код) > 0
 ORDER BY выручка DESC
 LIMIT 10;
