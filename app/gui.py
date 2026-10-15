@@ -26,11 +26,11 @@ from scripts.db_config import DB_CONFIG
 
 
 class TaxiApp:
-    TABLES = ["АВТОМОБИЛИ", "ВОДИТЕЛИ", "КЛИЕНТЫ", "ТАРИФЫ", "ПОЕЗДКИ", "СЕЗОН"]
+    TABLES = ["ТАКСОПАРКИ", "ВОДИТЕЛИ", "КЛИЕНТЫ", "РАЙОНЫ", "ПОЕЗДКИ", "СЕЗОН"]
 
     def __init__(self, root):
         self.root = root
-        self.root.title("TAXI: система управления поездками")
+        self.root.title("TAXI: поездки такси Чикаго")
         self.root.geometry("1420x860")
         self.root.minsize(1100, 700)
 
@@ -123,14 +123,14 @@ class TaxiApp:
         ])
         self.add_button_group(left, "Рейтинги и отчёты", [
             ("Топ водителей", self.top_drivers),
-            ("Топ клиентов", self.top_clients),
-            ("Доход по классам", self.revenue_by_class),
-            ("Статистика автомобилей", self.car_stats),
+            ("Типы клиентов", self.top_clients),
+            ("Доход по таксопаркам", self.revenue_by_company),
+            ("Статистика таксопарков", self.company_stats),
             ("По сезонам", self.season_stats),
         ])
         self.add_button_group(left, "Аналитика", [
             ("Динамика по месяцам", self.chart_monthly_revenue),
-            ("Круговая по классам", self.chart_class_pie),
+            ("Круговая по оплате", self.chart_payment_pie),
             ("Выручка водителей", self.chart_driver_revenue),
             ("По дням недели", self.chart_weekday_revenue),
             ("Распределение стоимости", self.fare_distribution),
@@ -141,7 +141,6 @@ class TaxiApp:
         ])
         self.add_button_group(left, "Действия", [
             ("Добавить запись", self.add_record_window),
-            ("Поездка с расчётом", self.add_ride_calculated),
             ("Редактировать запись", self.edit_record_window),
             ("Полное редактирование", self.edit_any_record),
             ("Удалить запись", self.delete_record_window),
@@ -152,7 +151,7 @@ class TaxiApp:
             ("Дорогие поездки", self.expensive_rides),
             ("Длинные поездки", self.long_rides),
             ("Неактивные водители", self.inactive_drivers),
-            ("Неиспользуемые авто", self.inactive_cars),
+            ("Таксопарки без поездок", self.inactive_companies),
             ("Проверка связей", self.data_quality_check),
         ])
         self.add_button_group(left, "Полное меню", [
@@ -188,8 +187,8 @@ class TaxiApp:
             filters,
             textvariable=self.filter_field_var,
             values=[
-                "без фильтра", "класс", "марка", "модель", "гос_номер",
-                "водитель", "клиент", "телефон", "дата",
+                "без фильтра", "таксопарк", "водитель", "тип клиента",
+                "откуда", "куда", "дата",
                 "стоимость >=", "стоимость <=", "расстояние >=", "расстояние <=",
                 "время >=", "время <=",
             ],
@@ -207,7 +206,7 @@ class TaxiApp:
         ttk.Button(filters, text="Применить", command=self.latest_rides).grid(row=0, column=6, sticky="w", padx=4, pady=3)
         ttk.Button(filters, text="Сбросить", command=self.clear_filters).grid(row=0, column=7, sticky="w", padx=4, pady=3)
 
-        hint = "Примеры: класс = эконом; дата = 2026-05-09; стоимость >= 500"
+        hint = "Примеры: таксопарк = Flash; водитель = 12; откуда = Loop; дата = 2026-03-15; стоимость >= 50"
         ttk.Label(filters, text=hint, foreground="#666").grid(row=1, column=2, columnspan=6, sticky="w", padx=4, pady=1)
 
         ttk.Label(filters, text="Триграммный поиск:").grid(row=2, column=0, sticky="w", padx=4, pady=3)
@@ -340,31 +339,21 @@ class TaxiApp:
     # ------------------------- данные для подсказок -------------------------
     def load_autocomplete_data(self):
         self.autocomplete = {
-            "класс": ["эконом", "комфорт", "бизнес"],
-            "марка": [],
-            "модель": [],
-            "гос_номер": [],
-            "водитель": [],
-            "клиент": [],
-            "телефон": [],
+            "таксопарк": [],
+            "тип клиента": [],
+            "район": [],
             "дата": [],
         }
         if not self.conn:
             return
         try:
             with self.conn.cursor() as cur:
-                cur.execute("SELECT DISTINCT марка FROM АВТОМОБИЛИ WHERE марка IS NOT NULL ORDER BY марка")
-                self.autocomplete["марка"] = [r[0] for r in cur.fetchall()]
-                cur.execute("SELECT DISTINCT модель FROM АВТОМОБИЛИ WHERE модель IS NOT NULL ORDER BY модель")
-                self.autocomplete["модель"] = [r[0] for r in cur.fetchall()]
-                cur.execute("SELECT DISTINCT гос_номер FROM АВТОМОБИЛИ WHERE гос_номер IS NOT NULL ORDER BY гос_номер")
-                self.autocomplete["гос_номер"] = [r[0] for r in cur.fetchall()]
-                cur.execute("SELECT фамилия || ' ' || имя FROM ВОДИТЕЛИ ORDER BY фамилия, имя")
-                self.autocomplete["водитель"] = [r[0] for r in cur.fetchall()]
-                cur.execute("SELECT COALESCE(фамилия,'') || ' ' || имя FROM КЛИЕНТЫ ORDER BY фамилия, имя")
-                self.autocomplete["клиент"] = [r[0].strip() for r in cur.fetchall()]
-                cur.execute("SELECT телефон FROM КЛИЕНТЫ UNION SELECT телефон FROM ВОДИТЕЛИ ORDER BY телефон")
-                self.autocomplete["телефон"] = [r[0] for r in cur.fetchall()]
+                cur.execute("SELECT название FROM ТАКСОПАРКИ ORDER BY название")
+                self.autocomplete["таксопарк"] = [r[0] for r in cur.fetchall()]
+                cur.execute("SELECT описание FROM КЛИЕНТЫ ORDER BY описание")
+                self.autocomplete["тип клиента"] = [r[0] for r in cur.fetchall()]
+                cur.execute("SELECT название FROM РАЙОНЫ ORDER BY название")
+                self.autocomplete["район"] = [r[0] for r in cur.fetchall()]
             self.conn.commit()
         except Exception:
             self.conn.rollback()
@@ -387,13 +376,12 @@ class TaxiApp:
 
         like_value = f"%{value}%"
         text_mapping = {
-            "класс": ("a.класс ILIKE %s", [like_value]),
-            "марка": ("a.марка ILIKE %s", [like_value]),
-            "модель": ("a.модель ILIKE %s", [like_value]),
-            "гос_номер": ("a.гос_номер ILIKE %s", [like_value]),
-            "водитель": ("(v.фамилия ILIKE %s OR v.имя ILIKE %s OR (v.фамилия || ' ' || v.имя) ILIKE %s)", [like_value, like_value, like_value]),
-            "клиент": ("(k.фамилия ILIKE %s OR k.имя ILIKE %s OR (COALESCE(k.фамилия,'') || ' ' || k.имя) ILIKE %s)", [like_value, like_value, like_value]),
-            "телефон": ("(v.телефон ILIKE %s OR k.телефон ILIKE %s)", [like_value, like_value]),
+            "таксопарк": ("t.название ILIKE %s", [like_value]),
+            # водитель задаётся кодом (12) или частью taxi_id
+            "водитель": ("(v.код::text = %s OR v.taxi_id ILIKE %s)", [value.lstrip("№ "), like_value]),
+            "тип клиента": ("(k.тип ILIKE %s OR k.описание ILIKE %s)", [like_value, like_value]),
+            "откуда": ("ro.название ILIKE %s", [like_value]),
+            "куда": ("rk.название ILIKE %s", [like_value]),
         }
         if field in text_mapping:
             cond, params = text_mapping[field]
@@ -426,10 +414,10 @@ class TaxiApp:
     # ------------------------- просмотр и отчёты -------------------------
     def db_stats(self):
         query = """
-            SELECT 'АВТОМОБИЛИ' AS таблица, COUNT(*) AS записей FROM АВТОМОБИЛИ
+            SELECT 'ТАКСОПАРКИ' AS таблица, COUNT(*) AS записей FROM ТАКСОПАРКИ
             UNION ALL SELECT 'ВОДИТЕЛИ', COUNT(*) FROM ВОДИТЕЛИ
             UNION ALL SELECT 'КЛИЕНТЫ', COUNT(*) FROM КЛИЕНТЫ
-            UNION ALL SELECT 'ТАРИФЫ', COUNT(*) FROM ТАРИФЫ
+            UNION ALL SELECT 'РАЙОНЫ', COUNT(*) FROM РАЙОНЫ
             UNION ALL SELECT 'ПОЕЗДКИ', COUNT(*) FROM ПОЕЗДКИ
             UNION ALL SELECT 'СЕЗОН', COUNT(*) FROM СЕЗОН
             ORDER BY таблица
@@ -441,7 +429,7 @@ class TaxiApp:
             SELECT table_name AS таблица, column_name AS столбец, data_type AS тип
             FROM information_schema.columns
             WHERE table_schema = 'public'
-              AND table_name IN ('АВТОМОБИЛИ','ВОДИТЕЛИ','КЛИЕНТЫ','ТАРИФЫ','ПОЕЗДКИ','СЕЗОН')
+              AND table_name IN ('ТАКСОПАРКИ','ВОДИТЕЛИ','КЛИЕНТЫ','РАЙОНЫ','ПОЕЗДКИ','СЕЗОН')
             ORDER BY table_name, ordinal_position
         """
         self.execute_and_display(query, title="Структура БД", status="Структура БД")
@@ -461,14 +449,18 @@ class TaxiApp:
             return
         if table == "ПОЕЗДКИ":
             query = f"""
-                SELECT p.код_поездки, p.дата,
-                       a.гос_номер, a.марка, a.модель, a.класс,
-                       v.фамилия AS водитель, k.имя AS клиент,
-                       p.расстояние_км, p.время_мин, p.стоимость
+    SELECT p.код_поездки, p.дата,
+                       'Водитель №' || v.код AS водитель,
+                       t.название AS таксопарк,
+                       k.описание AS оплата,
+                       ro.название AS откуда, rk.название AS куда,
+                       p.расстояние_км, p.время_мин, p.стоимость, p.чаевые
                 FROM ПОЕЗДКИ p
-                LEFT JOIN АВТОМОБИЛИ a ON a.код = p.автомобиль
-                LEFT JOIN ВОДИТЕЛИ v ON v.код = p.водитель
-                LEFT JOIN КЛИЕНТЫ k ON k.код = p.клиент
+                JOIN ВОДИТЕЛИ v ON v.код = p.водитель
+                JOIN КЛИЕНТЫ k ON k.код = p.клиент
+                JOIN ТАКСОПАРКИ t ON t.код = p.таксопарк
+                LEFT JOIN РАЙОНЫ ro ON ro.код = p.откуда
+                LEFT JOIN РАЙОНЫ rk ON rk.код = p.куда
                 ORDER BY p.дата DESC
                 LIMIT {self.get_limit()}
             """
@@ -483,14 +475,17 @@ class TaxiApp:
         cond, params = self.build_ride_filter()
         query = f"""
             SELECT p.код_поездки, p.дата,
-                   a.гос_номер, a.марка, a.модель, a.класс,
-                   v.фамилия || ' ' || v.имя AS водитель,
-                   COALESCE(k.фамилия || ' ', '') || k.имя AS клиент,
-                   p.расстояние_км, p.время_мин, p.стоимость
+                   'Водитель №' || v.код AS водитель,
+                   t.название AS таксопарк,
+                   k.описание AS оплата,
+                   ro.название AS откуда, rk.название AS куда,
+                   p.расстояние_км, p.время_мин, p.стоимость, p.чаевые
             FROM ПОЕЗДКИ p
-            LEFT JOIN АВТОМОБИЛИ a ON a.код = p.автомобиль
-            LEFT JOIN ВОДИТЕЛИ v ON v.код = p.водитель
-            LEFT JOIN КЛИЕНТЫ k ON k.код = p.клиент
+            JOIN ВОДИТЕЛИ v ON v.код = p.водитель
+            JOIN КЛИЕНТЫ k ON k.код = p.клиент
+            JOIN ТАКСОПАРКИ t ON t.код = p.таксопарк
+            LEFT JOIN РАЙОНЫ ro ON ro.код = p.откуда
+            LEFT JOIN РАЙОНЫ rk ON rk.код = p.куда
             WHERE 1=1 {cond}
             ORDER BY p.дата DESC
             LIMIT %s
@@ -499,13 +494,14 @@ class TaxiApp:
 
     def top_drivers(self):
         query = """
-            SELECT v.код, v.фамилия, v.имя, v.телефон, v.стаж_лет, v.рейтинг,
+            SELECT v.код, 'Водитель №' || v.код AS водитель, v.taxi_id,
                    COUNT(p.код_поездки) AS поездок,
                    ROUND(COALESCE(SUM(p.стоимость),0), 2) AS выручка,
-                   ROUND(COALESCE(AVG(p.стоимость),0), 2) AS средний_чек
+                   ROUND(COALESCE(AVG(p.стоимость),0), 2) AS средний_чек,
+                   ROUND(COALESCE(SUM(p.чаевые),0), 2) AS чаевые
             FROM ВОДИТЕЛИ v
             LEFT JOIN ПОЕЗДКИ p ON p.водитель = v.код
-            GROUP BY v.код, v.фамилия, v.имя, v.телефон, v.стаж_лет, v.рейтинг
+            GROUP BY v.код
             ORDER BY выручка DESC, поездок DESC
             LIMIT %s
         """
@@ -513,46 +509,48 @@ class TaxiApp:
 
     def top_clients(self):
         query = """
-            SELECT k.код, k.фамилия, k.имя, k.телефон, k.email,
+            SELECT k.код, k.тип, k.описание,
                    COUNT(p.код_поездки) AS поездок,
                    ROUND(COALESCE(SUM(p.стоимость),0), 2) AS сумма,
-                   ROUND(COALESCE(AVG(p.стоимость),0), 2) AS средний_чек
+                   ROUND(COALESCE(AVG(p.стоимость),0), 2) AS средний_чек,
+                   ROUND(COALESCE(AVG(p.чаевые),0), 2) AS средние_чаевые
             FROM КЛИЕНТЫ k
             LEFT JOIN ПОЕЗДКИ p ON p.клиент = k.код
-            GROUP BY k.код, k.фамилия, k.имя, k.телефон, k.email
+            GROUP BY k.код
             ORDER BY сумма DESC, поездок DESC
             LIMIT %s
         """
-        self.execute_and_display(query, [self.get_limit()], title="Топ клиентов", status="Топ клиентов")
+        self.execute_and_display(query, [self.get_limit()], title="Типы клиентов (способы оплаты)", status="Типы клиентов")
 
-    def revenue_by_class(self):
+    def revenue_by_company(self):
         query = """
-            SELECT a.класс,
+            SELECT t.название AS таксопарк,
                    COUNT(p.код_поездки) AS поездок,
                    ROUND(SUM(p.стоимость), 2) AS выручка,
                    ROUND(AVG(p.стоимость), 2) AS средний_чек,
                    ROUND(AVG(p.расстояние_км), 2) AS среднее_расстояние,
                    ROUND(AVG(p.время_мин), 2) AS среднее_время
             FROM ПОЕЗДКИ p
-            JOIN АВТОМОБИЛИ a ON a.код = p.автомобиль
-            GROUP BY a.класс
+            JOIN ТАКСОПАРКИ t ON t.код = p.таксопарк
+            GROUP BY t.название
             ORDER BY выручка DESC
         """
-        self.execute_and_display(query, title="Доход по классам автомобилей", status="Доход по классам")
+        self.execute_and_display(query, title="Доход по таксопаркам", status="Доход по таксопаркам")
 
-    def car_stats(self):
+    def company_stats(self):
         query = """
-            SELECT a.код, a.гос_номер, a.марка, a.модель, a.класс,
+            SELECT t.код, t.название,
+                   COUNT(DISTINCT p.водитель) AS водителей,
                    COUNT(p.код_поездки) AS поездок,
                    ROUND(COALESCE(SUM(p.стоимость),0), 2) AS выручка,
                    ROUND(COALESCE(AVG(p.расстояние_км),0), 2) AS средний_км
-            FROM АВТОМОБИЛИ a
-            LEFT JOIN ПОЕЗДКИ p ON p.автомобиль = a.код
-            GROUP BY a.код, a.гос_номер, a.марка, a.модель, a.класс
+            FROM ТАКСОПАРКИ t
+            LEFT JOIN ПОЕЗДКИ p ON p.таксопарк = t.код
+            GROUP BY t.код, t.название
             ORDER BY выручка DESC, поездок DESC
             LIMIT %s
         """
-        self.execute_and_display(query, [self.get_limit()], title="Статистика автомобилей", status="Статистика автомобилей")
+        self.execute_and_display(query, [self.get_limit()], title="Статистика таксопарков", status="Статистика таксопарков")
 
     def season_stats(self):
         query = """
@@ -572,10 +570,10 @@ class TaxiApp:
         query = """
             SELECT
                 CASE
-                    WHEN стоимость < 300 THEN 'до 300'
-                    WHEN стоимость < 600 THEN '300-599'
-                    WHEN стоимость < 1000 THEN '600-999'
-                    ELSE '1000+'
+                    WHEN стоимость < 10 THEN 'до $10'
+                    WHEN стоимость < 25 THEN '$10-24.99'
+                    WHEN стоимость < 50 THEN '$25-49.99'
+                    ELSE '$50+'
                 END AS диапазон,
                 COUNT(*) AS поездок,
                 ROUND(AVG(стоимость), 2) AS средняя_стоимость
@@ -621,86 +619,49 @@ class TaxiApp:
             )
             SELECT * FROM (
                 SELECT
-                    'автомобиль' AS тип,
-                    a.код::text AS код,
-                    a.гос_номер || ' ' || a.марка || ' ' || a.модель || ' ' || COALESCE(a.класс, '') AS найдено,
-                    ROUND((GREATEST(
-                        similarity(LOWER(COALESCE(a.гос_номер, '')), q.term),
-                        similarity(LOWER(COALESCE(a.марка, '')), q.term),
-                        similarity(LOWER(COALESCE(a.модель, '')), q.term),
-                        similarity(LOWER(COALESCE(a.класс, '')), q.term)
-                    ))::numeric, 3) AS схожесть
-                FROM АВТОМОБИЛИ a CROSS JOIN q
-                WHERE GREATEST(
-                        similarity(LOWER(COALESCE(a.гос_номер, '')), q.term),
-                        similarity(LOWER(COALESCE(a.марка, '')), q.term),
-                        similarity(LOWER(COALESCE(a.модель, '')), q.term),
-                        similarity(LOWER(COALESCE(a.класс, '')), q.term)
-                    ) >= q.threshold
-                   OR a.гос_номер ILIKE q.like_term
-                   OR a.марка ILIKE q.like_term
-                   OR a.модель ILIKE q.like_term
-                   OR a.класс ILIKE q.like_term
+                    'таксопарк' AS тип,
+                    t.код::text AS код,
+                    t.название AS найдено,
+                    ROUND(similarity(LOWER(t.название), q.term)::numeric, 3) AS схожесть
+                FROM ТАКСОПАРКИ t CROSS JOIN q
+                WHERE similarity(LOWER(t.название), q.term) >= q.threshold
+                   OR t.название ILIKE q.like_term
+
+                UNION ALL
+
+                SELECT
+                    'район' AS тип,
+                    r.код::text AS код,
+                    r.название AS найдено,
+                    ROUND(similarity(LOWER(r.название), q.term)::numeric, 3) AS схожесть
+                FROM РАЙОНЫ r CROSS JOIN q
+                WHERE similarity(LOWER(r.название), q.term) >= q.threshold
+                   OR r.название ILIKE q.like_term
+
+                UNION ALL
+
+                SELECT
+                    'тип клиента' AS тип,
+                    k.код::text AS код,
+                    k.описание || ' (' || k.тип || ')' AS найдено,
+                    ROUND(GREATEST(similarity(LOWER(k.описание), q.term),
+                                   similarity(LOWER(k.тип), q.term))::numeric, 3) AS схожесть
+                FROM КЛИЕНТЫ k CROSS JOIN q
+                WHERE GREATEST(similarity(LOWER(k.описание), q.term),
+                               similarity(LOWER(k.тип), q.term)) >= q.threshold
+                   OR k.описание ILIKE q.like_term
+                   OR k.тип ILIKE q.like_term
 
                 UNION ALL
 
                 SELECT
                     'водитель' AS тип,
                     v.код::text AS код,
-                    v.фамилия || ' ' || v.имя || ' ' || COALESCE(v.телефон, '') AS найдено,
-                    ROUND((GREATEST(
-                        similarity(LOWER(COALESCE(v.фамилия, '')), q.term),
-                        similarity(LOWER(COALESCE(v.имя, '')), q.term),
-                        similarity(LOWER(COALESCE(v.телефон, '')), q.term),
-                        similarity(LOWER(COALESCE(v.фамилия, '') || ' ' || COALESCE(v.имя, '')), q.term)
-                    ))::numeric, 3) AS схожесть
+                    'Водитель №' || v.код || ' (' || v.taxi_id || ')' AS найдено,
+                    ROUND(similarity(LOWER(v.taxi_id), q.term)::numeric, 3) AS схожесть
                 FROM ВОДИТЕЛИ v CROSS JOIN q
-                WHERE GREATEST(
-                        similarity(LOWER(COALESCE(v.фамилия, '')), q.term),
-                        similarity(LOWER(COALESCE(v.имя, '')), q.term),
-                        similarity(LOWER(COALESCE(v.телефон, '')), q.term),
-                        similarity(LOWER(COALESCE(v.фамилия, '') || ' ' || COALESCE(v.имя, '')), q.term)
-                    ) >= q.threshold
-                   OR v.фамилия ILIKE q.like_term
-                   OR v.имя ILIKE q.like_term
-                   OR v.телефон ILIKE q.like_term
-
-                UNION ALL
-
-                SELECT
-                    'клиент' AS тип,
-                    k.код::text AS код,
-                    COALESCE(k.фамилия || ' ', '') || k.имя || ' ' || COALESCE(k.телефон, '') AS найдено,
-                    ROUND((GREATEST(
-                        similarity(LOWER(COALESCE(k.фамилия, '')), q.term),
-                        similarity(LOWER(COALESCE(k.имя, '')), q.term),
-                        similarity(LOWER(COALESCE(k.телефон, '')), q.term),
-                        similarity(LOWER(COALESCE(k.email, '')), q.term),
-                        similarity(LOWER(COALESCE(k.фамилия, '') || ' ' || COALESCE(k.имя, '')), q.term)
-                    ))::numeric, 3) AS схожесть
-                FROM КЛИЕНТЫ k CROSS JOIN q
-                WHERE GREATEST(
-                        similarity(LOWER(COALESCE(k.фамилия, '')), q.term),
-                        similarity(LOWER(COALESCE(k.имя, '')), q.term),
-                        similarity(LOWER(COALESCE(k.телефон, '')), q.term),
-                        similarity(LOWER(COALESCE(k.email, '')), q.term),
-                        similarity(LOWER(COALESCE(k.фамилия, '') || ' ' || COALESCE(k.имя, '')), q.term)
-                    ) >= q.threshold
-                   OR k.фамилия ILIKE q.like_term
-                   OR k.имя ILIKE q.like_term
-                   OR k.телефон ILIKE q.like_term
-                   OR k.email ILIKE q.like_term
-
-                UNION ALL
-
-                SELECT
-                    'тариф' AS тип,
-                    t.код::text AS код,
-                    t.класс || ': ' || t.цена_за_км || ' руб/км, минимум ' || t.минимальная_стоимость AS найдено,
-                    ROUND((similarity(LOWER(COALESCE(t.класс, '')), q.term))::numeric, 3) AS схожесть
-                FROM ТАРИФЫ t CROSS JOIN q
-                WHERE similarity(LOWER(COALESCE(t.класс, '')), q.term) >= q.threshold
-                   OR t.класс ILIKE q.like_term
+                WHERE v.taxi_id ILIKE q.like_term
+                   OR v.код::text = q.term
             ) found
             ORDER BY схожесть DESC, тип, найдено
             LIMIT %s
@@ -740,17 +701,17 @@ class TaxiApp:
             return
         months = [r[0] for r in rows]
         revenue = [float(r[2]) for r in rows]
-        self.open_line_chart(months, revenue, "Динамика выручки по месяцам", "Месяц", "Выручка")
+        self.open_line_chart(months, revenue, "Динамика выручки по месяцам", "Месяц", "Выручка, $")
 
-    def chart_class_pie(self):
+    def chart_payment_pie(self):
         if not self.conn:
             messagebox.showerror("Ошибка", "Нет подключения к БД")
             return
         query = """
-            SELECT a.класс, COUNT(*) AS поездок
+            SELECT k.описание, COUNT(*) AS поездок
             FROM ПОЕЗДКИ p
-            JOIN АВТОМОБИЛИ a ON a.код = p.автомобиль
-            GROUP BY a.класс
+            JOIN КЛИЕНТЫ k ON k.код = p.клиент
+            GROUP BY k.описание
             ORDER BY поездок DESC
         """
         try:
@@ -767,7 +728,7 @@ class TaxiApp:
             return
         labels = [r[0] for r in rows]
         sizes = [int(r[1]) for r in rows]
-        self.open_pie_chart(labels, sizes, "Доля поездок по классам")
+        self.open_pie_chart(labels, sizes, "Доля поездок по способам оплаты")
 
     def open_line_chart(self, x, y, title, xlabel, ylabel):
         win = tk.Toplevel(self.root)
@@ -834,203 +795,144 @@ class TaxiApp:
         return {k: v.get().strip() for k, v in values.items()}
 
     def add_record_window(self):
-        table = simpledialog.askstring("Добавление", "Что добавить? car / driver / client / tariff / ride")
+        table = simpledialog.askstring("Добавление", "Что добавить? company / driver / client / ride")
         if not table:
             return
         table = table.lower().strip()
-        if table in ["car", "авто", "автомобиль"]:
-            self.add_car()
+        if table in ["company", "таксопарк"]:
+            self.add_company()
         elif table in ["driver", "водитель"]:
             self.add_driver()
         elif table in ["client", "клиент"]:
             self.add_client()
-        elif table in ["tariff", "тариф"]:
-            self.add_tariff()
         elif table in ["ride", "поездка"]:
             self.add_ride()
         else:
-            messagebox.showerror("Ошибка", "Введите: car, driver, client, tariff или ride")
+            messagebox.showerror("Ошибка", "Введите: company, driver, client или ride")
 
-    def add_car(self):
-        data = self.ask_fields("Добавить автомобиль", [
-            ("num", "Гос. номер", "А999АА"),
-            ("brand", "Марка", "Hyundai"),
-            ("model", "Модель", "Solaris"),
-            ("year", "Год выпуска", "2022"),
-            ("color", "Цвет", "Белый"),
-            ("cls", "Класс", "эконом"),
-        ])
+    def add_company(self):
+        data = self.ask_fields("Добавить таксопарк", [("name", "Название", "Новый таксопарк")])
         if not data:
             return
-        query = """
-            INSERT INTO АВТОМОБИЛИ (гос_номер, марка, модель, год_выпуска, цвет, класс)
-            VALUES (%s, %s, %s, NULLIF(%s,'')::int, %s, %s)
-        """
-        self.execute_and_display(query, [data["num"], data["brand"], data["model"], data["year"], data["color"], data["cls"]],
-                                 title="Добавление автомобиля", status="Автомобиль добавлен", fetch=False)
+        self.execute_and_display("INSERT INTO ТАКСОПАРКИ (название) VALUES (%s)", [data["name"]],
+                                 title="Добавление таксопарка", status="Таксопарк добавлен", fetch=False)
         self.load_autocomplete_data()
 
     def add_driver(self):
-        data = self.ask_fields("Добавить водителя", [
-            ("surname", "Фамилия", "Иванов"),
-            ("name", "Имя", "Иван"),
-            ("patronymic", "Отчество", ""),
-            ("phone", "Телефон", "+79000000000"),
-            ("exp", "Стаж лет", "5"),
-            ("cat", "Категория прав", "B"),
-            ("rating", "Рейтинг", "4.80"),
-        ])
+        data = self.ask_fields("Добавить водителя", [("taxi_id", "taxi_id (до 16 символов)", "manual00000001")])
         if not data:
             return
-        query = """
-            INSERT INTO ВОДИТЕЛИ (фамилия, имя, отчество, телефон, стаж_лет, категория_прав, рейтинг)
-            VALUES (%s, %s, NULLIF(%s,''), %s, NULLIF(%s,'')::int, NULLIF(%s,''), NULLIF(%s,'')::numeric)
-        """
-        params = [data["surname"], data["name"], data["patronymic"], data["phone"], data["exp"], data["cat"], data["rating"]]
-        self.execute_and_display(query, params, title="Добавление водителя", status="Водитель добавлен", fetch=False)
-        self.load_autocomplete_data()
+        self.execute_and_display("INSERT INTO ВОДИТЕЛИ (taxi_id) VALUES (%s)", [data["taxi_id"]],
+                                 title="Добавление водителя", status="Водитель добавлен", fetch=False)
 
     def add_client(self):
-        data = self.ask_fields("Добавить клиента", [
-            ("surname", "Фамилия", "Петрова"),
-            ("name", "Имя", "Анна"),
-            ("phone", "Телефон", "+79010000099"),
-            ("email", "Email", ""),
+        data = self.ask_fields("Добавить тип клиента", [
+            ("type", "Тип (как в данных города)", "Voucher"),
+            ("desc", "Описание", "Ваучер"),
         ])
         if not data:
             return
-        query = """
-            INSERT INTO КЛИЕНТЫ (фамилия, имя, телефон, email, дата_регистрации)
-            VALUES (NULLIF(%s,''), %s, %s, NULLIF(%s,''), CURRENT_DATE)
-        """
-        self.execute_and_display(query, [data["surname"], data["name"], data["phone"], data["email"]],
-                                 title="Добавление клиента", status="Клиент добавлен", fetch=False)
+        self.execute_and_display("INSERT INTO КЛИЕНТЫ (тип, описание) VALUES (%s, %s)", [data["type"], data["desc"]],
+                                 title="Добавление типа клиента", status="Тип клиента добавлен", fetch=False)
         self.load_autocomplete_data()
-
-    def add_tariff(self):
-        data = self.ask_fields("Добавить тариф", [
-            ("cls", "Класс", "премиум"),
-            ("km", "Цена за км", "50"),
-            ("hour", "Цена за час", "800"),
-            ("min", "Минимальная стоимость", "300"),
-        ])
-        if not data:
-            return
-        query = """
-            INSERT INTO ТАРИФЫ (класс, цена_за_км, цена_за_час, минимальная_стоимость)
-            VALUES (%s, %s::numeric, %s::numeric, %s::numeric)
-        """
-        self.execute_and_display(query, [data["cls"], data["km"], data["hour"], data["min"]],
-                                 title="Добавление тарифа", status="Тариф добавлен", fetch=False)
 
     def add_ride(self):
         data = self.ask_fields("Добавить поездку", [
-            ("car", "Код автомобиля", "1"),
             ("driver", "Код водителя", "1"),
-            ("client", "Код клиента", "1"),
-            ("km", "Расстояние км", "10"),
-            ("min", "Время мин", "25"),
-            ("cost", "Стоимость", "500"),
+            ("client", "Код типа клиента", "1"),
+            ("company", "Код таксопарка", "1"),
+            ("from", "Код района посадки (1-77, можно пусто)", "32"),
+            ("to", "Код района высадки (1-77, можно пусто)", "8"),
+            ("km", "Расстояние км", "5"),
+            ("min", "Время мин", "15"),
+            ("cost", "Стоимость $", "15"),
+            ("tips", "Чаевые $", "0"),
         ])
         if not data:
             return
+        # введённые вручную поездки получают trip_id с префиксом manual
         query = """
-            INSERT INTO ПОЕЗДКИ (дата, автомобиль, водитель, клиент, расстояние_км, время_мин, стоимость)
-            VALUES (NOW(), %s::int, %s::int, %s::int, %s::numeric, %s::int, %s::numeric)
+            INSERT INTO ПОЕЗДКИ (trip_id, дата, водитель, клиент, таксопарк, откуда, куда,
+                                 расстояние_км, время_мин, стоимость, чаевые)
+            VALUES ('manual' || LPAD((SELECT COUNT(*) + 1 FROM ПОЕЗДКИ)::text, 10, '0'), NOW(),
+                    %s::int, %s::int, %s::int, NULLIF(%s,'')::int, NULLIF(%s,'')::int,
+                    %s::numeric, %s::int, %s::numeric, %s::numeric)
         """
-        params = [data["car"], data["driver"], data["client"], data["km"], data["min"], data["cost"]]
+        params = [data["driver"], data["client"], data["company"], data["from"], data["to"],
+                  data["km"], data["min"], data["cost"], data["tips"]]
         self.execute_and_display(query, params, title="Добавление поездки", status="Поездка добавлена", fetch=False)
 
     def edit_record_window(self):
-        action = simpledialog.askstring("Редактирование", "Что изменить? driver_phone / driver_rating / client_phone / tariff / car_class")
+        action = simpledialog.askstring("Редактирование", "Что изменить? company_name / client_description / ride_tips / ride_company")
         if not action:
             return
         action = action.lower().strip()
-        if action == "driver_phone":
-            self.update_driver_phone()
-        elif action == "driver_rating":
-            self.update_driver_rating()
-        elif action == "client_phone":
-            self.update_client_phone()
-        elif action == "tariff":
-            self.update_tariff()
-        elif action == "car_class":
-            self.update_car_class()
+        if action == "company_name":
+            self.update_company_name()
+        elif action == "client_description":
+            self.update_client_description()
+        elif action == "ride_tips":
+            self.update_ride_tips()
+        elif action == "ride_company":
+            self.update_ride_company()
         else:
-            messagebox.showerror("Ошибка", "Варианты: driver_phone, driver_rating, client_phone, tariff, car_class")
+            messagebox.showerror("Ошибка", "Варианты: company_name, client_description, ride_tips, ride_company")
 
-    def update_driver_phone(self):
-        data = self.ask_fields("Изменить телефон водителя", [("id", "Код водителя", "1"), ("phone", "Новый телефон", "+79000000001")])
+    def update_company_name(self):
+        data = self.ask_fields("Переименовать таксопарк", [("id", "Код таксопарка", "1"), ("name", "Новое название", "")])
         if data:
-            self.execute_and_display("UPDATE ВОДИТЕЛИ SET телефон=%s WHERE код=%s::int", [data["phone"], data["id"]],
-                                     title="Изменение телефона водителя", status="Телефон изменён", fetch=False)
+            self.execute_and_display("UPDATE ТАКСОПАРКИ SET название=%s WHERE код=%s::int", [data["name"], data["id"]],
+                                     title="Переименование таксопарка", status="Таксопарк переименован", fetch=False)
+            self.load_autocomplete_data()
 
-    def update_driver_rating(self):
-        data = self.ask_fields("Изменить рейтинг водителя", [("id", "Код водителя", "1"), ("rating", "Новый рейтинг", "4.90")])
+    def update_client_description(self):
+        data = self.ask_fields("Изменить описание типа клиента", [("id", "Код типа клиента", "1"), ("desc", "Новое описание", "")])
         if data:
-            self.execute_and_display("UPDATE ВОДИТЕЛИ SET рейтинг=%s::numeric WHERE код=%s::int", [data["rating"], data["id"]],
-                                     title="Изменение рейтинга водителя", status="Рейтинг изменён", fetch=False)
+            self.execute_and_display("UPDATE КЛИЕНТЫ SET описание=%s WHERE код=%s::int", [data["desc"], data["id"]],
+                                     title="Изменение описания типа клиента", status="Описание изменено", fetch=False)
+            self.load_autocomplete_data()
 
-    def update_client_phone(self):
-        data = self.ask_fields("Изменить телефон клиента", [("id", "Код клиента", "1"), ("phone", "Новый телефон", "+79010000999")])
+    def update_ride_tips(self):
+        data = self.ask_fields("Изменить чаевые поездки", [("id", "Код поездки", "1"), ("tips", "Чаевые $", "2.00")])
         if data:
-            self.execute_and_display("UPDATE КЛИЕНТЫ SET телефон=%s WHERE код=%s::int", [data["phone"], data["id"]],
-                                     title="Изменение телефона клиента", status="Телефон изменён", fetch=False)
+            self.execute_and_display("UPDATE ПОЕЗДКИ SET чаевые=%s::numeric WHERE код_поездки=%s::int", [data["tips"], data["id"]],
+                                     title="Изменение чаевых", status="Чаевые изменены", fetch=False)
 
-    def update_tariff(self):
-        data = self.ask_fields("Изменить тариф", [
-            ("cls", "Класс тарифа", "эконом"),
-            ("km", "Цена за км", "30"),
-            ("hour", "Цена за час", "500"),
-            ("min", "Минимальная стоимость", "150"),
-        ])
+    def update_ride_company(self):
+        data = self.ask_fields("Сменить таксопарк поездки", [("id", "Код поездки", "1"), ("company", "Код таксопарка", "1")])
         if data:
-            query = """
-                UPDATE ТАРИФЫ
-                SET цена_за_км=%s::numeric, цена_за_час=%s::numeric, минимальная_стоимость=%s::numeric
-                WHERE класс=%s
-            """
-            self.execute_and_display(query, [data["km"], data["hour"], data["min"], data["cls"]],
-                                     title="Изменение тарифа", status="Тариф изменён", fetch=False)
-
-    def update_car_class(self):
-        data = self.ask_fields("Изменить класс автомобиля", [("id", "Код автомобиля", "1"), ("cls", "Новый класс", "комфорт")])
-        if data:
-            self.execute_and_display("UPDATE АВТОМОБИЛИ SET класс=%s WHERE код=%s::int", [data["cls"], data["id"]],
-                                     title="Изменение класса автомобиля", status="Класс изменён", fetch=False)
+            self.execute_and_display("UPDATE ПОЕЗДКИ SET таксопарк=%s::int WHERE код_поездки=%s::int", [data["company"], data["id"]],
+                                     title="Смена таксопарка поездки", status="Таксопарк поездки изменён", fetch=False)
 
     def delete_record_window(self):
-        table = simpledialog.askstring("Удаление", "Что удалить? car / driver / client / ride / tariff")
+        table = simpledialog.askstring("Удаление", "Что удалить? company / driver / client / ride")
         if not table:
             return
         table = table.lower().strip()
         code = simpledialog.askinteger("Код", "Введите код записи")
         if not code:
             return
-        if not messagebox.askyesno("Подтверждение", f"Удалить {table} с кодом {code}?"):
+        if not messagebox.askyesno("Подтверждение", f"Удалить {table} с кодом {code} вместе с его поездками?"):
             return
         if table in ["ride", "поездка"]:
             self.execute_and_display("DELETE FROM ПОЕЗДКИ WHERE код_поездки=%s", [code], title="Удаление поездки", status="Удалено", fetch=False)
         elif table in ["client", "клиент"]:
-            self.execute_and_display("DELETE FROM ПОЕЗДКИ WHERE клиент=%s; DELETE FROM КЛИЕНТЫ WHERE код=%s", [code, code], title="Удаление клиента", status="Удалено", fetch=False)
+            self.execute_and_display("DELETE FROM ПОЕЗДКИ WHERE клиент=%s; DELETE FROM КЛИЕНТЫ WHERE код=%s", [code, code], title="Удаление типа клиента", status="Удалено", fetch=False)
         elif table in ["driver", "водитель"]:
             self.execute_and_display("DELETE FROM ПОЕЗДКИ WHERE водитель=%s; DELETE FROM ВОДИТЕЛИ WHERE код=%s", [code, code], title="Удаление водителя", status="Удалено", fetch=False)
-        elif table in ["car", "авто", "автомобиль"]:
-            self.execute_and_display("DELETE FROM ПОЕЗДКИ WHERE автомобиль=%s; DELETE FROM АВТОМОБИЛИ WHERE код=%s", [code, code], title="Удаление автомобиля", status="Удалено", fetch=False)
-        elif table in ["tariff", "тариф"]:
-            self.execute_and_display("DELETE FROM ТАРИФЫ WHERE код=%s", [code], title="Удаление тарифа", status="Удалено", fetch=False)
+        elif table in ["company", "таксопарк"]:
+            self.execute_and_display("DELETE FROM ПОЕЗДКИ WHERE таксопарк=%s; DELETE FROM ТАКСОПАРКИ WHERE код=%s", [code, code], title="Удаление таксопарка", status="Удалено", fetch=False)
         else:
-            messagebox.showerror("Ошибка", "Варианты: car, driver, client, ride, tariff")
+            messagebox.showerror("Ошибка", "Варианты: company, driver, client, ride")
 
     def update_before_after(self):
-        data = self.ask_fields("UPDATE до/после", [("id", "Код водителя", "1"), ("rating", "Новый рейтинг", "4.95")])
+        data = self.ask_fields("UPDATE до/после", [("id", "Код поездки", "1"), ("tips", "Новые чаевые $", "3.00")])
         if not data:
             return
-        driver_id = data["id"]
-        new_rating = data["rating"]
-        before = self.execute("SELECT * FROM ВОДИТЕЛИ WHERE код=%s::int", [driver_id], title="ДО UPDATE")
-        update = self.execute("UPDATE ВОДИТЕЛИ SET рейтинг=%s::numeric WHERE код=%s::int", [new_rating, driver_id], title="UPDATE", fetch=False)
-        after = self.execute("SELECT * FROM ВОДИТЕЛИ WHERE код=%s::int", [driver_id], title="ПОСЛЕ UPDATE")
+        ride_id = data["id"]
+        before = self.execute("SELECT * FROM v_rides_user WHERE код_поездки=%s::int", [ride_id], title="ДО UPDATE")
+        update = self.execute("UPDATE ПОЕЗДКИ SET чаевые=%s::numeric WHERE код_поездки=%s::int", [data["tips"], ride_id], title="UPDATE", fetch=False)
+        after = self.execute("SELECT * FROM v_rides_user WHERE код_поездки=%s::int", [ride_id], title="ПОСЛЕ UPDATE")
         self.display(before + "\n" + update + "\n" + after)
         self.set_status("UPDATE до/после")
 
@@ -1075,40 +977,39 @@ class TaxiApp:
             ("Общая выручка", "SELECT ROUND(COALESCE(SUM(стоимость),0), 2) FROM ПОЕЗДКИ"),
             ("Средний чек", "SELECT ROUND(COALESCE(AVG(стоимость),0), 2) FROM ПОЕЗДКИ"),
             ("Средняя дистанция", "SELECT ROUND(COALESCE(AVG(расстояние_км),0), 2) FROM ПОЕЗДКИ"),
-            ("Автомобилей", "SELECT COUNT(*) FROM АВТОМОБИЛИ"),
-            ("Водителей", "SELECT COUNT(*) FROM ВОДИТЕЛИ"),
-            ("Клиентов", "SELECT COUNT(*) FROM КЛИЕНТЫ"),
-            ("Тарифов", "SELECT COUNT(*) FROM ТАРИФЫ"),
+            ("Период данных", "SELECT MIN(дата)::date || ' — ' || MAX(дата)::date FROM ПОЕЗДКИ"),
+            ("Водителей (такси)", "SELECT COUNT(*) FROM ВОДИТЕЛИ"),
+            ("Таксопарков", "SELECT COUNT(*) FROM ТАКСОПАРКИ"),
+            ("Типов клиентов", "SELECT COUNT(*) FROM КЛИЕНТЫ"),
         ]
-        lines = ["Дашборд TAXI", "============", ""]
+        lines = ["Дашборд TAXI — реальные поездки такси Чикаго, суммы в $", "=" * 56, ""]
         for label, query in queries:
             rows, _ = self.fetch_rows(query)
             value = rows[0][0] if rows else "—"
             lines.append(f"{label}: {value}")
 
         blocks = [
-            ("\nТоп-3 класса по выручке", """
-                SELECT a.класс, COUNT(*) AS поездок, ROUND(SUM(p.стоимость),2) AS выручка
-                FROM ПОЕЗДКИ p JOIN АВТОМОБИЛИ a ON a.код = p.автомобиль
-                GROUP BY a.класс
+            ("\nТоп-3 таксопарка по выручке", """
+                SELECT t.название AS таксопарк, COUNT(*) AS поездок, ROUND(SUM(p.стоимость),2) AS выручка
+                FROM ПОЕЗДКИ p JOIN ТАКСОПАРКИ t ON t.код = p.таксопарк
+                GROUP BY t.название
                 ORDER BY выручка DESC
                 LIMIT 3
             """),
             ("\nТоп-5 водителей по выручке", """
-                SELECT v.фамилия || ' ' || v.имя AS водитель,
+                SELECT 'Водитель №' || v.код AS водитель,
                        COUNT(p.код_поездки) AS поездок,
                        ROUND(COALESCE(SUM(p.стоимость),0),2) AS выручка
-                FROM ВОДИТЕЛИ v LEFT JOIN ПОЕЗДКИ p ON p.водитель = v.код
-                GROUP BY v.код, v.фамилия, v.имя
+                FROM ВОДИТЕЛИ v JOIN ПОЕЗДКИ p ON p.водитель = v.код
+                GROUP BY v.код
                 ORDER BY выручка DESC
                 LIMIT 5
             """),
             ("\nПоследние 5 поездок", """
-                SELECT p.код_поездки, p.дата, a.гос_номер,
-                       v.фамилия AS водитель, p.стоимость
+                SELECT p.код_поездки, p.дата, t.название AS таксопарк,
+                       'Водитель №' || p.водитель AS водитель, p.стоимость
                 FROM ПОЕЗДКИ p
-                LEFT JOIN АВТОМОБИЛИ a ON a.код = p.автомобиль
-                LEFT JOIN ВОДИТЕЛИ v ON v.код = p.водитель
+                JOIN ТАКСОПАРКИ t ON t.код = p.таксопарк
                 ORDER BY p.дата DESC
                 LIMIT 5
             """),
@@ -1176,35 +1077,23 @@ class TaxiApp:
 
     def expensive_rides(self):
         query = """
-            SELECT p.код_поездки, p.дата, a.гос_номер, a.класс,
-                   v.фамилия || ' ' || v.имя AS водитель,
-                   COALESCE(k.фамилия || ' ', '') || k.имя AS клиент,
-                   p.расстояние_км, p.время_мин, p.стоимость
-            FROM ПОЕЗДКИ p
-            LEFT JOIN АВТОМОБИЛИ a ON a.код = p.автомобиль
-            LEFT JOIN ВОДИТЕЛИ v ON v.код = p.водитель
-            LEFT JOIN КЛИЕНТЫ k ON k.код = p.клиент
-            ORDER BY p.стоимость DESC
+            SELECT * FROM v_rides_user
+            ORDER BY стоимость DESC
             LIMIT %s
         """
         self.execute_and_display(query, [self.get_limit()], title="Самые дорогие поездки", status="Дорогие поездки")
 
     def long_rides(self):
         query = """
-            SELECT p.код_поездки, p.дата, a.гос_номер, a.класс,
-                   v.фамилия || ' ' || v.имя AS водитель,
-                   p.расстояние_км, p.время_мин, p.стоимость
-            FROM ПОЕЗДКИ p
-            LEFT JOIN АВТОМОБИЛИ a ON a.код = p.автомобиль
-            LEFT JOIN ВОДИТЕЛИ v ON v.код = p.водитель
-            ORDER BY p.расстояние_км DESC
+            SELECT * FROM v_rides_user
+            ORDER BY расстояние_км DESC
             LIMIT %s
         """
         self.execute_and_display(query, [self.get_limit()], title="Самые длинные поездки", status="Длинные поездки")
 
     def inactive_drivers(self):
         query = """
-            SELECT v.код, v.фамилия, v.имя, v.телефон, v.стаж_лет, v.рейтинг
+            SELECT v.код, 'Водитель №' || v.код AS водитель, v.taxi_id
             FROM ВОДИТЕЛИ v
             LEFT JOIN ПОЕЗДКИ p ON p.водитель = v.код
             WHERE p.код_поездки IS NULL
@@ -1212,36 +1101,35 @@ class TaxiApp:
         """
         self.execute_and_display(query, title="Водители без поездок", status="Неактивные водители")
 
-    def inactive_cars(self):
+    def inactive_companies(self):
         query = """
-            SELECT a.код, a.гос_номер, a.марка, a.модель, a.год_выпуска, a.цвет, a.класс
-            FROM АВТОМОБИЛИ a
-            LEFT JOIN ПОЕЗДКИ p ON p.автомобиль = a.код
+            SELECT t.код, t.название
+            FROM ТАКСОПАРКИ t
+            LEFT JOIN ПОЕЗДКИ p ON p.таксопарк = t.код
             WHERE p.код_поездки IS NULL
-            ORDER BY a.код
+            ORDER BY t.код
         """
-        self.execute_and_display(query, title="Автомобили без поездок", status="Неиспользуемые авто")
+        self.execute_and_display(query, title="Таксопарки без поездок", status="Таксопарки без поездок")
 
     def data_quality_check(self):
         query = """
-            SELECT 'Поездки без автомобиля' AS проверка, COUNT(*) AS найдено FROM ПОЕЗДКИ WHERE автомобиль IS NULL
-            UNION ALL SELECT 'Поездки без водителя', COUNT(*) FROM ПОЕЗДКИ WHERE водитель IS NULL
-            UNION ALL SELECT 'Поездки без клиента', COUNT(*) FROM ПОЕЗДКИ WHERE клиент IS NULL
-            UNION ALL SELECT 'Автомобили без класса', COUNT(*) FROM АВТОМОБИЛИ WHERE класс IS NULL OR класс = ''
-            UNION ALL SELECT 'Водители без рейтинга', COUNT(*) FROM ВОДИТЕЛИ WHERE рейтинг IS NULL
-            UNION ALL SELECT 'Клиенты без email', COUNT(*) FROM КЛИЕНТЫ WHERE email IS NULL OR email = ''
-            UNION ALL SELECT 'Неположительная стоимость', COUNT(*) FROM ПОЕЗДКИ WHERE стоимость <= 0
-            UNION ALL SELECT 'Неположительная дистанция', COUNT(*) FROM ПОЕЗДКИ WHERE расстояние_км <= 0
+            SELECT 'Поездки без района посадки (за городом)' AS проверка, COUNT(*) AS найдено FROM ПОЕЗДКИ WHERE откуда IS NULL
+            UNION ALL SELECT 'Поездки без района высадки (за городом)', COUNT(*) FROM ПОЕЗДКИ WHERE куда IS NULL
+            UNION ALL SELECT 'Окончание раньше начала', COUNT(*) FROM ПОЕЗДКИ WHERE окончание < дата
+            UNION ALL SELECT 'Чаевые больше стоимости', COUNT(*) FROM ПОЕЗДКИ WHERE чаевые > стоимость
+            UNION ALL SELECT 'Скорость выше 120 км/ч', COUNT(*) FROM ПОЕЗДКИ WHERE расстояние_км / (время_мин / 60.0) > 120
+            UNION ALL SELECT 'Водители без поездок', COUNT(*) FROM ВОДИТЕЛИ v WHERE NOT EXISTS (SELECT 1 FROM ПОЕЗДКИ p WHERE p.водитель = v.код)
+            UNION ALL SELECT 'Районы без поездок', COUNT(*) FROM РАЙОНЫ r WHERE NOT EXISTS (SELECT 1 FROM ПОЕЗДКИ p WHERE p.откуда = r.код OR p.куда = r.код)
         """
         self.execute_and_display(query, title="Проверка качества данных", status="Проверка связей")
 
     def chart_driver_revenue(self):
         query = """
-            SELECT v.фамилия || ' ' || v.имя AS водитель,
-                   ROUND(COALESCE(SUM(p.стоимость),0),2) AS выручка
+            SELECT 'Водитель №' || v.код AS водитель,
+                   ROUND(SUM(p.стоимость),2) AS выручка
             FROM ВОДИТЕЛИ v
-            LEFT JOIN ПОЕЗДКИ p ON p.водитель = v.код
-            GROUP BY v.код, v.фамилия, v.имя
+            JOIN ПОЕЗДКИ p ON p.водитель = v.код
+            GROUP BY v.код
             ORDER BY выручка DESC
             LIMIT 10
         """
@@ -1251,7 +1139,7 @@ class TaxiApp:
             return
         labels = [r[0] for r in rows]
         values = [float(r[1] or 0) for r in rows]
-        self.open_bar_chart(labels, values, "Топ-10 водителей по выручке", "Водитель", "Выручка")
+        self.open_bar_chart(labels, values, "Топ-10 водителей по выручке", "Водитель", "Выручка, $")
 
     def chart_weekday_revenue(self):
         query = """
@@ -1271,7 +1159,7 @@ class TaxiApp:
             return
         labels = [r[0] for r in rows]
         values = [float(r[1] or 0) for r in rows]
-        self.open_bar_chart(labels, values, "Выручка по дням недели", "День недели", "Выручка")
+        self.open_bar_chart(labels, values, "Выручка по дням недели", "День недели", "Выручка, $")
 
     def open_bar_chart(self, labels, values, title, xlabel, ylabel):
         win = tk.Toplevel(self.root)
@@ -1290,47 +1178,15 @@ class TaxiApp:
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
         self.set_status(title)
 
-    def add_ride_calculated(self):
-        data = self.ask_fields("Добавить поездку с автоматическим расчётом", [
-            ("car", "Код автомобиля", "1"),
-            ("driver", "Код водителя", "1"),
-            ("client", "Код клиента", "1"),
-            ("km", "Расстояние, км", "10"),
-            ("minutes", "Время, мин", "25"),
-            ("date", "Дата/время YYYY-MM-DD HH:MM:SS", "2026-06-24 12:00:00"),
-        ])
-        if not data:
-            return
-        rows, _ = self.fetch_rows("""
-            SELECT a.класс, t.цена_за_км, t.цена_за_час, t.минимальная_стоимость
-            FROM АВТОМОБИЛИ a
-            JOIN ТАРИФЫ t ON t.класс = a.класс
-            WHERE a.код = %s::int
-        """, [data["car"]])
-        if not rows:
-            messagebox.showerror("Ошибка", "Для выбранного автомобиля не найден тариф по классу")
-            return
-        _, price_km, price_hour, min_price = rows[0]
-        km = float(data["km"])
-        minutes = int(data["minutes"])
-        cost = max(float(min_price), km * float(price_km) + (minutes / 60) * float(price_hour))
-        query = """
-            INSERT INTO ПОЕЗДКИ (дата, автомобиль, водитель, клиент, расстояние_км, время_мин, стоимость)
-            VALUES (%s::timestamp, %s::int, %s::int, %s::int, %s::numeric, %s::int, %s::numeric)
-        """
-        self.execute_and_display(query, [data["date"], data["car"], data["driver"], data["client"], data["km"], data["minutes"], round(cost, 2)],
-                                 title=f"Добавлена поездка. Расчётная стоимость: {round(cost, 2)}", status="Поездка добавлена", fetch=False)
-        self.load_autocomplete_data()
-
     def edit_any_record(self):
-        table = simpledialog.askstring("Полное редактирование", "Таблица: АВТОМОБИЛИ / ВОДИТЕЛИ / КЛИЕНТЫ / ТАРИФЫ / ПОЕЗДКИ")
+        table = simpledialog.askstring("Полное редактирование", "Таблица: ТАКСОПАРКИ / ВОДИТЕЛИ / КЛИЕНТЫ / РАЙОНЫ / ПОЕЗДКИ")
         if not table:
             return
         table = table.strip().upper()
         if table not in self.TABLES:
             messagebox.showerror("Ошибка", "Такой таблицы нет в списке GUI")
             return
-        pk = "код_поездки" if table == "ПОЕЗДКИ" else "код"
+        pk = {"ПОЕЗДКИ": "код_поездки", "СЕЗОН": "месяц"}.get(table, "код")
         code = simpledialog.askinteger("Код записи", f"Введите {pk}")
         if not code:
             return
@@ -1357,32 +1213,35 @@ class TaxiApp:
         query = """
             CREATE OR REPLACE VIEW taxi_full_rides AS
             SELECT p.код_поездки, p.дата,
-                   a.гос_номер, a.марка, a.модель, a.класс,
-                   v.фамилия || ' ' || v.имя AS водитель,
-                   COALESCE(k.фамилия || ' ', '') || k.имя AS клиент,
-                   p.расстояние_км, p.время_мин, p.стоимость
+                   'Водитель №' || v.код AS водитель,
+                   t.название AS таксопарк,
+                   k.описание AS оплата,
+                   ro.название AS откуда, rk.название AS куда,
+                   p.расстояние_км, p.время_мин, p.стоимость, p.чаевые
             FROM ПОЕЗДКИ p
-            LEFT JOIN АВТОМОБИЛИ a ON a.код = p.автомобиль
-            LEFT JOIN ВОДИТЕЛИ v ON v.код = p.водитель
-            LEFT JOIN КЛИЕНТЫ k ON k.код = p.клиент;
+            JOIN ВОДИТЕЛИ v ON v.код = p.водитель
+            JOIN КЛИЕНТЫ k ON k.код = p.клиент
+            JOIN ТАКСОПАРКИ t ON t.код = p.таксопарк
+            LEFT JOIN РАЙОНЫ ro ON ro.код = p.откуда
+            LEFT JOIN РАЙОНЫ rk ON rk.код = p.куда;
 
             CREATE OR REPLACE VIEW taxi_driver_report AS
-            SELECT v.код, v.фамилия, v.имя, v.телефон, v.стаж_лет, v.рейтинг,
+            SELECT v.код, 'Водитель №' || v.код AS водитель, v.taxi_id,
                    COUNT(p.код_поездки) AS поездок,
                    ROUND(COALESCE(SUM(p.стоимость),0),2) AS выручка,
                    ROUND(COALESCE(AVG(p.стоимость),0),2) AS средний_чек
             FROM ВОДИТЕЛИ v
             LEFT JOIN ПОЕЗДКИ p ON p.водитель = v.код
-            GROUP BY v.код, v.фамилия, v.имя, v.телефон, v.стаж_лет, v.рейтинг;
+            GROUP BY v.код;
 
             CREATE OR REPLACE VIEW taxi_client_report AS
-            SELECT k.код, k.фамилия, k.имя, k.телефон, k.email,
+            SELECT k.код, k.тип, k.описание,
                    COUNT(p.код_поездки) AS поездок,
                    ROUND(COALESCE(SUM(p.стоимость),0),2) AS сумма,
-                   ROUND(COALESCE(AVG(p.стоимость),0),2) AS средний_чек
+                   ROUND(COALESCE(AVG(p.чаевые),0),2) AS средние_чаевые
             FROM КЛИЕНТЫ k
             LEFT JOIN ПОЕЗДКИ p ON p.клиент = k.код
-            GROUP BY k.код, k.фамилия, k.имя, k.телефон, k.email;
+            GROUP BY k.код;
         """
         self.execute_and_display(query, title="Представления созданы", status="Views созданы", fetch=False)
 
@@ -1410,12 +1269,15 @@ class TaxiApp:
                 WHERE клиент = client_id;
             $$ LANGUAGE SQL;
 
-            CREATE OR REPLACE FUNCTION taxi_calc_price(cls text, km numeric, minutes integer)
+            -- ожидаемая стоимость по реальным поездкам таксопарка: средняя цена километра и минуты
+            CREATE OR REPLACE FUNCTION taxi_estimate_price(company text, km numeric, minutes integer)
             RETURNS numeric AS $$
-                SELECT ROUND(GREATEST(t.минимальная_стоимость,
-                                      km * t.цена_за_км + (minutes::numeric / 60) * t.цена_за_час), 2)
-                FROM ТАРИФЫ t
-                WHERE t.класс = cls;
+                SELECT ROUND(AVG(p.стоимость / p.расстояние_км) * km * 0.5
+                           + AVG(p.стоимость / p.время_мин) * minutes * 0.5, 2)
+                FROM ПОЕЗДКИ p
+                JOIN ТАКСОПАРКИ t ON t.код = p.таксопарк
+                WHERE t.название ILIKE '%%' || company || '%%'  -- %% из-за подстановки параметров psycopg2
+                  AND p.расстояние_км >= 1;
             $$ LANGUAGE SQL;
         """
         self.execute_and_display(query, title="SQL-функции созданы", status="Функции созданы", fetch=False)
@@ -1423,8 +1285,8 @@ class TaxiApp:
     def functions_demo(self):
         data = self.ask_fields("Демо функций", [
             ("driver", "Код водителя", "1"),
-            ("client", "Код клиента", "1"),
-            ("cls", "Класс", "эконом"),
+            ("client", "Код типа клиента", "1"),
+            ("company", "Таксопарк (часть названия)", "Flash"),
             ("km", "Километры", "10"),
             ("minutes", "Минуты", "25"),
         ])
@@ -1432,10 +1294,10 @@ class TaxiApp:
             return
         query = """
             SELECT taxi_driver_revenue(%s::int) AS выручка_водителя,
-                   taxi_client_spent(%s::int) AS сумма_клиента,
-                   taxi_calc_price(%s, %s::numeric, %s::int) AS расчёт_стоимости
+                   taxi_client_spent(%s::int) AS сумма_типа_клиента,
+                   taxi_estimate_price(%s, %s::numeric, %s::int) AS оценка_стоимости
         """
-        self.execute_and_display(query, [data["driver"], data["client"], data["cls"], data["km"], data["minutes"]],
+        self.execute_and_display(query, [data["driver"], data["client"], data["company"], data["km"], data["minutes"]],
                                  title="Демонстрация SQL-функций", status="Демо функций")
 
     def archive_old_rides(self):
@@ -1537,9 +1399,7 @@ class TaxiApp:
             "data",
             "helper",
             "queries",
-            "functions",
-            "generation",
-            "control",
+            "setup",
         ]
 
     def find_project_sql_files(self):
@@ -1572,7 +1432,7 @@ class TaxiApp:
             if needs_params:
                 params_text = simpledialog.askstring(
                     "Параметры SQL-файла",
-                    "Введите параметры через пробел. Например: эконом Иванов\nМожно оставить пустым:",
+                    "Введите параметры через пробел. Например: Flash 12\nМожно оставить пустым:",
                     parent=self.root,
                 )
             else:
@@ -1904,20 +1764,25 @@ class TaxiApp:
             wraplength=680,
         ).pack(anchor="w", pady=(0, 8))
 
+        self.add_command_section(body, "Данные", [
+            ("fetch", "Скачать недостающие дни из открытых данных Чикаго", lambda: self.run_shell_tool("help.sh", ["fetch"], title="./help.sh fetch — сбор данных", timeout=1800)),
+            ("load", "Загрузить скачанные поездки в базу (только новые)", lambda: self.run_shell_tool("help.sh", ["load"], title="./help.sh load — загрузка в базу", timeout=600)),
+        ])
+
         self.add_command_section(body, "Основные задачи", [
             ("task1", "Выручка по сезонам", lambda: self.run_h("task1", title="./help.sh task1 — выручка по сезонам")),
-            ("task2", "Выручка по сезонам и классам авто", lambda: self.run_h("task2", title="./help.sh task2 — выручка по сезонам и классам")),
+            ("task2", "Выручка по сезонам и таксопаркам", lambda: self.run_h("task2", title="./help.sh task2 — сезоны и таксопарки")),
             ("task3", "Выручка по дням недели и водителям", lambda: self.run_h("task3", title="./help.sh task3 — дни недели и водители")),
             ("task4", "Выручка по водителям за выбранный день", lambda: self.run_h_with_fields("task4", "./help.sh task4 — день", [("day", "День недели: 1 — пн ... 7 — вс", "1")]))
         ])
 
         self.add_command_section(body, "Просмотр данных", [
-            ("01", "Все автомобили", lambda: self.run_h("01", title="./help.sh 01 — все автомобили")),
-            ("02", "Все водители", lambda: self.run_h("02", title="./help.sh 02 — все водители")),
-            ("03", "Первые 10 клиентов", lambda: self.run_h("03", title="./help.sh 03 — клиенты первые 10")),
+            ("01", "Все таксопарки", lambda: self.run_h("01", title="./help.sh 01 — таксопарки")),
+            ("02", "Водители (первые 50)", lambda: self.run_h("02", title="./help.sh 02 — водители")),
+            ("03", "Типы клиентов", lambda: self.run_h("03", title="./help.sh 03 — типы клиентов")),
             ("04", "Количество поездок", lambda: self.run_h("04", title="./help.sh 04 — количество поездок")),
-            ("05", "Примеры поездок", lambda: self.run_h("05", title="./help.sh 05 — примеры поездок")),
-            ("06", "Полный список клиентов", lambda: self.run_h("06", title="./help.sh 06 — все клиенты")),
+            ("05", "Последние поездки", lambda: self.run_h("05", title="./help.sh 05 — последние поездки")),
+            ("06", "Типы клиентов с числом поездок", lambda: self.run_h("06", title="./help.sh 06 — типы клиентов и поездки")),
             ("16", "Структура таблиц", lambda: self.run_h("16", title="./help.sh 16 — структура таблиц")),
         ])
 
@@ -1932,41 +1797,43 @@ class TaxiApp:
 
         self.add_command_section(body, "Показать до/после", [
             ("60", "ДО UPDATE", lambda: self.run_h("60", title="./help.sh 60 — до UPDATE")),
-            ("61", "ПОСЛЕ UPDATE", lambda: self.run_h("61", title="./help.sh 61 — после UPDATE")),
-            ("62", "ДО DELETE", lambda: self.run_h("62", title="./help.sh 62 — до DELETE")),
-            ("63", "ПОСЛЕ DELETE", lambda: self.run_h("63", title="./help.sh 63 — после DELETE")),
+            ("61", "Выполнить UPDATE", lambda: self.run_h("61", title="./help.sh 61 — UPDATE")),
+            ("62", "ПОСЛЕ UPDATE", lambda: self.run_h("62", title="./help.sh 62 — после UPDATE")),
+            ("63", "ДО DELETE", lambda: self.run_h("63", title="./help.sh 63 — до DELETE")),
+            ("64", "Выполнить DELETE", lambda: self.run_h("64", title="./help.sh 64 — DELETE")),
+            ("65", "ПОСЛЕ DELETE", lambda: self.run_h("65", title="./help.sh 65 — после DELETE")),
         ])
 
         self.add_command_section(body, "Аналитика", [
-            ("17", "Топ-10 авто по выручке", lambda: self.run_h("17", title="./help.sh 17 — топ авто")),
+            ("17", "Топ-10 районов по выручке", lambda: self.run_h("17", title="./help.sh 17 — топ районов")),
             ("18", "Топ-10 водителей по выручке", lambda: self.run_h("18", title="./help.sh 18 — топ водителей")),
             ("19", "Выручка по месяцам", lambda: self.run_h("19", title="./help.sh 19 — выручка по месяцам")),
             ("20", "Средний чек", lambda: self.run_h("20", title="./help.sh 20 — средний чек")),
             ("21", "Поездки по часам", lambda: self.run_h("21", title="./help.sh 21 — поездки по часам")),
-            ("22", "Статистика по классам", lambda: self.run_h("22", title="./help.sh 22 — статистика по классам")),
+            ("22", "Статистика по таксопаркам", lambda: self.run_h("22", title="./help.sh 22 — статистика по таксопаркам")),
             ("23", "Загруженность водителей", lambda: self.run_h("23", title="./help.sh 23 — загруженность водителей")),
-            ("24", "Средняя стоимость по классам", lambda: self.run_h("24", title="./help.sh 24 — средняя стоимость")),
+            ("24", "Средние чаевые по типам клиентов", lambda: self.run_h("24", title="./help.sh 24 — чаевые по типам клиентов")),
             ("25", "Выручка по дням недели", lambda: self.run_h("25", title="./help.sh 25 — дни недели")),
-            ("26", "Топ-5 клиентов", lambda: self.run_h("26", title="./help.sh 26 — топ клиентов")),
-            ("27", "Средний пробег по классам", lambda: self.run_h("27", title="./help.sh 27 — средний пробег")),
+            ("26", "Выручка по типам клиентов", lambda: self.run_h("26", title="./help.sh 26 — типы клиентов")),
+            ("27", "Средний пробег по таксопаркам", lambda: self.run_h("27", title="./help.sh 27 — средний пробег")),
             ("28", "Распределение поездок по часам", lambda: self.run_h("28", title="./help.sh 28 — распределение по часам")),
             ("29", "Средний чек по часам", lambda: self.run_h("29", title="./help.sh 29 — средний чек по часам")),
-            ("30", "Выручка по водителям с рейтингом", lambda: self.run_h("30", title="./help.sh 30 — выручка с рейтингом")),
+            ("30", "Топ-10 водителей по чаевым", lambda: self.run_h("30", title="./help.sh 30 — топ по чаевым")),
         ])
 
         self.add_command_section(body, "Запросы с параметрами", [
-            ("31", "Авто по классу", lambda: self.run_h_with_fields("31", "./help.sh 31 — авто по классу", [("cls", "Класс", "эконом")])) ,
+            ("31", "Таксопарки по части названия", lambda: self.run_h_with_fields("31", "./help.sh 31 — таксопарки", [("text", "Часть названия", "Cab")])) ,
             ("32", "Информация о водителе", lambda: self.run_h_with_fields("32", "./help.sh 32 — водитель", [("code", "Код водителя", "1")])) ,
-            ("33", "История поездок авто", lambda: self.run_h_with_fields("33", "./help.sh 33 — история авто", [("code", "Код автомобиля", "1")])) ,
-            ("34", "Поездки дороже суммы", lambda: self.run_h_with_fields("34", "./help.sh 34 — поездки дороже суммы", [("amount", "Сумма", "500")])) ,
-            ("35", "Водители с выручкой выше суммы", lambda: self.run_h_with_fields("35", "./help.sh 35 — выручка выше суммы", [("amount", "Сумма", "10000")])) ,
-            ("40", "Обновить госномер авто", lambda: self.run_h_with_fields("40", "./help.sh 40 — обновить госномер", [("code", "Код авто", "1"), ("number", "Новый номер", "А999АА")])) ,
-            ("41", "Обновить телефон водителя", lambda: self.run_h_with_fields("41", "./help.sh 41 — телефон водителя", [("code", "Код водителя", "1"), ("phone", "Новый телефон", "+79000000001")])) ,
+            ("33", "Последние поездки водителя", lambda: self.run_h_with_fields("33", "./help.sh 33 — поездки водителя", [("code", "Код водителя", "1")])) ,
+            ("34", "Поездки дороже суммы", lambda: self.run_h_with_fields("34", "./help.sh 34 — поездки дороже суммы", [("amount", "Сумма $", "100")])) ,
+            ("35", "Водители с выручкой выше суммы", lambda: self.run_h_with_fields("35", "./help.sh 35 — выручка выше суммы", [("amount", "Сумма $", "10000")])) ,
+            ("40", "Переименовать таксопарк", lambda: self.run_h_with_fields("40", "./help.sh 40 — переименовать таксопарк", [("code", "Код таксопарка", "1"), ("name", "Новое название", "")])) ,
+            ("41", "Изменить описание типа клиента", lambda: self.run_h_with_fields("41", "./help.sh 41 — описание типа клиента", [("code", "Код типа клиента", "1"), ("desc", "Новое описание", "")])) ,
             ("42", "Удалить водителя", self.run_h_confirm_delete_driver),
-            ("43", "Добавить авто", lambda: self.run_h_with_fields("43", "./help.sh 43 — добавить авто", [("brand", "Марка", "Hyundai"), ("model", "Модель", "Solaris"), ("cls", "Класс", "эконом")])) ,
-            ("44", "Добавить водителя", lambda: self.run_h_with_fields("44", "./help.sh 44 — добавить водителя", [("surname", "Фамилия", "Иванов"), ("name", "Имя", "Иван"), ("phone", "Телефон", "+79009999999")])) ,
-            ("45", "Изменить класс авто", lambda: self.run_h_with_fields("45", "./help.sh 45 — изменить класс", [("code", "Код авто", "1"), ("cls", "Новый класс", "комфорт")])) ,
-            ("46", "Изменить рейтинг водителя", lambda: self.run_h_with_fields("46", "./help.sh 46 — рейтинг водителя", [("code", "Код водителя", "1"), ("rating", "Новый рейтинг", "4.95")])) ,
+            ("43", "Добавить таксопарк", lambda: self.run_h_with_fields("43", "./help.sh 43 — добавить таксопарк", [("name", "Название", "Новый таксопарк")])) ,
+            ("44", "Добавить водителя", lambda: self.run_h_with_fields("44", "./help.sh 44 — добавить водителя", [("taxi_id", "taxi_id (до 16 символов)", "manual00000001")])) ,
+            ("45", "Сменить таксопарк поездки", lambda: self.run_h_with_fields("45", "./help.sh 45 — таксопарк поездки", [("ride", "Код поездки", "1"), ("company", "Код таксопарка", "1")])) ,
+            ("46", "Изменить чаевые поездки", lambda: self.run_h_with_fields("46", "./help.sh 46 — чаевые поездки", [("ride", "Код поездки", "1"), ("tips", "Чаевые $", "2.00")])) ,
         ])
 
         self.add_command_section(body, "Представления и подзапросы", [
@@ -1974,22 +1841,22 @@ class TaxiApp:
             ("101", "Создать технологическое представление", lambda: self.run_h("101", title="./help.sh 101 — tech view")),
             ("102", "Проверить представления", lambda: self.run_h("102", title="./help.sh 102 — check views")),
             ("110", "Отклонение стоимости поездки", lambda: self.run_h("110", title="./help.sh 110 — подзапрос 1.1")),
-            ("111", "Рейтинг автомобилей", lambda: self.run_h("111", title="./help.sh 111 — рейтинг авто")),
-            ("112", "Поездки дороже среднего по классу", lambda: self.run_h("112", title="./help.sh 112 — выше среднего")),
-            ("113", "Статистика по классам", lambda: self.run_h("113", title="./help.sh 113 — статистика классов")),
-            ("114", "Топ-3 водителя в каждом классе", lambda: self.run_h("114", title="./help.sh 114 — топ-3")),
-            ("115", "Поездки дороже среднего по водителю", lambda: self.run_h_with_fields("115", "./help.sh 115 — водитель по фамилии", [("surname", "Фамилия", "Волков")])) ,
-            ("116", "Водители без дешёвых поездок", lambda: self.run_h("116", title="./help.sh 116 — без дешёвых")),
+            ("111", "Рейтинг таксопарков", lambda: self.run_h("111", title="./help.sh 111 — рейтинг таксопарков")),
+            ("112", "Поездки дороже среднего по таксопарку", lambda: self.run_h("112", title="./help.sh 112 — выше среднего")),
+            ("113", "Статистика по таксопаркам", lambda: self.run_h("113", title="./help.sh 113 — статистика таксопарков")),
+            ("114", "Топ-3 водителя в каждом таксопарке", lambda: self.run_h("114", title="./help.sh 114 — топ-3")),
+            ("115", "Поездки дороже среднего по водителю", lambda: self.run_h_with_fields("115", "./help.sh 115 — водитель", [("code", "Код водителя", "1")])) ,
+            ("116", "Водители без поездок дешевле $10", lambda: self.run_h("116", title="./help.sh 116 — без дешёвых")),
             ("117", "Лучшие водители", lambda: self.run_h("117", title="./help.sh 117 — лучшие водители")),
-            ("118", "Добавить дорогие поездки для теста", lambda: self.run_h("118", title="./help.sh 118 — контрольные дорогие поездки")),
+            ("118", "Самые дорогие поездки", lambda: self.run_h("118", title="./help.sh 118 — самые дорогие поездки")),
             ("199", "Выполнить все запросы с подзапросами", lambda: self.run_h("199", title="./help.sh 199 — все подзапросы")),
         ])
 
         self.add_command_section(body, "Функции", [
             ("200", "Создать все функции", lambda: self.run_h("200", title="./help.sh 200 — создать функции")),
-            ("201", "Водители с выручкой выше порога", lambda: self.run_h_with_fields("201", "./help.sh 201 — порог", [("amount", "Порог", "10000")])) ,
-            ("202", "Выручка по классам и сезонам", lambda: self.run_h("202", title="./help.sh 202 — классы и сезоны")),
-            ("203", "Сводная таблица водители × классы", lambda: self.run_h("203", title="./help.sh 203 — сводная")),
+            ("201", "Водители с выручкой выше порога", lambda: self.run_h_with_fields("201", "./help.sh 201 — порог", [("amount", "Порог $", "10000")])) ,
+            ("202", "Выручка по таксопаркам и сезонам", lambda: self.run_h("202", title="./help.sh 202 — таксопарки и сезоны")),
+            ("203", "Сводная таблица водители × способы оплаты", lambda: self.run_h("203", title="./help.sh 203 — сводная")),
             ("204", "Выполнить всё по функциям", lambda: self.run_h("204", title="./help.sh 204 — все функции")),
         ])
 
@@ -2002,11 +1869,11 @@ class TaxiApp:
         ).pack(anchor="w", pady=(0, 8))
 
         self.add_command_section(body, "Отчёты", [
-            ("python_reports.sh 1", "Отчёт по водителям и классам; водитель и класс необязательны", lambda: self.run_python_with_optional_fields("1", "./python_reports.sh 1", [("driver", "Водитель, можно пусто", ""), ("cls", "Класс, можно пусто", "")])) ,
-            ("python_reports.sh 1s", "Отчёт со звёздочкой * в углу", lambda: self.run_python_with_optional_fields("1s", "./python_reports.sh 1s", [("driver", "Водитель, можно пусто", ""), ("cls", "Класс, можно пусто", "")])) ,
-            ("python_reports.sh 2", "Сводная таблица; класс необязателен", lambda: self.run_python_with_optional_fields("2", "./python_reports.sh 2", [("cls", "Класс, можно пусто", "")])) ,
+            ("python_reports.sh 1", "Отчёт по водителям и типам клиентов; оба параметра необязательны", lambda: self.run_python_with_optional_fields("1", "./python_reports.sh 1", [("driver", "Код водителя, можно пусто", ""), ("cls", "Тип клиента, можно пусто", "")])) ,
+            ("python_reports.sh 1s", "Отчёт со звёздочкой * в углу", lambda: self.run_python_with_optional_fields("1s", "./python_reports.sh 1s", [("driver", "Код водителя, можно пусто", ""), ("cls", "Тип клиента, можно пусто", "")])) ,
+            ("python_reports.sh 2", "Сводная таблица; тип клиента необязателен", lambda: self.run_python_with_optional_fields("2", "./python_reports.sh 2", [("cls", "Тип клиента, можно пусто", "")])) ,
             ("python_reports.sh 3", "График динамики", lambda: self.run_python_report("3", title="./python_reports.sh 3 — график динамики")),
-            ("python_reports.sh 4", "Круговая диаграмма; водитель необязателен", lambda: self.run_python_with_optional_fields("4", "./python_reports.sh 4", [("driver", "Водитель, можно пусто", "")])) ,
+            ("python_reports.sh 4", "Круговая диаграмма; водитель необязателен", lambda: self.run_python_with_optional_fields("4", "./python_reports.sh 4", [("driver", "Код водителя, можно пусто", "")])) ,
         ])
 
         self.add_command_section(body, "Пакетный запуск и сохранение", [
@@ -2032,8 +1899,9 @@ class TaxiApp:
     def show_about(self):
         messagebox.showinfo(
             "О программе",
-            "TAXI: система управления поездками\n"
-            "GUI для таблиц: автомобили, водители, клиенты, тарифы, поездки, сезон.\n\n"
+            "TAXI: поездки такси Чикаго\n"
+            "Реальные открытые данные города (Chicago Data Portal, Taxi Trips).\n"
+            "Таблицы: таксопарки, водители, типы клиентов, районы, поездки, сезон.\n\n"
             "Реализовано: просмотр, фильтры, поиск, рейтинги, аналитика, графики, CRUD,\n"
             "UPDATE/DELETE до-после, экспорт, бэкап и запуск SQL-файлов."
         )

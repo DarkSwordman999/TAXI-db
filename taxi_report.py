@@ -58,48 +58,68 @@ def print_footer(col_widths, star_bottom=False):
     else:
         print('└' + '┴'.join('─' * (w + 2) for w in col_widths) + '┘')
 
+DRIVERS_SQL = """
+    WITH водители AS (
+        -- конкретный водитель по коду или 15 водителей с наибольшей выручкой
+        SELECT В.код
+        FROM ВОДИТЕЛИ В
+        JOIN ПОЕЗДКИ П ON П.водитель = В.код
+        WHERE %(driver)s::int IS NULL OR В.код = %(driver)s::int
+        GROUP BY В.код
+        ORDER BY SUM(П.стоимость) DESC
+        LIMIT 15
+    )
+    SELECT
+        'Водитель №' || d.код AS водитель,
+        к.описание AS тип_клиента,
+        COALESCE(SUM(p.стоимость), 0) AS выручка,
+        COUNT(p.код_поездки) AS количество_поездок
+    FROM водители d
+    CROSS JOIN КЛИЕНТЫ к
+    LEFT JOIN ПОЕЗДКИ p ON p.водитель = d.код AND p.клиент = к.код
+    WHERE %(client)s::text IS NULL
+       OR к.описание ILIKE %(client)s OR к.тип ILIKE %(client)s
+    GROUP BY d.код, к.описание
+    ORDER BY d.код, к.описание
+"""
+
+
+def driver_code(driver_param):
+    """Код водителя из параметра: "12" или "Водитель №12"."""
+    if not driver_param:
+        return None
+    digits = "".join(ch for ch in driver_param if ch.isdigit())
+    if not digits:
+        print(f"Водитель задаётся кодом, например 12; получено: {driver_param}")
+        sys.exit(1)
+    return int(digits)
+
+
+def fetch_driver_client_rows(cur, driver_param=None, class_param=None):
+    cur.execute(DRIVERS_SQL, {"driver": driver_code(driver_param),
+                              "client": f"%{class_param}%" if class_param else None})
+    return cur.fetchall()
+
+
 def task1_report(driver_param=None, class_param=None, star_bottom=False):
     conn = get_connection()
     cur = conn.cursor()
     
-    sql = """
-    SELECT 
-        d.фамилия || ' ' || d.имя AS водитель,
-        a.класс,
-        COALESCE(SUM(p.стоимость), 0) AS выручка,
-        COUNT(p.код_поездки) AS количество_поездок
-    FROM ВОДИТЕЛИ d
-    CROSS JOIN АВТОМОБИЛИ a
-    LEFT JOIN ПОЕЗДКИ p ON p.водитель = d.код AND p.автомобиль = a.код
-    GROUP BY d.код, d.фамилия, d.имя, a.класс
-    ORDER BY водитель, класс
-    """
-    
-    cur.execute(sql)
-    rows = cur.fetchall()
-    
-    # Фильтрация
-    if driver_param or class_param:
-        filtered = []
-        for driver, class_name, revenue, rides in rows:
-            if driver_param and driver_param.lower() not in driver.lower():
-                continue
-            if class_param and class_param.lower() not in class_name.lower():
-                continue
-            filtered.append((driver, class_name, revenue, rides))
-        rows = filtered
+    rows = fetch_driver_client_rows(cur, driver_param, class_param)
     
     print()
     print('=' * 70)
     if star_bottom:
-        print('  ОТЧЁТ: ВЫРУЧКА ПО ВОДИТЕЛЯМ И КЛАССАМ АВТО *')
+        print('  ОТЧЁТ: ВЫРУЧКА ПО ВОДИТЕЛЯМ И ТИПАМ КЛИЕНТОВ *')
     else:
-        print('  ОТЧЁТ: ВЫРУЧКА ПО ВОДИТЕЛЯМ И КЛАССАМ АВТО')
+        print('  ОТЧЁТ: ВЫРУЧКА ПО ВОДИТЕЛЯМ И ТИПАМ КЛИЕНТОВ')
     print('=' * 70)
     if driver_param:
         print(f'  Параметр: водитель = {driver_param}')
     if class_param:
-        print(f'  Параметр: класс = {class_param}')
+        print(f'  Параметр: тип клиента = {class_param}')
+    if not driver_param:
+        print('  15 водителей с наибольшей выручкой, суммы в $')
     print('-' * 70)
     
     if not rows:
@@ -108,8 +128,8 @@ def task1_report(driver_param=None, class_param=None, star_bottom=False):
         conn.close()
         return
     
-    col_widths = [4, 22, 12, 14, 8]
-    headers = ['№', 'Водитель (x)', 'Класс (y)', 'Выручка (F)', 'Поездок']
+    col_widths = [4, 16, 22, 14, 8]
+    headers = ['№', 'Водитель (x)', 'Тип клиента (y)', 'Выручка (F)', 'Поездок']
     alignments = ['r', 'l', 'l', 'r', 'r']
     
     print_header(col_widths, headers, alignments)
@@ -160,23 +180,7 @@ def task2_pivot_table(class_param=None):
     conn = get_connection()
     cur = conn.cursor()
     
-    sql = """
-    SELECT 
-        d.фамилия || ' ' || d.имя AS водитель,
-        a.класс,
-        COALESCE(SUM(p.стоимость), 0) AS выручка,
-        COUNT(p.код_поездки) AS количество_поездок
-    FROM ВОДИТЕЛИ d
-    CROSS JOIN АВТОМОБИЛИ a
-    LEFT JOIN ПОЕЗДКИ p ON p.водитель = d.код AND p.автомобиль = a.код
-    WHERE (LOWER(a.класс) LIKE LOWER(%s) OR %s IS NULL)
-    GROUP BY d.код, d.фамилия, d.имя, a.класс
-    ORDER BY d.фамилия, d.имя, a.класс
-    """
-    
-    class_pattern = f"%{class_param}%" if class_param else None
-    cur.execute(sql, (class_pattern, class_pattern))
-    rows = cur.fetchall()
+    rows = fetch_driver_client_rows(cur, class_param=class_param)
     
     data_T = {}
     data_nT = {}
@@ -194,7 +198,7 @@ def task2_pivot_table(class_param=None):
         drivers_set.add(driver)
         classes_set.add(class_name)
     
-    drivers = sorted(drivers_set)[:15]
+    drivers = sorted(drivers_set, key=lambda d: int(d.split('№')[1]))
     classes = sorted(classes_set)
     
     print()
@@ -202,10 +206,11 @@ def task2_pivot_table(class_param=None):
     print('  СВОДНАЯ ТАБЛИЦА: ВЫРУЧКА (T) И КОЛИЧЕСТВО ПОЕЗДОК (nT)')
     print('=' * 70)
     if class_param:
-        print(f'  Параметр: класс = {class_param}')
+        print(f'  Параметр: тип клиента = {class_param}')
+    print('  15 водителей с наибольшей выручкой, суммы в $')
     print('-' * 70)
     
-    col_widths = [4, 22] + [12] * len(classes) + [12]
+    col_widths = [4, 16] + [max(12, len(c)) for c in classes] + [12]
     headers = ['№', 'Водитель (x)'] + [c for c in classes] + ['Итого']
     alignments = ['r', 'l'] + ['r'] * (len(classes) + 1)
     
@@ -293,7 +298,7 @@ def task3_chart(force=False):
     fig, ax1 = plt.subplots(figsize=(12, 5))
     
     ax1.set_xlabel('Дата')
-    ax1.set_ylabel('Выручка (руб.)', color='blue')
+    ax1.set_ylabel('Выручка ($)', color='blue')
     ax1.plot(months, revenues, color='blue', marker='o', linewidth=2, label='Выручка')
     ax1.tick_params(axis='y', labelcolor='blue')
     
@@ -319,37 +324,21 @@ def task4_chart(driver_param=None, force=False):
     conn = get_connection()
     cur = conn.cursor()
     
-    if driver_param:
-        sql = """
-        SELECT 
-            a.класс,
-            COALESCE(SUM(p.стоимость), 0) as выручка
-        FROM ВОДИТЕЛИ d
-        CROSS JOIN АВТОМОБИЛИ a
-        LEFT JOIN ПОЕЗДКИ p ON p.водитель = d.код AND p.автомобиль = a.код
-        WHERE LOWER(d.фамилия) = LOWER(%s)
-           OR LOWER(d.фамилия || ' ' || d.имя) = LOWER(%s)
-        GROUP BY a.класс
+    code = driver_code(driver_param)
+    cur.execute("""
+        SELECT к.описание, COALESCE(SUM(p.стоимость), 0) AS выручка
+        FROM КЛИЕНТЫ к
+        LEFT JOIN ПОЕЗДКИ p ON p.клиент = к.код
+         AND (%(driver)s::int IS NULL OR p.водитель = %(driver)s::int)
+        GROUP BY к.описание
         ORDER BY выручка DESC
-        """
-        # точное совпадение: по подстроке "Волков" попал бы и "Волкова",
-        # и выручка двух водителей сложилась бы в одну диаграмму
-        cur.execute(sql, (driver_param, driver_param))
-        filename = f'docs/task4_chart_{driver_param}.png'
-        title = f'Распределение выручки по классам (водитель: {driver_param})'
+    """, {"driver": code})
+    if code:
+        filename = f'docs/task4_chart_{code}.png'
+        title = f'Распределение выручки по типам клиентов (водитель №{code})'
     else:
-        sql = """
-        SELECT 
-            a.класс,
-            COALESCE(SUM(p.стоимость), 0) as выручка
-        FROM АВТОМОБИЛИ a
-        LEFT JOIN ПОЕЗДКИ p ON p.автомобиль = a.код
-        GROUP BY a.класс
-        ORDER BY выручка DESC
-        """
-        cur.execute(sql)
         filename = 'docs/task4_chart.png'
-        title = 'Распределение выручки по классам (все водители)'
+        title = 'Распределение выручки по типам клиентов (все водители)'
     
     rows = cur.fetchall()
     cur.close()
@@ -386,7 +375,7 @@ def save_all(force=False):
     print("Сохранение всех графиков и диаграмм...")
     task3_chart(force)
     task4_chart(force=force)
-    task4_chart("Волков", force=force)
+    task4_chart("1", force=force)
     print("Все изображения сохранены в папку docs/")
 
 def show_help():
@@ -395,20 +384,20 @@ def show_help():
     print("=" * 60)
     print()
     print("Использование:")
-    print("  python taxi_report.py task1 [водитель] [класс]")
-    print("  python taxi_report.py task1s [водитель] [класс]   - со звездочкой *")
-    print("  python taxi_report.py task2 [класс]")
+    print("  python taxi_report.py task1 [код_водителя] [тип_клиента]")
+    print("  python taxi_report.py task1s [код_водителя] [тип_клиента]   - со звездочкой *")
+    print("  python taxi_report.py task2 [тип_клиента]")
     print("  python taxi_report.py task3 [--force]")
-    print("  python taxi_report.py task4 [водитель] [--force]")
+    print("  python taxi_report.py task4 [код_водителя] [--force]")
     print("  python taxi_report.py save-all [--force]")
     print()
     print("Примеры:")
     print("  python taxi_report.py task1")
     print("  python taxi_report.py task1s")
-    print("  python taxi_report.py task1s Волков")
+    print("  python taxi_report.py task1s 1")
     print("  python taxi_report.py task2")
     print("  python taxi_report.py task3 --force")
-    print("  python taxi_report.py task4 Волков")
+    print("  python taxi_report.py task4 1")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:

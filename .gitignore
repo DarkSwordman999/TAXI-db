@@ -5,6 +5,8 @@ __pycache__/
 .DS_Store
 .env
 *.csv
+# справочник районов — часть проекта
+!data/chicago/*.csv
 *.dump
 *.backup
 

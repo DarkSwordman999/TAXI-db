@@ -1,38 +1,41 @@
-name: Taxi Parser
+name: Сбор поездок такси Чикаго
 
+# Раз в день скачивает новые дни из открытых данных Чикаго
+# (data/chicago/rides/ГГГГ/ГГГГ-ММ-ДД.csv.gz) и коммитит их в репозиторий.
+# Расписание GitHub запускает только из ветки по умолчанию (main).
 on:
   schedule:
-    - cron: '0 */6 * * *'
+    - cron: '30 6 * * *'   # 06:30 UTC ежедневно
   workflow_dispatch:
-  push:
-    branches: [ main, create_parser ]
+    inputs:
+      days:
+        description: 'Сколько последних дней проверить'
+        required: false
+        default: '45'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: chicago-fetch
+  cancel-in-progress: false
 
 jobs:
-  parse:
+  fetch:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: pip install psycopg2-binary requests
-      
-      - name: Run OSRM parser
-        env:
-          DB_HOST: ${{ secrets.DB_HOST }}
-          DB_PORT: ${{ secrets.DB_PORT }}
-          DB_NAME: ${{ secrets.DB_NAME }}
-          DB_USER: ${{ secrets.DB_USER }}
-          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          DB_SSLMODE: ${{ secrets.DB_SSLMODE }}
-        run: python parser/osrm_parser.py
-      
-      - name: Commit and push changes
+          python-version: '3.12'
+
+      # сборщик использует только стандартную библиотеку — пакеты не нужны
+      - name: Скачать новые дни
+        run: python parser/chicago_fetch.py --days "${{ github.event.inputs.days || '45' }}"
+
+      - name: Закоммитить новые файлы
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "Auto-update: новые маршруты OSRM"
-          file_pattern: "data/*.csv"
-          branch: ${{ github.head_ref || github.ref_name }}
+          commit_message: "Данные: новые поездки такси Чикаго"
+          file_pattern: "data/chicago/rides/**/*.csv.gz"

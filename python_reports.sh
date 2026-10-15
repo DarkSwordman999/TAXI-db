@@ -7,11 +7,11 @@ show_help() {
     echo "============================================="
     echo ""
     echo "ОПИСАНИЕ КОМАНД:"
-    echo "  ./python_reports.sh 1 [водитель] [класс]         - отчёт по водителям и классам"
-    echo "  ./python_reports.sh 1s [водитель] [класс]        - отчёт со звездочкой * в углу"
-    echo "  ./python_reports.sh 2 [класс]                    - сводная таблица"
+    echo "  ./python_reports.sh 1 [код_водителя] [тип_клиента]         - отчёт по водителям и типам клиентов"
+    echo "  ./python_reports.sh 1s [код_водителя] [тип_клиента]        - отчёт со звездочкой * в углу"
+    echo "  ./python_reports.sh 2 [тип_клиента]                 - сводная таблица"
     echo "  ./python_reports.sh 3                            - график динамики"
-    echo "  ./python_reports.sh 4 [водитель]                 - круговая диаграмма"
+    echo "  ./python_reports.sh 4 [код_водителя]              - круговая диаграмма"
     echo "  ./python_reports.sh all                          - выполнить всё"
     echo "  ./python_reports.sh save                         - сохранить все графики"
     echo "  ./python_reports.sh save --force                 - сохранить с перезаписью"
@@ -19,11 +19,11 @@ show_help() {
     echo "ПРИМЕРЫ:"
     echo "  ./python_reports.sh 1"
     echo "  ./python_reports.sh 1s"
-    echo "  ./python_reports.sh 1 Волков"
-    echo "  ./python_reports.sh 1s Волков"
+    echo "  ./python_reports.sh 1 1"
+    echo "  ./python_reports.sh 1s 1"
     echo "  ./python_reports.sh 2"
     echo "  ./python_reports.sh 3"
-    echo "  ./python_reports.sh 4 Волков"
+    echo "  ./python_reports.sh 4 1"
 }
 
 case "$1" in
@@ -41,10 +41,10 @@ case "$1" in
             echo " ✸ Отчёт со звездочкой *"
             python3 taxi_report.py task1s
         elif [ -z "$3" ]; then
-            echo " ✸ Отчёт со звездочкой * (водитель: $2)"
+            echo " ✸ Отчёт со звездочкой * (водитель №$2)"
             python3 taxi_report.py task1s "$2"
         else
-            echo " ✸ Отчёт со звездочкой * (водитель: $2, класс: $3)"
+            echo " ✸ Отчёт со звездочкой * (водитель №$2, тип клиента: $3)"
             python3 taxi_report.py task1s "$2" "$3"
         fi
         ;;
