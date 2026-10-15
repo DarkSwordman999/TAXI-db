@@ -1,5 +1,5 @@
 -- Быстрое обновление госномера автомобиля
--- Использование: psql -d taxi_lab5 -v car_id=1 -v new_number='А999АА' -f helper/22_quick_update.sql
+-- Использование: psql -d taxi -v car_id=1 -v new_number='А999АА' -f helper/22_quick_update.sql
 
 BEGIN;
 

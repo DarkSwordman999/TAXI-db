@@ -1,5 +1,5 @@
 -- Быстрое удаление водителя
--- Использование: psql -d taxi_lab5 -v driver_id=30 -f helper/23_quick_delete.sql
+-- Использование: psql -d taxi -v driver_id=30 -f helper/23_quick_delete.sql
 
 BEGIN;
 

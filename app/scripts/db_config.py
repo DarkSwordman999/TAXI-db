@@ -4,7 +4,7 @@
 PGUSER, PGPASSWORD, PGDATABASE) — их же понимает psql в shell-скриптах.
 Переменные можно задать в окружении или в файле .env в корне проекта
 (образец — .env.example). Без них используются значения по умолчанию:
-локальный сервер, пользователь ОС, база taxi_lab5.
+локальный сервер, пользователь ОС, база taxi.
 """
 
 import getpass
@@ -35,5 +35,5 @@ DB_CONFIG = {
     "port": int(os.environ.get("PGPORT") or 5432),
     "user": os.environ.get("PGUSER") or getpass.getuser(),
     "password": os.environ.get("PGPASSWORD") or "",
-    "dbname": os.environ.get("PGDATABASE") or "taxi_lab5",
+    "dbname": os.environ.get("PGDATABASE") or "taxi",
 }

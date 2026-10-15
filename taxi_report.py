@@ -391,7 +391,7 @@ def save_all(force=False):
 
 def show_help():
     print("=" * 60)
-    print("  ЛАБОРАТОРНАЯ РАБОТА №8 - TAXI")
+    print("  PYTHON-ОТЧЁТЫ - TAXI")
     print("=" * 60)
     print()
     print("Использование:")

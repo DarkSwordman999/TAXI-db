@@ -1,5 +1,5 @@
--- Полная пересборка учебной базы TAXI.
--- Запуск: psql -d taxi_lab5 -f setup/rebuild_database.sql
+-- Полная пересборка базы TAXI.
+-- Запуск: psql -d taxi -f setup/rebuild_database.sql
 
 \echo '=== TAXI: очистка старых объектов ==='
 DROP VIEW IF EXISTS v_rides_tech;
@@ -52,9 +52,9 @@ DROP TABLE IF EXISTS ТАРИФЫ;
 \echo '=== TAXI: создание представлений и функций ==='
 \ir ../queries/views/01_create_rides_view.sql
 \ir ../queries/views/02_create_rides_tech.sql
-\ir ../queries/lab7/01_create_functions_task1.sql
-\ir ../queries/lab7/02_create_functions_task2.sql
-\ir ../queries/lab7/03_create_functions_task3.sql
+\ir ../queries/functions/01_create_functions_task1.sql
+\ir ../queries/functions/02_create_functions_task2.sql
+\ir ../queries/functions/03_create_functions_task3.sql
 
 \echo '=== TAXI: итоговые счетчики ==='
 SELECT 'АВТОМОБИЛИ' AS таблица, COUNT(*) AS строк FROM АВТОМОБИЛИ
