@@ -3,6 +3,8 @@ cd "$(dirname "$0")" || exit 1
 # настройки подключения: переменные PG* из окружения или из .env в корне проекта
 [ -f .env ] && set -a && . .env && set +a
 DATABASE="${PGDATABASE:-taxi}"
+# в Windows Python обычно доступен только как python
+PYTHON="$(command -v python3 || command -v python)"
 
 # числовой параметр: защищает запросы от подстановки произвольного текста
 need_num() {
@@ -139,8 +141,8 @@ if [ "$1" = "h1" ]; then
 fi
 
 case "$1" in
-    fetch) python3 parser/chicago_fetch.py ${2:+--days "$2"} ;;
-    load) python3 parser/load_rides.py ;;
+    fetch) "$PYTHON" parser/chicago_fetch.py ${2:+--days "$2"} ;;
+    load) "$PYTHON" parser/load_rides.py ;;
     rebuild) ./setup/rebuild.sh ;;
     task1) psql -d "$DATABASE" -f queries/tasks/01_revenue_by_season.sql ;;
     task2) psql -d "$DATABASE" -f queries/tasks/02_revenue_by_season_and_class.sql ;;

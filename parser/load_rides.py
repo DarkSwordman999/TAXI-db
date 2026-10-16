@@ -67,7 +67,9 @@ SELECT s.trip_id, s.trip_start_timestamp, s.trip_end_timestamp, В.код, К.к
        s.pickup_community_area, s.dropoff_community_area,
        ROUND(s.trip_miles * %(mile_km)s, 2),
        GREATEST(1, ROUND(s.trip_seconds / 60.0)),
-       s.fare, COALESCE(s.tips, 0), COALESCE(s.tolls, 0) + COALESCE(s.extras, 0)
+       -- редкие отрицательные суммы (корректировки) нарушили бы CHECK и остановили всю загрузку
+       s.fare, GREATEST(COALESCE(s.tips, 0), 0),
+       GREATEST(COALESCE(s.tolls, 0) + COALESCE(s.extras, 0), 0)
 FROM staging s
 JOIN ВОДИТЕЛИ В ON В.taxi_id = s.taxi_id
 JOIN КЛИЕНТЫ К ON К.тип = COALESCE(s.payment_type, 'Unknown')
