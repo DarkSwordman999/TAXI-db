@@ -24,7 +24,11 @@ def get_connection():
 
 def file_exists(filename, force=False):
     if not force and os.path.exists(filename):
-        response = input(f"Файл {filename} уже существует. Перезаписать? (y/N): ")
+        try:
+            response = input(f"Файл {filename} уже существует. Перезаписать? (y/N): ")
+        except EOFError:  # запуск без терминала, например из GUI: спросить некого
+            print(f"\nФайл {filename} уже существует; для перезаписи добавьте --force")
+            return True
         return response.lower() != 'y'
     return False
 
@@ -357,6 +361,12 @@ def task4_chart(driver_param=None, force=False):
         return
     
     labels, sizes = zip(*filtered)
+    # доли меньше 3% (редкие способы оплаты) — одним сектором, иначе подписи налезают друг на друга
+    total = sum(sizes)
+    small = sum(s for s in sizes if s < total * 0.03)
+    if small:
+        labels, sizes = zip(*[(l, s) for l, s in zip(labels, sizes) if s >= total * 0.03])
+        labels, sizes = list(labels) + ["Прочие"], list(sizes) + [small]
     
     plt.figure(figsize=(10, 8))
     plt.pie(sizes, labels=labels, autopct='%1.1f%%', startangle=90)

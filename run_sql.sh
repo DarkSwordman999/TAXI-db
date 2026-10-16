@@ -2,6 +2,9 @@
 # настройки подключения: переменные PG* из окружения или из .env в корне проекта
 [ -f "$(dirname "$0")/.env" ] && set -a && . "$(dirname "$0")/.env" && set +a
 DATABASE="${PGDATABASE:-taxi}"
+# Windows: psql выводит свои русские надписи («(1 строка)») в кодировке ANSI,
+# в консоли UTF-8 они нечитаемы — там они на английском, данные остаются русскими
+case "$OSTYPE" in msys*|cygwin*) export LC_MESSAGES=C ;; esac
 
 if [ -z "$1" ]; then
     echo "Использование: ./run_sql.sh файл.sql [параметр]"

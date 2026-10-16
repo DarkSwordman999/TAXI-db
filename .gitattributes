@@ -1,0 +1,4 @@
+# shell-скрипты всегда с LF: с CRLF bash их не выполнит
+*.sh text eol=lf
+# сценарии cmd.exe — с CRLF
+*.cmd text eol=crlf

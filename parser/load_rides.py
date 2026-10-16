@@ -31,6 +31,7 @@ CLIENT_TYPES = {
     "Unknown": "Неизвестно",
     "Dispute": "Оспоренная оплата",
     "No Charge": "Без оплаты",
+    "Split": "Раздельная оплата",
 }
 
 STAGING = """

@@ -9,6 +9,7 @@ GUI для базы данных TAXI.
 
 import csv
 import os
+import shutil
 import subprocess
 from pathlib import Path
 import tkinter as tk
@@ -750,6 +751,12 @@ class TaxiApp:
         win = tk.Toplevel(self.root)
         win.title(title)
         win.geometry("700x600")
+        # доли меньше 3% (редкие способы оплаты) — одним сектором, иначе подписи налезают друг на друга
+        total = sum(sizes)
+        small = sum(s for s in sizes if s < total * 0.03)
+        if small:
+            labels, sizes = zip(*[(l, s) for l, s in zip(labels, sizes) if s >= total * 0.03])
+            labels, sizes = list(labels) + ["Прочие"], list(sizes) + [small]
         fig, ax = plt.subplots(figsize=(6, 6))
         ax.pie(sizes, labels=labels, autopct="%1.1f%%")
         ax.set_title(title)
@@ -1209,8 +1216,7 @@ class TaxiApp:
         self.view_table(table)
         self.load_autocomplete_data()
 
-    def create_views(self):
-        query = """
+    VIEWS_SQL = """
             CREATE OR REPLACE VIEW taxi_full_rides AS
             SELECT p.код_поездки, p.дата,
                    'Водитель №' || v.код AS водитель,
@@ -1243,10 +1249,13 @@ class TaxiApp:
             LEFT JOIN ПОЕЗДКИ p ON p.клиент = k.код
             GROUP BY k.код;
         """
-        self.execute_and_display(query, title="Представления созданы", status="Views созданы", fetch=False)
+
+    def create_views(self):
+        self.execute_and_display(self.VIEWS_SQL, title="Представления созданы", status="Views созданы", fetch=False)
 
     def check_views(self):
-        query = """
+        # ./help.sh rebuild удаляет эти представления, поэтому перед проверкой они пересоздаются
+        query = self.VIEWS_SQL + """
             SELECT 'taxi_full_rides' AS view_name, COUNT(*) AS строк FROM taxi_full_rides
             UNION ALL SELECT 'taxi_driver_report', COUNT(*) FROM taxi_driver_report
             UNION ALL SELECT 'taxi_client_report', COUNT(*) FROM taxi_client_report
@@ -1658,6 +1667,17 @@ class TaxiApp:
 
 
     # ------------------------- полное покрытие ./help.sh и ./python_reports.sh -------------------------
+    @staticmethod
+    def find_bash():
+        """bash из Git for Windows: в System32 может лежать bash.exe от WSL, он не подходит."""
+        git = shutil.which("git")
+        if git:
+            for parent in Path(git).resolve().parents:
+                candidate = parent / "bin" / "bash.exe"
+                if candidate.exists():
+                    return str(candidate)
+        return shutil.which("bash") or "bash"
+
     def run_shell_tool(self, tool_name, args=None, title=None, timeout=180):
         """Запускает ./help.sh или ./python_reports.sh из корня проекта и выводит результат в окно GUI."""
         args = [str(a) for a in (args or []) if str(a) != ""]
@@ -1667,15 +1687,20 @@ class TaxiApp:
             messagebox.showerror("Файл не найден", f"Не найден файл {tool_path}")
             return
         cmd = [str(tool_path)] + args
+        if os.name == "nt":
+            # Windows не запускает .sh напрямую
+            cmd = [self.find_bash()] + cmd
         self.set_status("Выполняю: " + " ".join([tool_name] + args))
         env = os.environ.copy()
         env.setdefault("PYTHONIOENCODING", "utf-8")
+        env.setdefault("PGCLIENTENCODING", "UTF8")
         try:
             completed = subprocess.run(
                 cmd,
                 cwd=str(root),
                 capture_output=True,
-                text=True,
+                encoding="utf-8",
+                errors="replace",
                 timeout=timeout,
                 env=env,
             )
