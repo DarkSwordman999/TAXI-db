@@ -11,7 +11,8 @@ CREATE OR REPLACE FUNCTION get_company_avg_revenue(p_company_name VARCHAR)
 RETURNS NUMERIC(10,2) AS $$
 BEGIN
     RETURN (
-        SELECT COALESCE(AVG(П.стоимость), 0)
+        -- ROUND: RETURNS NUMERIC(10,2) в PL/pgSQL сам не округляет результат
+        SELECT ROUND(COALESCE(AVG(П.стоимость), 0), 2)
         FROM ПОЕЗДКИ П
         JOIN ТАКСОПАРКИ Т ON Т.код = П.таксопарк
         WHERE Т.название = p_company_name
