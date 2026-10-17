@@ -299,13 +299,26 @@ python -m pip install -r requirements.txt
 
 ## Проверка
 
-Все команды `help.sh` и `python_reports.sh`, все SQL-файлы и отчеты, графики и операции с записями в GUI проверены на полном наборе данных (730 000 поездок) в Windows 11 с PostgreSQL 18 и Python 3.12.
+Автотесты: `tests/run_all.sh` пересобирает тестовую базу из данных репозитория и прогоняет все команды `help.sh`, все SQL-файлы из `helper/` и `queries/` и все команды `python_reports.sh`. Он также проверяет, что ошибки (неверный SQL, неизвестная команда, нечисловой параметр) дают ненулевой код. Прогон останавливается на первой ошибке и печатает ее вывод.
+
+```bash
+PGDATABASE=taxi_test tests/run_all.sh                  # около 5 минут, база taxi_test создается сама
+PGDATABASE=taxi_test SKIP_REBUILD=1 tests/run_all.sh   # повторный прогон без пересборки
+```
+
+Тест удаляет все данные в своей базе, поэтому с рабочей базой `taxi` он не запускается. Графики пишутся во временную папку, `docs/` не меняется.
+
+В GitHub тот же скрипт запускает workflow `.github/workflows/tests.yml`: при каждом push и pull request он поднимает PostgreSQL 18 и прогоняет все проверки. Результат виден на вкладке Actions и значком у коммита.
+
+Вручную GUI проверен на полном наборе данных (730 000 поездок) в Windows 11 с PostgreSQL 18 и Python 3.12: отчеты, графики и операции с записями.
 
 ## Структура проекта
 
 ```text
 TAXI/
-├── .github/workflows/parser.yml   ежедневный сбор данных
+├── .github/workflows/
+│   ├── parser.yml                 ежедневный сбор данных
+│   └── tests.yml                  автотесты при каждом push
 ├── help.sh / help.cmd             меню SQL-команд (Linux / Windows)
 ├── python_reports.sh / .cmd       меню Python-отчетов
 ├── run_app.sh / .cmd              запуск GUI
@@ -340,9 +353,10 @@ TAXI/
 ├── schema/
 │   ├── indexes/
 │   └── tables/
-└── setup/
-    ├── rebuild.sh                 полная пересборка
-    └── rebuild_database.sql       схема, справочники, функции
+├── setup/
+│   ├── rebuild.sh                 полная пересборка
+│   └── rebuild_database.sql       схема, справочники, функции
+└── tests/run_all.sh               автотест всех команд и SQL-файлов
 ```
 
 ## Примечания

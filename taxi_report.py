@@ -13,7 +13,9 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'app'))
 from scripts.db_config import DB_CONFIG
 
-os.makedirs('docs', exist_ok=True)
+# папка для графиков; автотесты подменяют её через TAXI_DOCS_DIR, чтобы не трогать docs/
+DOCS_DIR = os.environ.get('TAXI_DOCS_DIR') or 'docs'
+os.makedirs(DOCS_DIR, exist_ok=True)
 
 def get_connection():
     try:
@@ -24,9 +26,13 @@ def get_connection():
 
 def file_exists(filename, force=False):
     if not force and os.path.exists(filename):
+        # без терминала (GUI, автотесты, конвейер) спросить некого, а input() ждал бы вечно
+        if not sys.stdin or not sys.stdin.isatty():
+            print(f"Файл {filename} уже существует; для перезаписи добавьте --force")
+            return True
         try:
             response = input(f"Файл {filename} уже существует. Перезаписать? (y/N): ")
-        except EOFError:  # запуск без терминала, например из GUI: спросить некого
+        except EOFError:
             print(f"\nФайл {filename} уже существует; для перезаписи добавьте --force")
             return True
         return response.lower() != 'y'
@@ -315,7 +321,7 @@ def task3_chart(force=False):
     plt.xticks(rotation=45, ha='right')
     fig.tight_layout()
     
-    filename = 'docs/task3_chart.png'
+    filename = os.path.join(DOCS_DIR, 'task3_chart.png')
     if not file_exists(filename, force):
         plt.savefig(filename, dpi=150, bbox_inches='tight')
         print(f" График сохранён в {filename}")
@@ -338,10 +344,10 @@ def task4_chart(driver_param=None, force=False):
         ORDER BY выручка DESC
     """, {"driver": code})
     if code:
-        filename = f'docs/task4_chart_{code}.png'
+        filename = os.path.join(DOCS_DIR, f'task4_chart_{code}.png')
         title = f'Распределение выручки по типам клиентов (водитель №{code})'
     else:
-        filename = 'docs/task4_chart.png'
+        filename = os.path.join(DOCS_DIR, 'task4_chart.png')
         title = 'Распределение выручки по типам клиентов (все водители)'
     
     rows = cur.fetchall()
@@ -386,7 +392,7 @@ def save_all(force=False):
     task3_chart(force)
     task4_chart(force=force)
     task4_chart("1", force=force)
-    print("Все изображения сохранены в папку docs/")
+    print(f"Все изображения сохранены в папку {DOCS_DIR}/")
 
 def show_help():
     print("=" * 60)
@@ -437,3 +443,4 @@ if __name__ == "__main__":
         save_all(force)
     else:
         show_help()
+        sys.exit(1)

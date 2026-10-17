@@ -78,21 +78,26 @@ case "$1" in
         echo "============================================="
         echo ""
         echo "--- ЗАДАЧА 1: ОТЧЁТ ---"
-        "$PYTHON" taxi_report.py task1
+        "$PYTHON" taxi_report.py task1 || exit 1
         echo ""
         echo "--- ЗАДАЧА 1s: ОТЧЁТ СО ЗВЕЗДОЧКОЙ * ---"
-        "$PYTHON" taxi_report.py task1s
+        "$PYTHON" taxi_report.py task1s || exit 1
         echo ""
         echo "--- ЗАДАЧА 2: СВОДНАЯ ТАБЛИЦА ---"
-        "$PYTHON" taxi_report.py task2
+        "$PYTHON" taxi_report.py task2 || exit 1
         echo ""
         echo "--- ЗАДАЧА 3: ГРАФИК ---"
-        "$PYTHON" taxi_report.py task3
+        "$PYTHON" taxi_report.py task3 || exit 1
         echo ""
         echo "--- ЗАДАЧА 4: ДИАГРАММА ---"
-        "$PYTHON" taxi_report.py task4
+        "$PYTHON" taxi_report.py task4 || exit 1
+        ;;
+    "")
+        show_help
         ;;
     *)
-        show_help
+        show_help >&2
+        echo "ОШИБКА: неизвестная команда $1" >&2
+        exit 1
         ;;
 esac

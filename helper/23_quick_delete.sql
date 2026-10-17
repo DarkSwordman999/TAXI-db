@@ -1,5 +1,14 @@
 -- Быстрое удаление водителя
 -- Использование: psql -d taxi -v driver_id=30 -f helper/23_quick_delete.sql
+-- или: ./help.sh helper/23_quick_delete.sql 30
+
+-- значение по умолчанию: код из arg1 (./help.sh файл.sql код) или 1
+\if :{?driver_id}
+\elif :{?arg1}
+    \set driver_id :arg1
+\else
+    \set driver_id 1
+\endif
 
 BEGIN;
 

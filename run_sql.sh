@@ -18,7 +18,7 @@ if [ ! -f "$1" ]; then
 fi
 
 if [ -z "$2" ]; then
-    psql -c "\pset pager off" -d "$DATABASE" -f "$1"
+    psql -v ON_ERROR_STOP=1 -c "\pset pager off" -d "$DATABASE" -f "$1"
 else
-    psql -c "\pset pager off" -d "$DATABASE" -f "$1" -v arg1="$2"
+    psql -v ON_ERROR_STOP=1 -c "\pset pager off" -d "$DATABASE" -f "$1" -v arg1="$2"
 fi

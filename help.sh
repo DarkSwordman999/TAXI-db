@@ -10,6 +10,12 @@ PYTHON=python3
 # в Windows python3 бывает заглушкой Microsoft Store, которая не запускается
 "$PYTHON" -c "" 2>/dev/null || PYTHON=python
 
+# psql по умолчанию продолжает работу после ошибки SQL и возвращает 0;
+# с ON_ERROR_STOP он останавливается и возвращает ненулевой код (на этом держатся автотесты)
+psql() {
+    command psql -v ON_ERROR_STOP=1 "$@"
+}
+
 # числовой параметр: защищает запросы от подстановки произвольного текста
 need_num() {
     if ! [[ "$1" =~ ^[0-9]+([.][0-9]+)?$ ]]; then
@@ -148,17 +154,17 @@ fi
 if [[ "$1" == *.sql ]]; then
     if [ -f "$1" ]; then
         sql_file "$1" "$2"
+        exit $?
     else
         echo "ОШИБКА: Файл $1 не найден"
         exit 1
     fi
-    exit 0
 fi
 
 if [ "$1" = "h1" ]; then
     shift
     ./run_sql.sh "$@"
-    exit 0
+    exit $?
 fi
 
 case "$1" in
@@ -216,7 +222,7 @@ case "$1" in
     drivers-above|35) if [ -z "$2" ]; then echo "Укажите сумму: ./help.sh drivers-above 10000"; else need_num "$2"; sql "SELECT 'Водитель №' || В.код AS водитель, SUM(П.стоимость) AS выручка FROM ВОДИТЕЛИ В JOIN ПОЕЗДКИ П ON В.код = П.водитель GROUP BY В.код HAVING SUM(П.стоимость) > $2 ORDER BY выручка DESC;"; fi ;;
     rename-company|40) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh rename-company код название"; else need_num "$2"; sql "UPDATE ТАКСОПАРКИ SET название = '$(sql_str "$3")' WHERE код = $2; SELECT * FROM ТАКСОПАРКИ WHERE код = $2;"; fi ;;
     client-desc|41) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh client-desc код описание"; else need_num "$2"; sql "UPDATE КЛИЕНТЫ SET описание = '$(sql_str "$3")' WHERE код = $2; SELECT * FROM КЛИЕНТЫ WHERE код = $2;"; fi ;;
-    delete-driver|42) if [ -z "$2" ]; then echo "Использование: ./help.sh delete-driver код"; else need_num "$2"; sql "DELETE FROM ПОЕЗДКИ WHERE водитель = $2; DELETE FROM ВОДИТЕЛИ WHERE код = $2;"; echo "Водитель удалён"; fi ;;
+    delete-driver|42) if [ -z "$2" ]; then echo "Использование: ./help.sh delete-driver код"; else need_num "$2"; sql "DELETE FROM ПОЕЗДКИ WHERE водитель = $2; DELETE FROM ВОДИТЕЛИ WHERE код = $2;" && echo "Водитель удалён"; fi ;;
     add-company|43) if [ -z "$2" ]; then echo "Использование: ./help.sh add-company название"; else sql "INSERT INTO ТАКСОПАРКИ (название) VALUES ('$(sql_str "$2")'); SELECT * FROM ТАКСОПАРКИ ORDER BY код DESC LIMIT 1;"; fi ;;
     add-driver|44) if [ -z "$2" ]; then echo "Использование: ./help.sh add-driver taxi_id"; else sql "INSERT INTO ВОДИТЕЛИ (taxi_id) VALUES ('$(sql_str "$2")'); SELECT * FROM ВОДИТЕЛИ ORDER BY код DESC LIMIT 1;"; fi ;;
     set-ride-company|45) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh set-ride-company код_поездки код_таксопарка"; else need_num "$2"; need_num "$3"; sql "UPDATE ПОЕЗДКИ SET таксопарк = $3 WHERE код_поездки = $2; SELECT * FROM v_rides_user WHERE код_поездки = $2;"; fi ;;
@@ -243,23 +249,23 @@ case "$1" in
         echo "============================================="
         echo "ПРЕДСТАВЛЕНИЯ И ПОДЗАПРОСЫ - ВСЕ ЗАДАЧИ"
         echo "============================================="
-        psql -d "$DATABASE" -f queries/views/03_check_views.sql
-        psql -d "$DATABASE" -f queries/subqueries/01_price_deviation.sql
-        psql -d "$DATABASE" -f queries/subqueries/02_company_rating.sql
-        psql -d "$DATABASE" -f queries/subqueries/03_rides_above_avg.sql
-        psql -d "$DATABASE" -f queries/subqueries/04_company_stats.sql
-        psql -d "$DATABASE" -f queries/subqueries/05_top_drivers_lateral.sql
-        psql -d "$DATABASE" -v arg1=1 -f queries/subqueries/06_rides_above_avg_param.sql
-        psql -d "$DATABASE" -f queries/subqueries/07_good_drivers_exists.sql
-        psql -d "$DATABASE" -f queries/subqueries/08_best_drivers_all.sql
+        psql -d "$DATABASE" -f queries/views/03_check_views.sql || exit 1
+        psql -d "$DATABASE" -f queries/subqueries/01_price_deviation.sql || exit 1
+        psql -d "$DATABASE" -f queries/subqueries/02_company_rating.sql || exit 1
+        psql -d "$DATABASE" -f queries/subqueries/03_rides_above_avg.sql || exit 1
+        psql -d "$DATABASE" -f queries/subqueries/04_company_stats.sql || exit 1
+        psql -d "$DATABASE" -f queries/subqueries/05_top_drivers_lateral.sql || exit 1
+        psql -d "$DATABASE" -v arg1=1 -f queries/subqueries/06_rides_above_avg_param.sql || exit 1
+        psql -d "$DATABASE" -f queries/subqueries/07_good_drivers_exists.sql || exit 1
+        psql -d "$DATABASE" -f queries/subqueries/08_best_drivers_all.sql || exit 1
         ;;
     func-create|200)
         echo "============================================="
         echo "СОЗДАНИЕ ФУНКЦИЙ"
         echo "============================================="
-        psql -d "$DATABASE" -f queries/functions/01_create_functions_task1.sql
-        psql -d "$DATABASE" -f queries/functions/02_create_functions_task2.sql
-        psql -d "$DATABASE" -f queries/functions/03_create_functions_task3.sql
+        psql -d "$DATABASE" -f queries/functions/01_create_functions_task1.sql || exit 1
+        psql -d "$DATABASE" -f queries/functions/02_create_functions_task2.sql || exit 1
+        psql -d "$DATABASE" -f queries/functions/03_create_functions_task3.sql || exit 1
         echo " Все функции созданы"
         ;;
     func-drivers-above|201)
@@ -289,16 +295,16 @@ case "$1" in
         echo "============================================="
         echo "ФУНКЦИИ - ВСЕ ЗАДАЧИ"
         echo "============================================="
-        ./help.sh func-create
+        ./help.sh func-create || exit 1
         echo ""
         echo "=== ЗАДАЧА 1 ==="
-        ./help.sh func-drivers-above 10000
+        ./help.sh func-drivers-above 10000 || exit 1
         echo ""
         echo "=== ЗАДАЧА 2 ==="
-        ./help.sh func-company-season
+        ./help.sh func-company-season || exit 1
         echo ""
         echo "=== ЗАДАЧА 3 ==="
-        ./help.sh func-pivot
+        ./help.sh func-pivot || exit 1
         ;;
     *) echo "ОШИБКА: Неизвестная команда $1" >&2; exit 1 ;;
 esac
