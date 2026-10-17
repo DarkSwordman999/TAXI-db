@@ -2,6 +2,15 @@
 -- Поездки загружает parser/load_rides.py; обе части вместе запускает setup/rebuild.sh.
 -- Запуск только схемы: psql -d taxi -f setup/rebuild_database.sql
 
+\echo '=== TAXI: расширение pg_trgm для триграммного поиска в GUI ==='
+-- с PostgreSQL 13 pg_trgm может подключить владелец базы; без прав пересборка не прерывается
+DO $$
+BEGIN
+    CREATE EXTENSION IF NOT EXISTS pg_trgm;
+EXCEPTION WHEN insufficient_privilege THEN
+    RAISE NOTICE 'pg_trgm не подключен: нет прав. Триграммный поиск в GUI работать не будет.';
+END $$;
+
 \echo '=== TAXI: очистка старых объектов ==='
 DROP VIEW IF EXISTS v_rides_tech;
 DROP VIEW IF EXISTS v_rides_user;

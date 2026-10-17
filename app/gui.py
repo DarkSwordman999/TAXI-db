@@ -25,6 +25,12 @@ from psycopg2 import sql as psql
 
 from scripts.db_config import DB_CONFIG
 
+PG_TRGM_MISSING = (
+    "Расширение pg_trgm не подключено, триграммный поиск недоступен.\n"
+    "Выполните ./help.sh rebuild или попросите владельца базы выполнить:\n"
+    "CREATE EXTENSION pg_trgm;"
+)
+
 
 class TaxiApp:
     TABLES = ["ТАКСОПАРКИ", "ВОДИТЕЛИ", "КЛИЕНТЫ", "РАЙОНЫ", "ПОЕЗДКИ", "СЕЗОН"]
@@ -93,7 +99,7 @@ class TaxiApp:
         db_menu.add_command(label="Переподключиться", command=self.reconnect)
         db_menu.add_command(label="Структура БД", command=self.show_structure)
         db_menu.add_command(label="Статистика БД", command=self.db_stats)
-        db_menu.add_command(label="Создать pg_trgm", command=self.ensure_pg_trgm)
+        db_menu.add_command(label="Проверить pg_trgm", command=self.ensure_pg_trgm)
         db_menu.add_separator()
         db_menu.add_command(label="Команды ./help.sh", command=self.h_commands_window)
         db_menu.add_command(label="Команды ./python_reports.sh", command=self.python_commands_window)
@@ -165,7 +171,7 @@ class TaxiApp:
             ("Проверить views", self.check_views),
             ("Создать функции", self.create_functions),
             ("Демо функций", self.functions_demo),
-            ("Создать pg_trgm", self.ensure_pg_trgm),
+            ("Проверить pg_trgm", self.ensure_pg_trgm),
             ("Архивация поездок", self.archive_old_rides),
             ("Экспорт текущего CSV", self.export_current_csv),
             ("Экспорт всех таблиц", self.export_all_tables_csv),
@@ -218,7 +224,7 @@ class TaxiApp:
         ttk.Label(filters, text="Порог:").grid(row=2, column=3, sticky="e", padx=4, pady=3)
         ttk.Spinbox(filters, from_=0.05, to=1.0, increment=0.05, textvariable=self.similarity_var, width=6).grid(row=2, column=4, sticky="w", padx=4, pady=3)
         ttk.Button(filters, text="Искать похоже", command=self.quick_search).grid(row=2, column=5, sticky="w", padx=4, pady=3)
-        ttk.Button(filters, text="Создать pg_trgm", command=self.ensure_pg_trgm).grid(row=2, column=6, sticky="w", padx=4, pady=3)
+        ttk.Button(filters, text="Проверить pg_trgm", command=self.ensure_pg_trgm).grid(row=2, column=6, sticky="w", padx=4, pady=3)
 
         self.result = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=("Menlo", 11), state=tk.DISABLED)
         self.result.pack(fill=tk.BOTH, expand=True)
@@ -318,24 +324,28 @@ class TaxiApp:
             return 0.3
 
     def ensure_pg_trgm(self, silent=False):
-        """Создаёт расширение pg_trgm для триграммного поиска."""
+        """Проверяет, что расширение pg_trgm подключено (его создаёт ./help.sh rebuild)."""
         if not self.conn:
             if not silent:
                 messagebox.showerror("Ошибка", "Нет подключения к БД")
             return False
         try:
             with self.conn.cursor() as cur:
-                cur.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
+                cur.execute("SELECT 1 FROM pg_extension WHERE extname = 'pg_trgm'")
+                found = cur.fetchone() is not None
             self.conn.commit()
-            if not silent:
-                messagebox.showinfo("pg_trgm", "Расширение pg_trgm подключено.")
-                self.set_status("pg_trgm подключено")
-            return True
         except Exception as e:
             self.conn.rollback()
             if not silent:
-                messagebox.showerror("pg_trgm", f"Не удалось подключить pg_trgm:\n{e}")
+                messagebox.showerror("pg_trgm", f"Не удалось проверить pg_trgm:\n{e}")
             return False
+        if not silent:
+            if found:
+                messagebox.showinfo("pg_trgm", "Расширение pg_trgm подключено.")
+                self.set_status("pg_trgm подключено")
+            else:
+                messagebox.showwarning("pg_trgm", PG_TRGM_MISSING)
+        return found
 
     # ------------------------- данные для подсказок -------------------------
     def load_autocomplete_data(self):
@@ -603,11 +613,7 @@ class TaxiApp:
             return
 
         if not self.ensure_pg_trgm(silent=True):
-            messagebox.showerror(
-                "Триграммный поиск",
-                "Для триграммного поиска нужно расширение pg_trgm. "
-                "Нажмите кнопку 'Создать pg_trgm' или выполните CREATE EXTENSION IF NOT EXISTS pg_trgm."
-            )
+            messagebox.showerror("Триграммный поиск", PG_TRGM_MISSING)
             return
 
         threshold = self.get_similarity_threshold()
@@ -1746,12 +1752,12 @@ class TaxiApp:
             return
         self.run_h("42", data["code"], title="./help.sh 42 — удалить водителя")
 
-    def run_python_with_optional_fields(self, command, title, fields):
+    def run_python_with_optional_fields(self, command, title, fields, extra=()):
         data = self.ask_fields(title, fields)
         if data is None:
             return
         values = [data[key] for key, _, _ in fields]
-        args = [command] + [v for v in values if v]
+        args = [command] + [v for v in values if v] + list(extra)
         self.run_python_report(*args, title=title)
 
     def make_scrollable_window(self, title, width=760, height=720):
@@ -1897,8 +1903,9 @@ class TaxiApp:
             ("python_reports.sh 1", "Отчёт по водителям и типам клиентов; оба параметра необязательны", lambda: self.run_python_with_optional_fields("1", "./python_reports.sh 1", [("driver", "Код водителя, можно пусто", ""), ("cls", "Тип клиента, можно пусто", "")])) ,
             ("python_reports.sh 1s", "Отчёт со звёздочкой * в углу", lambda: self.run_python_with_optional_fields("1s", "./python_reports.sh 1s", [("driver", "Код водителя, можно пусто", ""), ("cls", "Тип клиента, можно пусто", "")])) ,
             ("python_reports.sh 2", "Сводная таблица; тип клиента необязателен", lambda: self.run_python_with_optional_fields("2", "./python_reports.sh 2", [("cls", "Тип клиента, можно пусто", "")])) ,
-            ("python_reports.sh 3", "График динамики", lambda: self.run_python_report("3", title="./python_reports.sh 3 — график динамики")),
-            ("python_reports.sh 4", "Круговая диаграмма; водитель необязателен", lambda: self.run_python_with_optional_fields("4", "./python_reports.sh 4", [("driver", "Код водителя, можно пусто", "")])) ,
+            # из GUI график всегда строится заново, без вопроса о перезаписи
+            ("python_reports.sh 3", "График динамики", lambda: self.run_python_report("3", "--force", title="./python_reports.sh 3 --force — график динамики")),
+            ("python_reports.sh 4", "Круговая диаграмма; водитель необязателен", lambda: self.run_python_with_optional_fields("4", "./python_reports.sh 4 --force", [("driver", "Код водителя, можно пусто", "")], extra=["--force"])) ,
         ])
 
         self.add_command_section(body, "Пакетный запуск и сохранение", [

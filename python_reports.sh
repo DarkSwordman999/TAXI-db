@@ -13,8 +13,8 @@ show_help() {
     echo "  ./python_reports.sh 1 [код_водителя] [тип_клиента]         - отчёт по водителям и типам клиентов"
     echo "  ./python_reports.sh 1s [код_водителя] [тип_клиента]        - отчёт со звездочкой * в углу"
     echo "  ./python_reports.sh 2 [тип_клиента]                 - сводная таблица"
-    echo "  ./python_reports.sh 3                            - график динамики"
-    echo "  ./python_reports.sh 4 [код_водителя]              - круговая диаграмма"
+    echo "  ./python_reports.sh 3 [--force]                  - график динамики"
+    echo "  ./python_reports.sh 4 [код_водителя] [--force]    - круговая диаграмма"
     echo "  ./python_reports.sh all                          - выполнить всё"
     echo "  ./python_reports.sh save                         - сохранить все графики"
     echo "  ./python_reports.sh save --force                 - сохранить с перезаписью"
@@ -59,14 +59,11 @@ case "$1" in
         fi
         ;;
     3)
-        "$PYTHON" taxi_report.py task3
+        # --force перезаписывает уже сохранённый график без вопроса
+        "$PYTHON" taxi_report.py task3 "${@:2}"
         ;;
     4)
-        if [ -z "$2" ]; then
-            "$PYTHON" taxi_report.py task4
-        else
-            "$PYTHON" taxi_report.py task4 "$2"
-        fi
+        "$PYTHON" taxi_report.py task4 "${@:2}"
         ;;
     save)
         if [ "$2" = "--force" ]; then
