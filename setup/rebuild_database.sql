@@ -14,9 +14,13 @@ END $$;
 \echo '=== TAXI: очистка старых объектов ==='
 DROP VIEW IF EXISTS v_rides_tech;
 DROP VIEW IF EXISTS v_rides_user;
+-- прежние представления и функции GUI: теперь GUI использует объекты из queries/
 DROP VIEW IF EXISTS taxi_client_report;
 DROP VIEW IF EXISTS taxi_driver_report;
 DROP VIEW IF EXISTS taxi_full_rides;
+DROP FUNCTION IF EXISTS taxi_driver_revenue(INT);
+DROP FUNCTION IF EXISTS taxi_client_spent(INT);
+DROP FUNCTION IF EXISTS taxi_estimate_price(TEXT, NUMERIC, INT);
 
 DROP FUNCTION IF EXISTS display_pivot_table();
 DROP FUNCTION IF EXISTS revenue_by_class_and_season();
