@@ -164,7 +164,7 @@ case "$1" in
     load) "$PYTHON" parser/load_rides.py ;;
     rebuild) ./setup/rebuild.sh ;;
     task1) psql -d "$DATABASE" -f queries/tasks/01_revenue_by_season.sql ;;
-    task2) psql -d "$DATABASE" -f queries/tasks/02_revenue_by_season_and_class.sql ;;
+    task2) psql -d "$DATABASE" -f queries/tasks/02_revenue_by_season_and_company.sql ;;
     task3) psql -d "$DATABASE" -f queries/tasks/03_revenue_by_day_and_driver.sql ;;
     task4)
         if [ -z "$2" ]; then
@@ -180,7 +180,7 @@ case "$1" in
             sql_file queries/tasks/04_revenue_by_driver_for_day.sql "$2"
         fi
         ;;
-    01) psql -d "$DATABASE" -f helper/01_show_all_cars.sql ;;
+    01) psql -d "$DATABASE" -f helper/01_show_all_companies.sql ;;
     02) psql -d "$DATABASE" -f helper/02_show_all_drivers.sql ;;
     03) psql -d "$DATABASE" -f helper/03_show_all_clients.sql ;;
     04) sql "SELECT COUNT(*) AS поездок, MIN(дата)::date AS с, MAX(дата)::date AS по FROM ПОЕЗДКИ;" ;;
@@ -193,12 +193,12 @@ case "$1" in
     11) sql "SELECT Т.название AS таксопарк, К.описание AS тип_клиента FROM ТАКСОПАРКИ Т CROSS JOIN КЛИЕНТЫ К LIMIT 10;" ;;
     12) sql "SELECT Р1.название AS район, Р2.название AS соседний_к_северу, ROUND(Р2.широта - Р1.широта, 3) AS разница_широт FROM РАЙОНЫ Р1 JOIN РАЙОНЫ Р2 ON Р2.широта > Р1.широта AND Р2.широта - Р1.широта < 0.02 AND ABS(Р2.долгота - Р1.долгота) < 0.02 AND Р1.код != Р2.код ORDER BY Р1.название LIMIT 10;" ;;
     16) sql "\d" ;;
-    17) psql -d "$DATABASE" -f helper/17_top_10_cars_by_revenue.sql ;;
+    17) psql -d "$DATABASE" -f helper/17_top_10_areas_by_revenue.sql ;;
     18) psql -d "$DATABASE" -f helper/18_top_10_drivers_by_revenue.sql ;;
     19) sql "SELECT TO_CHAR(DATE_TRUNC('month', дата), 'YYYY-MM') AS месяц, COUNT(*) AS поездок, SUM(стоимость) AS выручка FROM ПОЕЗДКИ GROUP BY 1 ORDER BY 1;" ;;
     20) sql "SELECT ROUND(AVG(стоимость), 2) AS средний, MIN(стоимость) AS мин, MAX(стоимость) AS макс FROM ПОЕЗДКИ;" ;;
     21) sql "SELECT EXTRACT(HOUR FROM дата) AS час, COUNT(*) AS поездок, SUM(стоимость) AS выручка FROM ПОЕЗДКИ GROUP BY час ORDER BY час;" ;;
-    22) psql -d "$DATABASE" -f helper/25_stats_by_class.sql ;;
+    22) psql -d "$DATABASE" -f helper/25_stats_by_company.sql ;;
     23) sql "SELECT 'Водитель №' || В.код AS водитель, COUNT(П.код_поездки) AS поездок, ROUND(SUM(П.время_мин) / 60.0, 1) AS часов_в_пути FROM ВОДИТЕЛИ В JOIN ПОЕЗДКИ П ON В.код = П.водитель GROUP BY В.код ORDER BY поездок DESC LIMIT 10;" ;;
     24) sql "SELECT К.описание AS тип_клиента, ROUND(AVG(П.чаевые), 2) AS средние_чаевые, ROUND(100.0 * AVG(П.чаевые / П.стоимость), 1) AS процент_от_стоимости FROM ПОЕЗДКИ П JOIN КЛИЕНТЫ К ON К.код = П.клиент GROUP BY К.описание ORDER BY средние_чаевые DESC;" ;;
     25) sql "SELECT EXTRACT(ISODOW FROM дата) AS день, COUNT(*) AS поездок, SUM(стоимость) AS выручка FROM ПОЕЗДКИ GROUP BY день ORDER BY день;" ;;
@@ -229,9 +229,9 @@ case "$1" in
     101) psql -d "$DATABASE" -f queries/views/02_create_rides_tech.sql ;;
     102) psql -d "$DATABASE" -f queries/views/03_check_views.sql ;;
     110) psql -d "$DATABASE" -f queries/subqueries/01_price_deviation.sql ;;
-    111) psql -d "$DATABASE" -f queries/subqueries/02_car_rating.sql ;;
+    111) psql -d "$DATABASE" -f queries/subqueries/02_company_rating.sql ;;
     112) psql -d "$DATABASE" -f queries/subqueries/03_rides_above_avg.sql ;;
-    113) psql -d "$DATABASE" -f queries/subqueries/04_class_stats.sql ;;
+    113) psql -d "$DATABASE" -f queries/subqueries/04_company_stats.sql ;;
     114) psql -d "$DATABASE" -f queries/subqueries/05_top_drivers_lateral.sql ;;
     115) if [ -z "$2" ]; then echo "Использование: ./help.sh 115 код_водителя"; echo "Пример: ./help.sh 115 1"; else need_num "$2"; sql_file queries/subqueries/06_rides_above_avg_param.sql "$2"; fi ;;
     116) psql -d "$DATABASE" -f queries/subqueries/07_good_drivers_exists.sql ;;
@@ -243,9 +243,9 @@ case "$1" in
         echo "============================================="
         psql -d "$DATABASE" -f queries/views/03_check_views.sql
         psql -d "$DATABASE" -f queries/subqueries/01_price_deviation.sql
-        psql -d "$DATABASE" -f queries/subqueries/02_car_rating.sql
+        psql -d "$DATABASE" -f queries/subqueries/02_company_rating.sql
         psql -d "$DATABASE" -f queries/subqueries/03_rides_above_avg.sql
-        psql -d "$DATABASE" -f queries/subqueries/04_class_stats.sql
+        psql -d "$DATABASE" -f queries/subqueries/04_company_stats.sql
         psql -d "$DATABASE" -f queries/subqueries/05_top_drivers_lateral.sql
         psql -d "$DATABASE" -v arg1=1 -f queries/subqueries/06_rides_above_avg_param.sql
         psql -d "$DATABASE" -f queries/subqueries/07_good_drivers_exists.sql
