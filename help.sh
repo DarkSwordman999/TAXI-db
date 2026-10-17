@@ -49,7 +49,7 @@ if [ -z "$1" ]; then
     echo ""
     echo "================== ДАННЫЕ =================="
     echo "  ./help.sh fetch [дней] - скачать недостающие дни из открытых данных Чикаго"
-    echo "  ./help.sh load - загрузить скачанные поездки в базу (только новые)"
+    echo "  ./help.sh load [--all] - загрузить скачанные поездки в базу (только новые дни; --all - все файлы)"
     echo "  ./help.sh rebuild - полностью пересоздать базу и загрузить все поездки"
     echo ""
     echo "================== ОСНОВНЫЕ ЗАДАЧИ =================="
@@ -161,7 +161,7 @@ fi
 
 case "$1" in
     fetch) "$PYTHON" parser/chicago_fetch.py ${2:+--days "$2"} ;;
-    load) "$PYTHON" parser/load_rides.py ;;
+    load) "$PYTHON" parser/load_rides.py "${@:2}" ;;
     rebuild) ./setup/rebuild.sh ;;
     task1) psql -d "$DATABASE" -f queries/tasks/01_revenue_by_season.sql ;;
     task2) psql -d "$DATABASE" -f queries/tasks/02_revenue_by_season_and_company.sql ;;

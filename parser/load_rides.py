@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 """Загрузка поездок из data/chicago/rides/**/*.csv.gz в базу TAXI.
 
-Повторный запуск безопасен: уже загруженные поездки (по trip_id) пропускаются,
-поэтому после git pull достаточно запустить скрипт снова — добавятся только новые дни.
+Читаются только файлы за дни, которых еще нет в базе, поэтому после git pull
+достаточно запустить скрипт снова. Сравнивается список дней, а не последняя дата:
+сборщик может докачать пропущенный день в середине периода.
+Каждый файл — полный день, и загрузка идет одной транзакцией, поэтому день в базе
+либо есть целиком, либо отсутствует. Повтор по trip_id все равно пропускается.
 Таксопарки, водители (taxi_id) и типы клиентов (способы оплаты) пополняются из тех же файлов.
 
-Запуск из корня проекта: python3 parser/load_rides.py
+Запуск из корня проекта: python3 parser/load_rides.py [--all]
+  --all  перечитать все файлы (например, после ручного удаления части поездок)
 Настройки подключения — app/scripts/db_config.py (.env / переменные PG*).
 """
 
@@ -79,9 +83,14 @@ ON CONFLICT (trip_id) DO NOTHING;
 """
 
 
+def file_day(path):
+    """2026-01-31.csv.gz -> '2026-01-31'"""
+    return path.name.split(".")[0]
+
+
 def main():
-    files = sorted(RIDES_DIR.glob("*/*.csv.gz"))
-    if not files:
+    all_files = sorted(RIDES_DIR.glob("*/*.csv.gz"))
+    if not all_files:
         print(f"Нет файлов в {RIDES_DIR}: сначала запустите parser/chicago_fetch.py")
         return 1
 
@@ -89,19 +98,30 @@ def main():
     with conn, conn.cursor() as cur:
         cur.execute("SELECT COUNT(*) FROM ПОЕЗДКИ")
         before = cur.fetchone()[0]
-        cur.execute(STAGING)
-        cur.execute("CREATE TEMP TABLE client_types (тип TEXT, описание TEXT) ON COMMIT DROP")
-        cur.executemany("INSERT INTO client_types VALUES (%s, %s)", CLIENT_TYPES.items())
-        for path in files:
-            with gzip.open(path, "rt", encoding="utf-8") as f:
-                cur.copy_expert("COPY staging FROM STDIN WITH (FORMAT csv, HEADER true)", f)
-        cur.execute(LOAD, {"mile_km": MILE_KM})
+        if "--all" in sys.argv[1:]:
+            files = all_files
+        else:
+            cur.execute("SELECT DISTINCT дата::date::text FROM ПОЕЗДКИ")
+            loaded = {row[0] for row in cur.fetchall()}
+            files = [p for p in all_files if file_day(p) not in loaded]
+        if files:
+            cur.execute(STAGING)
+            cur.execute("CREATE TEMP TABLE client_types (тип TEXT, описание TEXT) ON COMMIT DROP")
+            cur.executemany("INSERT INTO client_types VALUES (%s, %s)", CLIENT_TYPES.items())
+            for path in files:
+                with gzip.open(path, "rt", encoding="utf-8") as f:
+                    cur.copy_expert("COPY staging FROM STDIN WITH (FORMAT csv, HEADER true)", f)
+            cur.execute(LOAD, {"mile_km": MILE_KM})
         cur.execute("SELECT COUNT(*), MIN(дата)::date, MAX(дата)::date FROM ПОЕЗДКИ")
         total, first, last = cur.fetchone()
     conn.close()
 
-    print(f"Файлов: {len(files)}; добавлено поездок: {total - before}; "
-          f"всего в базе: {total} (с {first} по {last})")
+    if not files:
+        print(f"Новых дней нет: все {len(all_files)} файлов уже в базе")
+    else:
+        print(f"Прочитано файлов: {len(files)} из {len(all_files)}; "
+              f"добавлено поездок: {total - before}")
+    print(f"Всего в базе: {total} поездок (с {first} по {last})")
     return 0
 
 
