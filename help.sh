@@ -46,100 +46,102 @@ if [ -z "$1" ]; then
     echo "============================================="
     echo "  БАЗА ДАННЫХ TAXI (реальные поездки такси Чикаго)"
     echo "============================================="
+    echo "  Число перед описанием - прежний номер команды, он тоже работает:"
+    echo "  ./help.sh companies и ./help.sh 01 делают одно и то же."
     echo ""
     echo "================== ДАННЫЕ =================="
-    echo "  ./help.sh fetch [дней] - скачать недостающие дни из открытых данных Чикаго"
-    echo "  ./help.sh load [--all] - загрузить скачанные поездки в базу (только новые дни; --all - все файлы)"
-    echo "  ./help.sh rebuild - полностью пересоздать базу и загрузить все поездки"
+    echo "  ./help.sh fetch [дней]                            скачать недостающие дни из открытых данных Чикаго"
+    echo "  ./help.sh load [--all]                            загрузить новые дни в базу; --all - перечитать все файлы"
+    echo "  ./help.sh rebuild                                 полностью пересоздать базу и загрузить все поездки"
     echo ""
     echo "================== ОСНОВНЫЕ ЗАДАЧИ =================="
-    echo "  ./help.sh task1 - выручка по сезонам"
-    echo "  ./help.sh task2 - выручка по сезонам и таксопаркам"
-    echo "  ./help.sh task3 - выручка по дням недели и водителям"
-    echo "  ./help.sh task4 день - выручка по водителям за день"
+    echo "  ./help.sh task1                                   выручка по сезонам"
+    echo "  ./help.sh task2                                   выручка по сезонам и таксопаркам"
+    echo "  ./help.sh task3                                   выручка по дням недели и водителям"
+    echo "  ./help.sh task4 день                              выручка по водителям за день"
     echo ""
     echo "================== ПРОСМОТР ДАННЫХ =================="
-    echo "  ./help.sh 01 - все таксопарки"
-    echo "  ./help.sh 02 - водители (первые 50)"
-    echo "  ./help.sh 03 - типы клиентов"
-    echo "  ./help.sh 04 - количество поездок"
-    echo "  ./help.sh 05 - последние поездки"
-    echo "  ./help.sh 06 - типы клиентов с числом поездок"
-    echo "  ./help.sh 16 - структура таблиц"
+    echo "  ./help.sh companies                           01  все таксопарки"
+    echo "  ./help.sh drivers                             02  водители (первые 50)"
+    echo "  ./help.sh clients                             03  типы клиентов"
+    echo "  ./help.sh count                               04  количество поездок"
+    echo "  ./help.sh latest                              05  последние поездки"
+    echo "  ./help.sh clients-rides                       06  типы клиентов с числом поездок"
+    echo "  ./help.sh tables                              16  структура таблиц"
     echo ""
     echo "================== ДЕМОНСТРАЦИЯ JOIN =================="
-    echo "  ./help.sh 07 - INNER JOIN"
-    echo "  ./help.sh 08 - LEFT JOIN"
-    echo "  ./help.sh 09 - RIGHT JOIN"
-    echo "  ./help.sh 10 - FULL JOIN"
-    echo "  ./help.sh 11 - CROSS JOIN"
-    echo "  ./help.sh 12 - SELF JOIN"
+    echo "  ./help.sh join-inner                          07  INNER JOIN"
+    echo "  ./help.sh join-left                           08  LEFT JOIN"
+    echo "  ./help.sh join-right                          09  RIGHT JOIN"
+    echo "  ./help.sh join-full                           10  FULL JOIN"
+    echo "  ./help.sh join-cross                          11  CROSS JOIN"
+    echo "  ./help.sh join-self                           12  SELF JOIN"
     echo ""
     echo "================== ПОКАЗАТЬ ДО/ПОСЛЕ =================="
-    echo "  ./help.sh 60 - ДО UPDATE"
-    echo "  ./help.sh 61 - ВЫПОЛНИТЬ UPDATE"
-    echo "  ./help.sh 62 - ПОСЛЕ UPDATE"
-    echo "  ./help.sh 63 - ДО DELETE"
-    echo "  ./help.sh 64 - ВЫПОЛНИТЬ DELETE"
-    echo "  ./help.sh 65 - ПОСЛЕ DELETE"
+    echo "  ./help.sh update-before                       60  ДО UPDATE"
+    echo "  ./help.sh update-do                           61  ВЫПОЛНИТЬ UPDATE"
+    echo "  ./help.sh update-after                        62  ПОСЛЕ UPDATE"
+    echo "  ./help.sh delete-before                       63  ДО DELETE"
+    echo "  ./help.sh delete-do                           64  ВЫПОЛНИТЬ DELETE"
+    echo "  ./help.sh delete-after                        65  ПОСЛЕ DELETE"
     echo ""
     echo "================== АНАЛИТИКА =================="
-    echo "  ./help.sh 17 - топ-10 районов по выручке"
-    echo "  ./help.sh 18 - топ-10 водителей по выручке"
-    echo "  ./help.sh 19 - выручка по месяцам"
-    echo "  ./help.sh 20 - средний чек"
-    echo "  ./help.sh 21 - поездки по часам"
-    echo "  ./help.sh 22 - статистика по таксопаркам"
-    echo "  ./help.sh 23 - загруженность водителей"
-    echo "  ./help.sh 24 - средние чаевые по типам клиентов"
-    echo "  ./help.sh 25 - выручка по дням недели"
-    echo "  ./help.sh 26 - выручка по типам клиентов"
-    echo "  ./help.sh 27 - средний пробег по таксопаркам"
-    echo "  ./help.sh 28 - распределение поездок по часам"
-    echo "  ./help.sh 29 - средний чек по часам"
-    echo "  ./help.sh 30 - топ-10 водителей по чаевым"
+    echo "  ./help.sh top-areas                           17  топ-10 районов по выручке"
+    echo "  ./help.sh top-drivers                         18  топ-10 водителей по выручке"
+    echo "  ./help.sh by-month                            19  выручка по месяцам"
+    echo "  ./help.sh avg-check                           20  средний чек"
+    echo "  ./help.sh by-hour                             21  поездки по часам"
+    echo "  ./help.sh company-stats                       22  статистика по таксопаркам"
+    echo "  ./help.sh driver-load                         23  загруженность водителей"
+    echo "  ./help.sh tips-by-client                      24  средние чаевые по типам клиентов"
+    echo "  ./help.sh by-weekday                          25  выручка по дням недели"
+    echo "  ./help.sh revenue-by-client                   26  выручка по типам клиентов"
+    echo "  ./help.sh distance-by-company                 27  средний пробег по таксопаркам"
+    echo "  ./help.sh hour-share                          28  распределение поездок по часам"
+    echo "  ./help.sh check-by-hour                       29  средний чек по часам"
+    echo "  ./help.sh top-tips                            30  топ-10 водителей по чаевым"
     echo ""
     echo "================== ЗАПРОСЫ С ПАРАМЕТРАМИ =================="
-    echo "  ./help.sh 31 текст - таксопарки по части названия"
-    echo "  ./help.sh 32 код - информация о водителе"
-    echo "  ./help.sh 33 код - последние поездки водителя"
-    echo "  ./help.sh 34 сумма - поездки дороже суммы"
-    echo "  ./help.sh 35 сумма - водители с выручкой выше суммы"
-    echo "  ./help.sh 40 код название - переименовать таксопарк"
-    echo "  ./help.sh 41 код описание - изменить описание типа клиента"
-    echo "  ./help.sh 42 код - удалить водителя вместе с поездками"
-    echo "  ./help.sh 43 название - добавить таксопарк"
-    echo "  ./help.sh 44 taxi_id - добавить водителя"
-    echo "  ./help.sh 45 код_поездки код_таксопарка - сменить таксопарк поездки"
-    echo "  ./help.sh 46 код_поездки сумма - изменить чаевые поездки"
+    echo "  ./help.sh find-company текст                  31  таксопарки по части названия"
+    echo "  ./help.sh driver код                          32  информация о водителе"
+    echo "  ./help.sh driver-rides код                    33  последние поездки водителя"
+    echo "  ./help.sh rides-above сумма                   34  поездки дороже суммы"
+    echo "  ./help.sh drivers-above сумма                 35  водители с выручкой выше суммы"
+    echo "  ./help.sh rename-company код название         40  переименовать таксопарк"
+    echo "  ./help.sh client-desc код описание            41  изменить описание типа клиента"
+    echo "  ./help.sh delete-driver код                   42  удалить водителя вместе с поездками"
+    echo "  ./help.sh add-company название                43  добавить таксопарк"
+    echo "  ./help.sh add-driver taxi_id                  44  добавить водителя"
+    echo "  ./help.sh set-ride-company поездка парк       45  сменить таксопарк поездки (коды)"
+    echo "  ./help.sh set-tips поездка сумма              46  изменить чаевые поездки"
     echo ""
     echo "================== ПРЕДСТАВЛЕНИЯ =================="
-    echo "  ./help.sh 100 - создать пользовательское представление"
-    echo "  ./help.sh 101 - создать технологическое представление"
-    echo "  ./help.sh 102 - проверить представления"
+    echo "  ./help.sh view-user                          100  создать пользовательское представление"
+    echo "  ./help.sh view-tech                          101  создать технологическое представление"
+    echo "  ./help.sh view-check                         102  проверить представления"
     echo ""
     echo "================== ПОДЗАПРОСЫ =================="
-    echo "  ./help.sh 110 - задача 1.1 отклонение стоимости поездки"
-    echo "  ./help.sh 111 - задача 1.2 рейтинг таксопарков"
-    echo "  ./help.sh 112 - задача 2.1 поездки дороже среднего по таксопарку"
-    echo "  ./help.sh 113 - задача 2.2 статистика по таксопаркам"
-    echo "  ./help.sh 114 - задача 3.1 топ-3 водителя в каждом таксопарке"
-    echo "  ./help.sh 115 код - задача 4.1 поездки дороже среднего по водителю"
-    echo "  ./help.sh 116 - задача 4.2 водители без поездок дешевле \$10"
-    echo "  ./help.sh 117 - задача 4.3 лучшие водители"
-    echo "  ./help.sh 118 - самые дорогие поездки"
-    echo "  ./help.sh 199 - выполнить все запросы с подзапросами"
+    echo "  ./help.sh sub-deviation                      110  задача 1.1 отклонение стоимости поездки"
+    echo "  ./help.sh sub-company-rating                 111  задача 1.2 рейтинг таксопарков"
+    echo "  ./help.sh sub-above-company-avg              112  задача 2.1 поездки дороже среднего по таксопарку"
+    echo "  ./help.sh sub-company-stats                  113  задача 2.2 статистика по таксопаркам"
+    echo "  ./help.sh sub-top3                           114  задача 3.1 топ-3 водителя в каждом таксопарке"
+    echo "  ./help.sh sub-above-driver-avg код           115  задача 4.1 поездки дороже среднего по водителю"
+    echo "  ./help.sh sub-good-drivers                   116  задача 4.2 водители без поездок дешевле \$10"
+    echo "  ./help.sh sub-best-drivers                   117  задача 4.3 лучшие водители"
+    echo "  ./help.sh sub-expensive                      118  самые дорогие поездки"
+    echo "  ./help.sh sub-all                            199  выполнить все запросы с подзапросами"
     echo ""
     echo "================== ФУНКЦИИ =================="
-    echo "  ./help.sh 200 - создать все функции"
-    echo "  ./help.sh 201 порог - водители с выручкой выше порога"
-    echo "  ./help.sh 202 - выручка по таксопаркам и сезонам"
-    echo "  ./help.sh 203 - сводная таблица (водители x способы оплаты)"
-    echo "  ./help.sh 204 - выполнить всё"
+    echo "  ./help.sh func-create                        200  создать все функции"
+    echo "  ./help.sh func-drivers-above порог           201  водители с выручкой выше порога"
+    echo "  ./help.sh func-company-season                202  выручка по таксопаркам и сезонам"
+    echo "  ./help.sh func-pivot                         203  сводная таблица (водители x способы оплаты)"
+    echo "  ./help.sh func-all                           204  выполнить всё"
     echo ""
     echo "================== ЗАПУСК SQL ФАЙЛОВ =================="
-    echo "  ./help.sh файл.sql [параметр] - выполнить SQL-файл"
-    echo "  ./help.sh h1 файл.sql [параметр] - выполнить SQL-файл через run_sql.sh"
+    echo "  ./help.sh файл.sql [параметр]                     выполнить SQL-файл"
+    echo "  ./help.sh h1 файл.sql [параметр]                  выполнить SQL-файл через run_sql.sh"
     exit 1
 fi
 
@@ -180,64 +182,64 @@ case "$1" in
             sql_file queries/tasks/04_revenue_by_driver_for_day.sql "$2"
         fi
         ;;
-    01) psql -d "$DATABASE" -f helper/01_show_all_companies.sql ;;
-    02) psql -d "$DATABASE" -f helper/02_show_all_drivers.sql ;;
-    03) psql -d "$DATABASE" -f helper/03_show_all_clients.sql ;;
-    04) sql "SELECT COUNT(*) AS поездок, MIN(дата)::date AS с, MAX(дата)::date AS по FROM ПОЕЗДКИ;" ;;
-    05) sql "SELECT код_поездки, дата, расстояние_км, стоимость, чаевые FROM ПОЕЗДКИ ORDER BY дата DESC LIMIT 10;" ;;
-    06) sql "SELECT К.код, К.тип, К.описание, COUNT(П.код_поездки) AS поездок FROM КЛИЕНТЫ К LEFT JOIN ПОЕЗДКИ П ON П.клиент = К.код GROUP BY К.код ORDER BY поездок DESC;" ;;
-    07) sql "SELECT П.код_поездки, Т.название AS таксопарк, 'Водитель №' || В.код AS водитель, П.стоимость FROM ПОЕЗДКИ П INNER JOIN ТАКСОПАРКИ Т ON П.таксопарк = Т.код INNER JOIN ВОДИТЕЛИ В ON П.водитель = В.код LIMIT 10;" ;;
-    08) sql "SELECT Р.название AS район, COUNT(П.код_поездки) AS поездок FROM РАЙОНЫ Р LEFT JOIN ПОЕЗДКИ П ON Р.код = П.откуда GROUP BY Р.код, Р.название ORDER BY поездок ASC LIMIT 10;" ;;
-    09) sql "SELECT К.описание AS тип_клиента, COUNT(П.код_поездки) AS поездок FROM ПОЕЗДКИ П RIGHT JOIN КЛИЕНТЫ К ON П.клиент = К.код GROUP BY К.код, К.описание ORDER BY поездок DESC LIMIT 10;" ;;
-    10) sql "SELECT Т.название AS таксопарк, К.описание AS тип_клиента FROM ТАКСОПАРКИ Т FULL JOIN КЛИЕНТЫ К ON Т.код = К.код LIMIT 10;" ;;
-    11) sql "SELECT Т.название AS таксопарк, К.описание AS тип_клиента FROM ТАКСОПАРКИ Т CROSS JOIN КЛИЕНТЫ К LIMIT 10;" ;;
-    12) sql "SELECT Р1.название AS район, Р2.название AS соседний_к_северу, ROUND(Р2.широта - Р1.широта, 3) AS разница_широт FROM РАЙОНЫ Р1 JOIN РАЙОНЫ Р2 ON Р2.широта > Р1.широта AND Р2.широта - Р1.широта < 0.02 AND ABS(Р2.долгота - Р1.долгота) < 0.02 AND Р1.код != Р2.код ORDER BY Р1.название LIMIT 10;" ;;
-    16) sql "\d" ;;
-    17) psql -d "$DATABASE" -f helper/17_top_10_areas_by_revenue.sql ;;
-    18) psql -d "$DATABASE" -f helper/18_top_10_drivers_by_revenue.sql ;;
-    19) sql "SELECT TO_CHAR(DATE_TRUNC('month', дата), 'YYYY-MM') AS месяц, COUNT(*) AS поездок, SUM(стоимость) AS выручка FROM ПОЕЗДКИ GROUP BY 1 ORDER BY 1;" ;;
-    20) sql "SELECT ROUND(AVG(стоимость), 2) AS средний, MIN(стоимость) AS мин, MAX(стоимость) AS макс FROM ПОЕЗДКИ;" ;;
-    21) sql "SELECT EXTRACT(HOUR FROM дата) AS час, COUNT(*) AS поездок, SUM(стоимость) AS выручка FROM ПОЕЗДКИ GROUP BY час ORDER BY час;" ;;
-    22) psql -d "$DATABASE" -f helper/25_stats_by_company.sql ;;
-    23) sql "SELECT 'Водитель №' || В.код AS водитель, COUNT(П.код_поездки) AS поездок, ROUND(SUM(П.время_мин) / 60.0, 1) AS часов_в_пути FROM ВОДИТЕЛИ В JOIN ПОЕЗДКИ П ON В.код = П.водитель GROUP BY В.код ORDER BY поездок DESC LIMIT 10;" ;;
-    24) sql "SELECT К.описание AS тип_клиента, ROUND(AVG(П.чаевые), 2) AS средние_чаевые, ROUND(100.0 * AVG(П.чаевые / П.стоимость), 1) AS процент_от_стоимости FROM ПОЕЗДКИ П JOIN КЛИЕНТЫ К ON К.код = П.клиент GROUP BY К.описание ORDER BY средние_чаевые DESC;" ;;
-    25) sql "SELECT EXTRACT(ISODOW FROM дата) AS день, COUNT(*) AS поездок, SUM(стоимость) AS выручка FROM ПОЕЗДКИ GROUP BY день ORDER BY день;" ;;
-    26) sql "SELECT К.описание AS тип_клиента, COUNT(*) AS поездок, SUM(П.стоимость) AS выручка FROM КЛИЕНТЫ К JOIN ПОЕЗДКИ П ON К.код = П.клиент GROUP BY К.код, К.описание ORDER BY выручка DESC;" ;;
-    27) sql "SELECT Т.название AS таксопарк, ROUND(AVG(П.расстояние_км), 2) AS средний_пробег_км FROM ПОЕЗДКИ П JOIN ТАКСОПАРКИ Т ON П.таксопарк = Т.код GROUP BY Т.название ORDER BY средний_пробег_км DESC;" ;;
-    28) sql "SELECT EXTRACT(HOUR FROM дата) AS час, COUNT(*) AS поездок, ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) AS процент FROM ПОЕЗДКИ GROUP BY час ORDER BY час;" ;;
-    29) sql "SELECT EXTRACT(HOUR FROM дата) AS час, ROUND(AVG(стоимость), 2) AS средний_чек FROM ПОЕЗДКИ GROUP BY час ORDER BY час;" ;;
-    30) sql "SELECT 'Водитель №' || В.код AS водитель, COUNT(*) AS поездок, SUM(П.чаевые) AS чаевые FROM ПОЕЗДКИ П JOIN ВОДИТЕЛИ В ON П.водитель = В.код GROUP BY В.код ORDER BY чаевые DESC LIMIT 10;" ;;
-    31) if [ -z "$2" ]; then echo "Укажите часть названия: ./help.sh 31 Cab"; else sql_file helper/15_demo_with_param.sql "$2"; fi ;;
-    32) if [ -z "$2" ]; then echo "Укажите код: ./help.sh 32 1"; else need_num "$2"; sql "SELECT В.код, В.taxi_id, COUNT(П.код_поездки) AS поездок, SUM(П.стоимость) AS выручка, MIN(П.дата)::date AS первая, MAX(П.дата)::date AS последняя FROM ВОДИТЕЛИ В LEFT JOIN ПОЕЗДКИ П ON П.водитель = В.код WHERE В.код = $2 GROUP BY В.код;"; fi ;;
-    33) if [ -z "$2" ]; then echo "Укажите код: ./help.sh 33 1"; else need_num "$2"; sql "SELECT * FROM v_rides_user WHERE водитель = 'Водитель №$2' ORDER BY дата DESC LIMIT 10;"; fi ;;
-    34) if [ -z "$2" ]; then echo "Укажите сумму: ./help.sh 34 100"; else need_num "$2"; sql "SELECT * FROM ПОЕЗДКИ WHERE стоимость > $2 ORDER BY стоимость DESC LIMIT 10;"; fi ;;
-    35) if [ -z "$2" ]; then echo "Укажите сумму: ./help.sh 35 10000"; else need_num "$2"; sql "SELECT 'Водитель №' || В.код AS водитель, SUM(П.стоимость) AS выручка FROM ВОДИТЕЛИ В JOIN ПОЕЗДКИ П ON В.код = П.водитель GROUP BY В.код HAVING SUM(П.стоимость) > $2 ORDER BY выручка DESC;"; fi ;;
-    40) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh 40 код название"; else need_num "$2"; sql "UPDATE ТАКСОПАРКИ SET название = '$(sql_str "$3")' WHERE код = $2; SELECT * FROM ТАКСОПАРКИ WHERE код = $2;"; fi ;;
-    41) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh 41 код описание"; else need_num "$2"; sql "UPDATE КЛИЕНТЫ SET описание = '$(sql_str "$3")' WHERE код = $2; SELECT * FROM КЛИЕНТЫ WHERE код = $2;"; fi ;;
-    42) if [ -z "$2" ]; then echo "Использование: ./help.sh 42 код"; else need_num "$2"; sql "DELETE FROM ПОЕЗДКИ WHERE водитель = $2; DELETE FROM ВОДИТЕЛИ WHERE код = $2;"; echo "Водитель удалён"; fi ;;
-    43) if [ -z "$2" ]; then echo "Использование: ./help.sh 43 название"; else sql "INSERT INTO ТАКСОПАРКИ (название) VALUES ('$(sql_str "$2")'); SELECT * FROM ТАКСОПАРКИ ORDER BY код DESC LIMIT 1;"; fi ;;
-    44) if [ -z "$2" ]; then echo "Использование: ./help.sh 44 taxi_id"; else sql "INSERT INTO ВОДИТЕЛИ (taxi_id) VALUES ('$(sql_str "$2")'); SELECT * FROM ВОДИТЕЛИ ORDER BY код DESC LIMIT 1;"; fi ;;
-    45) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh 45 код_поездки код_таксопарка"; else need_num "$2"; need_num "$3"; sql "UPDATE ПОЕЗДКИ SET таксопарк = $3 WHERE код_поездки = $2; SELECT * FROM v_rides_user WHERE код_поездки = $2;"; fi ;;
-    46) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh 46 код_поездки сумма"; else need_num "$2"; need_num "$3"; sql "UPDATE ПОЕЗДКИ SET чаевые = $3 WHERE код_поездки = $2; SELECT * FROM v_rides_user WHERE код_поездки = $2;"; fi ;;
-    60) psql -d "$DATABASE" -f helper/60_before_update.sql ;;
-    61) psql -d "$DATABASE" -f helper/61_do_update.sql ;;
-    62) psql -d "$DATABASE" -f helper/62_after_update.sql ;;
-    63) psql -d "$DATABASE" -f helper/63_before_delete.sql ;;
-    64) psql -d "$DATABASE" -f helper/64_do_delete.sql ;;
-    65) psql -d "$DATABASE" -f helper/65_after_delete.sql ;;
-    100) psql -d "$DATABASE" -f queries/views/01_create_rides_view.sql ;;
-    101) psql -d "$DATABASE" -f queries/views/02_create_rides_tech.sql ;;
-    102) psql -d "$DATABASE" -f queries/views/03_check_views.sql ;;
-    110) psql -d "$DATABASE" -f queries/subqueries/01_price_deviation.sql ;;
-    111) psql -d "$DATABASE" -f queries/subqueries/02_company_rating.sql ;;
-    112) psql -d "$DATABASE" -f queries/subqueries/03_rides_above_avg.sql ;;
-    113) psql -d "$DATABASE" -f queries/subqueries/04_company_stats.sql ;;
-    114) psql -d "$DATABASE" -f queries/subqueries/05_top_drivers_lateral.sql ;;
-    115) if [ -z "$2" ]; then echo "Использование: ./help.sh 115 код_водителя"; echo "Пример: ./help.sh 115 1"; else need_num "$2"; sql_file queries/subqueries/06_rides_above_avg_param.sql "$2"; fi ;;
-    116) psql -d "$DATABASE" -f queries/subqueries/07_good_drivers_exists.sql ;;
-    117) psql -d "$DATABASE" -f queries/subqueries/08_best_drivers_all.sql ;;
-    118) sql "SELECT * FROM v_rides_user ORDER BY стоимость DESC LIMIT 10;" ;;
-    199)
+    companies|01) psql -d "$DATABASE" -f helper/01_show_all_companies.sql ;;
+    drivers|02) psql -d "$DATABASE" -f helper/02_show_all_drivers.sql ;;
+    clients|03) psql -d "$DATABASE" -f helper/03_show_all_clients.sql ;;
+    count|04) sql "SELECT COUNT(*) AS поездок, MIN(дата)::date AS с, MAX(дата)::date AS по FROM ПОЕЗДКИ;" ;;
+    latest|05) sql "SELECT код_поездки, дата, расстояние_км, стоимость, чаевые FROM ПОЕЗДКИ ORDER BY дата DESC LIMIT 10;" ;;
+    clients-rides|06) sql "SELECT К.код, К.тип, К.описание, COUNT(П.код_поездки) AS поездок FROM КЛИЕНТЫ К LEFT JOIN ПОЕЗДКИ П ON П.клиент = К.код GROUP BY К.код ORDER BY поездок DESC;" ;;
+    join-inner|07) sql "SELECT П.код_поездки, Т.название AS таксопарк, 'Водитель №' || В.код AS водитель, П.стоимость FROM ПОЕЗДКИ П INNER JOIN ТАКСОПАРКИ Т ON П.таксопарк = Т.код INNER JOIN ВОДИТЕЛИ В ON П.водитель = В.код LIMIT 10;" ;;
+    join-left|08) sql "SELECT Р.название AS район, COUNT(П.код_поездки) AS поездок FROM РАЙОНЫ Р LEFT JOIN ПОЕЗДКИ П ON Р.код = П.откуда GROUP BY Р.код, Р.название ORDER BY поездок ASC LIMIT 10;" ;;
+    join-right|09) sql "SELECT К.описание AS тип_клиента, COUNT(П.код_поездки) AS поездок FROM ПОЕЗДКИ П RIGHT JOIN КЛИЕНТЫ К ON П.клиент = К.код GROUP BY К.код, К.описание ORDER BY поездок DESC LIMIT 10;" ;;
+    join-full|10) sql "SELECT Т.название AS таксопарк, К.описание AS тип_клиента FROM ТАКСОПАРКИ Т FULL JOIN КЛИЕНТЫ К ON Т.код = К.код LIMIT 10;" ;;
+    join-cross|11) sql "SELECT Т.название AS таксопарк, К.описание AS тип_клиента FROM ТАКСОПАРКИ Т CROSS JOIN КЛИЕНТЫ К LIMIT 10;" ;;
+    join-self|12) sql "SELECT Р1.название AS район, Р2.название AS соседний_к_северу, ROUND(Р2.широта - Р1.широта, 3) AS разница_широт FROM РАЙОНЫ Р1 JOIN РАЙОНЫ Р2 ON Р2.широта > Р1.широта AND Р2.широта - Р1.широта < 0.02 AND ABS(Р2.долгота - Р1.долгота) < 0.02 AND Р1.код != Р2.код ORDER BY Р1.название LIMIT 10;" ;;
+    tables|16) sql "\d" ;;
+    top-areas|17) psql -d "$DATABASE" -f helper/17_top_10_areas_by_revenue.sql ;;
+    top-drivers|18) psql -d "$DATABASE" -f helper/18_top_10_drivers_by_revenue.sql ;;
+    by-month|19) sql "SELECT TO_CHAR(DATE_TRUNC('month', дата), 'YYYY-MM') AS месяц, COUNT(*) AS поездок, SUM(стоимость) AS выручка FROM ПОЕЗДКИ GROUP BY 1 ORDER BY 1;" ;;
+    avg-check|20) sql "SELECT ROUND(AVG(стоимость), 2) AS средний, MIN(стоимость) AS мин, MAX(стоимость) AS макс FROM ПОЕЗДКИ;" ;;
+    by-hour|21) sql "SELECT EXTRACT(HOUR FROM дата) AS час, COUNT(*) AS поездок, SUM(стоимость) AS выручка FROM ПОЕЗДКИ GROUP BY час ORDER BY час;" ;;
+    company-stats|22) psql -d "$DATABASE" -f helper/25_stats_by_company.sql ;;
+    driver-load|23) sql "SELECT 'Водитель №' || В.код AS водитель, COUNT(П.код_поездки) AS поездок, ROUND(SUM(П.время_мин) / 60.0, 1) AS часов_в_пути FROM ВОДИТЕЛИ В JOIN ПОЕЗДКИ П ON В.код = П.водитель GROUP BY В.код ORDER BY поездок DESC LIMIT 10;" ;;
+    tips-by-client|24) sql "SELECT К.описание AS тип_клиента, ROUND(AVG(П.чаевые), 2) AS средние_чаевые, ROUND(100.0 * AVG(П.чаевые / П.стоимость), 1) AS процент_от_стоимости FROM ПОЕЗДКИ П JOIN КЛИЕНТЫ К ON К.код = П.клиент GROUP BY К.описание ORDER BY средние_чаевые DESC;" ;;
+    by-weekday|25) sql "SELECT EXTRACT(ISODOW FROM дата) AS день, COUNT(*) AS поездок, SUM(стоимость) AS выручка FROM ПОЕЗДКИ GROUP BY день ORDER BY день;" ;;
+    revenue-by-client|26) sql "SELECT К.описание AS тип_клиента, COUNT(*) AS поездок, SUM(П.стоимость) AS выручка FROM КЛИЕНТЫ К JOIN ПОЕЗДКИ П ON К.код = П.клиент GROUP BY К.код, К.описание ORDER BY выручка DESC;" ;;
+    distance-by-company|27) sql "SELECT Т.название AS таксопарк, ROUND(AVG(П.расстояние_км), 2) AS средний_пробег_км FROM ПОЕЗДКИ П JOIN ТАКСОПАРКИ Т ON П.таксопарк = Т.код GROUP BY Т.название ORDER BY средний_пробег_км DESC;" ;;
+    hour-share|28) sql "SELECT EXTRACT(HOUR FROM дата) AS час, COUNT(*) AS поездок, ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) AS процент FROM ПОЕЗДКИ GROUP BY час ORDER BY час;" ;;
+    check-by-hour|29) sql "SELECT EXTRACT(HOUR FROM дата) AS час, ROUND(AVG(стоимость), 2) AS средний_чек FROM ПОЕЗДКИ GROUP BY час ORDER BY час;" ;;
+    top-tips|30) sql "SELECT 'Водитель №' || В.код AS водитель, COUNT(*) AS поездок, SUM(П.чаевые) AS чаевые FROM ПОЕЗДКИ П JOIN ВОДИТЕЛИ В ON П.водитель = В.код GROUP BY В.код ORDER BY чаевые DESC LIMIT 10;" ;;
+    find-company|31) if [ -z "$2" ]; then echo "Укажите часть названия: ./help.sh find-company Cab"; else sql_file helper/15_demo_with_param.sql "$2"; fi ;;
+    driver|32) if [ -z "$2" ]; then echo "Укажите код: ./help.sh driver 1"; else need_num "$2"; sql "SELECT В.код, В.taxi_id, COUNT(П.код_поездки) AS поездок, SUM(П.стоимость) AS выручка, MIN(П.дата)::date AS первая, MAX(П.дата)::date AS последняя FROM ВОДИТЕЛИ В LEFT JOIN ПОЕЗДКИ П ON П.водитель = В.код WHERE В.код = $2 GROUP BY В.код;"; fi ;;
+    driver-rides|33) if [ -z "$2" ]; then echo "Укажите код: ./help.sh driver-rides 1"; else need_num "$2"; sql "SELECT * FROM v_rides_user WHERE водитель = 'Водитель №$2' ORDER BY дата DESC LIMIT 10;"; fi ;;
+    rides-above|34) if [ -z "$2" ]; then echo "Укажите сумму: ./help.sh rides-above 100"; else need_num "$2"; sql "SELECT * FROM ПОЕЗДКИ WHERE стоимость > $2 ORDER BY стоимость DESC LIMIT 10;"; fi ;;
+    drivers-above|35) if [ -z "$2" ]; then echo "Укажите сумму: ./help.sh drivers-above 10000"; else need_num "$2"; sql "SELECT 'Водитель №' || В.код AS водитель, SUM(П.стоимость) AS выручка FROM ВОДИТЕЛИ В JOIN ПОЕЗДКИ П ON В.код = П.водитель GROUP BY В.код HAVING SUM(П.стоимость) > $2 ORDER BY выручка DESC;"; fi ;;
+    rename-company|40) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh rename-company код название"; else need_num "$2"; sql "UPDATE ТАКСОПАРКИ SET название = '$(sql_str "$3")' WHERE код = $2; SELECT * FROM ТАКСОПАРКИ WHERE код = $2;"; fi ;;
+    client-desc|41) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh client-desc код описание"; else need_num "$2"; sql "UPDATE КЛИЕНТЫ SET описание = '$(sql_str "$3")' WHERE код = $2; SELECT * FROM КЛИЕНТЫ WHERE код = $2;"; fi ;;
+    delete-driver|42) if [ -z "$2" ]; then echo "Использование: ./help.sh delete-driver код"; else need_num "$2"; sql "DELETE FROM ПОЕЗДКИ WHERE водитель = $2; DELETE FROM ВОДИТЕЛИ WHERE код = $2;"; echo "Водитель удалён"; fi ;;
+    add-company|43) if [ -z "$2" ]; then echo "Использование: ./help.sh add-company название"; else sql "INSERT INTO ТАКСОПАРКИ (название) VALUES ('$(sql_str "$2")'); SELECT * FROM ТАКСОПАРКИ ORDER BY код DESC LIMIT 1;"; fi ;;
+    add-driver|44) if [ -z "$2" ]; then echo "Использование: ./help.sh add-driver taxi_id"; else sql "INSERT INTO ВОДИТЕЛИ (taxi_id) VALUES ('$(sql_str "$2")'); SELECT * FROM ВОДИТЕЛИ ORDER BY код DESC LIMIT 1;"; fi ;;
+    set-ride-company|45) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh set-ride-company код_поездки код_таксопарка"; else need_num "$2"; need_num "$3"; sql "UPDATE ПОЕЗДКИ SET таксопарк = $3 WHERE код_поездки = $2; SELECT * FROM v_rides_user WHERE код_поездки = $2;"; fi ;;
+    set-tips|46) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh set-tips код_поездки сумма"; else need_num "$2"; need_num "$3"; sql "UPDATE ПОЕЗДКИ SET чаевые = $3 WHERE код_поездки = $2; SELECT * FROM v_rides_user WHERE код_поездки = $2;"; fi ;;
+    update-before|60) psql -d "$DATABASE" -f helper/60_before_update.sql ;;
+    update-do|61) psql -d "$DATABASE" -f helper/61_do_update.sql ;;
+    update-after|62) psql -d "$DATABASE" -f helper/62_after_update.sql ;;
+    delete-before|63) psql -d "$DATABASE" -f helper/63_before_delete.sql ;;
+    delete-do|64) psql -d "$DATABASE" -f helper/64_do_delete.sql ;;
+    delete-after|65) psql -d "$DATABASE" -f helper/65_after_delete.sql ;;
+    view-user|100) psql -d "$DATABASE" -f queries/views/01_create_rides_view.sql ;;
+    view-tech|101) psql -d "$DATABASE" -f queries/views/02_create_rides_tech.sql ;;
+    view-check|102) psql -d "$DATABASE" -f queries/views/03_check_views.sql ;;
+    sub-deviation|110) psql -d "$DATABASE" -f queries/subqueries/01_price_deviation.sql ;;
+    sub-company-rating|111) psql -d "$DATABASE" -f queries/subqueries/02_company_rating.sql ;;
+    sub-above-company-avg|112) psql -d "$DATABASE" -f queries/subqueries/03_rides_above_avg.sql ;;
+    sub-company-stats|113) psql -d "$DATABASE" -f queries/subqueries/04_company_stats.sql ;;
+    sub-top3|114) psql -d "$DATABASE" -f queries/subqueries/05_top_drivers_lateral.sql ;;
+    sub-above-driver-avg|115) if [ -z "$2" ]; then echo "Использование: ./help.sh sub-above-driver-avg код_водителя"; echo "Пример: ./help.sh sub-above-driver-avg 1"; else need_num "$2"; sql_file queries/subqueries/06_rides_above_avg_param.sql "$2"; fi ;;
+    sub-good-drivers|116) psql -d "$DATABASE" -f queries/subqueries/07_good_drivers_exists.sql ;;
+    sub-best-drivers|117) psql -d "$DATABASE" -f queries/subqueries/08_best_drivers_all.sql ;;
+    sub-expensive|118) sql "SELECT * FROM v_rides_user ORDER BY стоимость DESC LIMIT 10;" ;;
+    sub-all|199)
         echo "============================================="
         echo "ПРЕДСТАВЛЕНИЯ И ПОДЗАПРОСЫ - ВСЕ ЗАДАЧИ"
         echo "============================================="
@@ -251,7 +253,7 @@ case "$1" in
         psql -d "$DATABASE" -f queries/subqueries/07_good_drivers_exists.sql
         psql -d "$DATABASE" -f queries/subqueries/08_best_drivers_all.sql
         ;;
-    200)
+    func-create|200)
         echo "============================================="
         echo "СОЗДАНИЕ ФУНКЦИЙ"
         echo "============================================="
@@ -260,10 +262,10 @@ case "$1" in
         psql -d "$DATABASE" -f queries/functions/03_create_functions_task3.sql
         echo " Все функции созданы"
         ;;
-    201)
+    func-drivers-above|201)
         if [ -z "$2" ]; then
-            echo "Использование: ./help.sh 201 <порог>"
-            echo "Пример: ./help.sh 201 10000"
+            echo "Использование: ./help.sh func-drivers-above <порог>"
+            echo "Пример: ./help.sh func-drivers-above 10000"
             echo ""
             sql "SELECT * FROM drivers_above_revenue(10000) LIMIT 20;"
         else
@@ -271,32 +273,32 @@ case "$1" in
             sql "SELECT * FROM drivers_above_revenue($2) LIMIT 20;"
         fi
         ;;
-    202)
+    func-company-season|202)
         echo "============================================="
         echo "ВЫРУЧКА ПО ТАКСОПАРКАМ И СЕЗОНАМ"
         echo "============================================="
         sql "SELECT * FROM revenue_by_company_and_season();"
         ;;
-    203)
+    func-pivot|203)
         echo "============================================="
         echo "СВОДНАЯ ТАБЛИЦА (ВОДИТЕЛИ x СПОСОБЫ ОПЛАТЫ)"
         echo "============================================="
         sql "SELECT * FROM display_pivot_table();"
         ;;
-    204)
+    func-all|204)
         echo "============================================="
         echo "ФУНКЦИИ - ВСЕ ЗАДАЧИ"
         echo "============================================="
-        ./help.sh 200
+        ./help.sh func-create
         echo ""
         echo "=== ЗАДАЧА 1 ==="
-        ./help.sh 201 10000
+        ./help.sh func-drivers-above 10000
         echo ""
         echo "=== ЗАДАЧА 2 ==="
-        ./help.sh 202
+        ./help.sh func-company-season
         echo ""
         echo "=== ЗАДАЧА 3 ==="
-        ./help.sh 203
+        ./help.sh func-pivot
         ;;
     *) echo "ОШИБКА: Неизвестная команда $1" >&2; exit 1 ;;
 esac
