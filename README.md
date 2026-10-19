@@ -8,6 +8,7 @@
 [![Сбор поездок](https://github.com/DarkSwordman999/TAXI-db/actions/workflows/parser.yml/badge.svg)](https://github.com/DarkSwordman999/TAXI-db/actions/workflows/parser.yml)
 ![PostgreSQL 13+](https://img.shields.io/badge/PostgreSQL-13%2B-336791?logo=postgresql&logoColor=white)
 ![Python 3](https://img.shields.io/badge/Python-3-3776AB?logo=python&logoColor=white)
+[![Лицензия MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 | **730 000** | **365** | **3 059** | **77** | **157** |
 |:---:|:---:|:---:|:---:|:---:|
@@ -209,3 +210,7 @@ TAXI-db/
 Картинки для README строит `python docs/make_showcase.py`, Word-документацию — `python docs/make_docs.py`. Автотесты локально: `PGDATABASE=taxi_test tests/run_all.sh`.
 
 </details>
+
+## Лицензия
+
+Код и документация — под лицензией [MIT](LICENSE). Данные о поездках — открытые данные [City of Chicago Data Portal](https://data.cityofchicago.org), их использование регулируют [условия города](https://www.chicago.gov/city/en/narr/foia/data_disclaimer.html).
