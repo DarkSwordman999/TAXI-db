@@ -66,7 +66,19 @@ LINKS = [  # (таблица, поле, справочник, поле, пунк
 BOX_W, ROW_H, HEAD_H = 3.6, 0.42, 0.55
 
 
-def draw_er(path):
+ER_THEMES = {
+    # светлая — для Word и светлой темы GitHub, темная — для темной темы GitHub
+    "light": {"bg": "white", "box": "white", "head": "#1F4E79", "edge": "#1F4E79", "head_text": "white",
+              "stripe": "#EEF3F8", "pk": "#C00000", "key": "#1F4E79", "field": "black", "type": "#595959",
+              "line": "#404040"},
+    "dark": {"bg": "none", "box": "#161b22", "head": "#1c5cab", "edge": "#2a78d6", "head_text": "white",
+             "stripe": "#1c2430", "pk": "#e66767", "key": "#86b6ef", "field": "#f0efec", "type": "#8f8e86",
+             "line": "#8b949e"},
+}
+
+
+def draw_er(path, theme="light"):
+    t = ER_THEMES[theme]
     fig, ax = plt.subplots(figsize=(13.6, 8.6), dpi=170)
     ax.set_xlim(0, 13.9)
     ax.set_ylim(1.5, 8.7)
@@ -75,21 +87,21 @@ def draw_er(path):
     for name, (x, y, fields) in ENTITIES.items():
         h = HEAD_H + ROW_H * len(fields)
         ax.add_patch(FancyBboxPatch((x, y - h), BOX_W, h, boxstyle="round,pad=0,rounding_size=0.08",
-                                    fc="white", ec="#1F4E79", lw=1.4, zorder=2))
+                                    fc=t["box"], ec=t["edge"], lw=1.4, zorder=2))
         ax.add_patch(FancyBboxPatch((x, y - HEAD_H), BOX_W, HEAD_H, boxstyle="round,pad=0,rounding_size=0.08",
-                                    fc="#1F4E79", ec="#1F4E79", lw=1.4, zorder=3))
-        ax.text(x + BOX_W / 2, y - HEAD_H / 2, name, ha="center", va="center", color="white",
+                                    fc=t["head"], ec=t["edge"], lw=1.4, zorder=3))
+        ax.text(x + BOX_W / 2, y - HEAD_H / 2, name, ha="center", va="center", color=t["head_text"],
                 fontsize=11, fontweight="bold", zorder=4)
         for i, (field, ftype, key) in enumerate(fields):
             cy = y - HEAD_H - ROW_H * (i + 0.5)
             rows[(name, field)] = (x, cy)
             if i % 2:
-                ax.add_patch(plt.Rectangle((x, cy - ROW_H / 2), BOX_W, ROW_H, fc="#EEF3F8", ec="none", zorder=2.5))
-            ax.text(x + 0.12, cy, key, ha="left", va="center", fontsize=7.5, color="#C00000" if key == "PK"
-                    else "#1F4E79", fontweight="bold", zorder=4)
-            ax.text(x + 0.55, cy, field, ha="left", va="center", fontsize=9,
+                ax.add_patch(plt.Rectangle((x, cy - ROW_H / 2), BOX_W, ROW_H, fc=t["stripe"], ec="none", zorder=2.5))
+            ax.text(x + 0.12, cy, key, ha="left", va="center", fontsize=7.5, color=t["pk"] if key == "PK"
+                    else t["key"], fontweight="bold", zorder=4)
+            ax.text(x + 0.55, cy, field, ha="left", va="center", fontsize=9, color=t["field"],
                     fontweight="bold" if key == "PK" else "normal", zorder=4)
-            ax.text(x + BOX_W - 0.1, cy, ftype, ha="right", va="center", fontsize=7.5, color="#595959", zorder=4)
+            ax.text(x + BOX_W - 0.1, cy, ftype, ha="right", va="center", fontsize=7.5, color=t["type"], zorder=4)
     for child, cfield, parent, pfield, dashed, mid in LINKS:
         cx, cy = rows[(child, cfield)]
         px, py = rows[(parent, pfield)]
@@ -98,17 +110,17 @@ def draw_er(path):
         else:         # справочник справа
             x1, x2 = cx + BOX_W, px
         style = (0, (4, 3)) if dashed else "solid"
-        ax.plot([x1, mid, mid, x2], [cy, cy, py, py], color="#404040", lw=1.1, ls=style, zorder=1)
+        ax.plot([x1, mid, mid, x2], [cy, cy, py, py], color=t["line"], lw=1.1, ls=style, zorder=1)
         # «много» у поездок, «один» у справочника
         step = 0.18 if x2 > x1 else -0.18
-        ax.plot([x1, x1 + step], [cy + 0.12, cy], color="#404040", lw=1.1, zorder=1)
-        ax.plot([x1, x1 + step], [cy - 0.12, cy], color="#404040", lw=1.1, zorder=1)
-        ax.plot([x2 - step * 0.8] * 2, [py - 0.12, py + 0.12], color="#404040", lw=1.1, zorder=1)
+        ax.plot([x1, x1 + step], [cy + 0.12, cy], color=t["line"], lw=1.1, zorder=1)
+        ax.plot([x1, x1 + step], [cy - 0.12, cy], color=t["line"], lw=1.1, zorder=1)
+        ax.plot([x2 - step * 0.8] * 2, [py - 0.12, py + 0.12], color=t["line"], lw=1.1, zorder=1)
     ax.text(10.0, 2.85, "PK — первичный ключ, UK — уникальное поле, FK — внешний ключ\n"
             "сплошная линия — внешний ключ (одна запись справочника — много поездок)\n"
             "пунктир — связь по месяцу даты, без внешнего ключа",
-            fontsize=8, color="#404040", va="top")
-    fig.savefig(path, bbox_inches="tight", facecolor="white")
+            fontsize=8, color=t["line"], va="top")
+    fig.savefig(path, bbox_inches="tight", facecolor=t["bg"], transparent=t["bg"] == "none")
     plt.close(fig)
 
 

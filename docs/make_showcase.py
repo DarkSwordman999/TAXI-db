@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Картинки для README: карта посадок, тепловая карта, средний чек по месяцам.
+"""Картинки для README: карта посадок, тепловая карта, средний чек по месяцам, схема базы.
 
 Каждая картинка строится в двух вариантах, для светлой и темной темы GitHub:
 docs/showcase/<имя>-light.png и <имя>-dark.png.
@@ -21,6 +21,9 @@ import psycopg2
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "app"))
 from scripts.db_config import DB_CONFIG  # noqa: E402
+
+sys.path.insert(0, str(ROOT / "docs"))
+from make_docs import draw_er  # noqa: E402  схема базы та же, что в DATABASE.docx
 
 OUT = ROOT / "docs" / "showcase"
 
@@ -202,6 +205,9 @@ def main():
             fig.savefig(path, dpi=144, transparent=True)
             plt.close(fig)
             print(f"  {path.relative_to(ROOT)}")
+        path = OUT / f"er-{mode}.png"
+        draw_er(path, theme=mode)
+        print(f"  {path.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
