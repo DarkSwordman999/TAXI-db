@@ -1,2 +1,2 @@
-psycopg2-binary>=2.9
-matplotlib>=3.8
+psycopg2-binary==2.9.13
+matplotlib==3.11.2
