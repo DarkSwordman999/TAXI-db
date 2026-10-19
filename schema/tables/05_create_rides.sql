@@ -14,5 +14,6 @@ CREATE TABLE ПОЕЗДКИ (
     время_мин INTEGER NOT NULL CHECK (время_мин > 0),
     стоимость NUMERIC(10,2) NOT NULL CHECK (стоимость > 0),          -- по счётчику
     чаевые NUMERIC(10,2) NOT NULL DEFAULT 0 CHECK (чаевые >= 0),
-    сборы NUMERIC(10,2) NOT NULL DEFAULT 0 CHECK (сборы >= 0)        -- платные дороги и доплаты
+    сборы NUMERIC(10,2) NOT NULL DEFAULT 0 CHECK (сборы >= 0),       -- платные дороги и доплаты
+    CONSTRAINT chk_rides_end_after_start CHECK (окончание >= дата)  -- поездка не кончается раньше начала
 );

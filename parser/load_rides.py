@@ -79,6 +79,8 @@ FROM staging s
 JOIN ВОДИТЕЛИ В ON В.taxi_id = s.taxi_id
 JOIN КЛИЕНТЫ К ON К.тип = COALESCE(s.payment_type, 'Unknown')
 JOIN ТАКСОПАРКИ Т ON lower(Т.название) = lower(s.company)
+-- поездку, которая кончается раньше начала, отклонил бы CHECK и остановил всю загрузку
+WHERE s.trip_end_timestamp IS NULL OR s.trip_end_timestamp >= s.trip_start_timestamp
 ON CONFLICT (trip_id) DO NOTHING;
 """
 
