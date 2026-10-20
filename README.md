@@ -9,7 +9,7 @@
 [![Сбор поездок](https://github.com/DarkSwordman999/TAXI-db/actions/workflows/parser.yml/badge.svg)](https://github.com/DarkSwordman999/TAXI-db/actions/workflows/parser.yml)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13%2B-336791?logo=postgresql&logoColor=white)
 ![Python 3](https://img.shields.io/badge/Python-3-3776AB?logo=python&logoColor=white)
-[![Лицензия MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Некоммерческая лицензия](https://img.shields.io/badge/license-noncommercial-orange)](#лицензия)
 
 | **730 000** | **365** | **3 059** | **77** | **157** |
 |:---:|:---:|:---:|:---:|:---:|
@@ -231,4 +231,9 @@ TAXI-db/
 
 ## Лицензия
 
-Код и документация — под лицензией [MIT](LICENSE). Данные о поездках — открытые данные [City of Chicago Data Portal](https://data.cityofchicago.org), их использование регулируют [условия города](https://www.chicago.gov/city/en/narr/foia/data_disclaimer.html).
+**Только для некоммерческого использования.** Смотреть, изучать, запускать и менять проект для учебы, личных и исследовательских целей можно; коммерческое использование запрещено.
+
+- **Код** (SQL, Python, скрипты, GUI, тесты) — [PolyForm Noncommercial 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0).
+- **Собранная база** (`data/chicago/` и дамп в релизах) **и документация** (`docs/`) — [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/deed.ru): со ссылкой на автора и не в коммерческих целях.
+
+Исходные поездки — открытые данные [City of Chicago Data Portal](https://data.cityofchicago.org) по [условиям города](https://www.chicago.gov/city/en/narr/foia/data_disclaimer.html). Если они нужны для бизнеса, их можно взять напрямую из API города. Полный текст условий — в [LICENSE](LICENSE). За коммерческой лицензией — к автору через [GitHub](https://github.com/DarkSwordman999).
