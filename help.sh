@@ -158,7 +158,7 @@ if [ -z "$1" ]; then
     echo "  ./help.sh func-all                           204  выполнить всё"
     echo ""
     echo "================== ЗАПУСК SQL ФАЙЛОВ =================="
-    echo "  ./help.sh файл.sql [параметр]                     выполнить SQL-файл"
+    echo "  ./help.sh файл.sql [параметры]                    выполнить SQL-файл (параметры в нём — :arg1, :arg2...)"
     echo "  ./help.sh h1 файл.sql [параметр]                  выполнить SQL-файл через run_sql.sh"
     exit 1
 fi
