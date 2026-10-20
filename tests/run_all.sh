@@ -112,7 +112,7 @@ fi
 echo "=== help.sh: команды только для чтения ==="
 step "./help.sh без параметров (меню)" bash -c './help.sh; [ $? -eq 1 ]'
 for cmd in task1 task2 task3 \
-           companies drivers clients count latest clients-rides tables \
+           companies drivers clients count latest clients-rides tables columns \
            join-inner join-left join-right join-full join-cross join-self \
            top-areas top-drivers by-month avg-check by-hour company-stats driver-load \
            tips-by-client by-weekday revenue-by-client distance-by-company hour-share \

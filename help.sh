@@ -73,7 +73,8 @@ if [ -z "$1" ]; then
     echo "  ./help.sh count                               04  количество поездок"
     echo "  ./help.sh latest                              05  последние поездки"
     echo "  ./help.sh clients-rides                       06  типы клиентов с числом поездок"
-    echo "  ./help.sh tables                              16  структура таблиц"
+    echo "  ./help.sh tables                              16  список таблиц и представлений"
+    echo "  ./help.sh columns                                 колонки и типы всех таблиц"
     echo ""
     echo "================== ДЕМОНСТРАЦИЯ JOIN =================="
     echo "  ./help.sh join-inner                          07  INNER JOIN"
@@ -201,6 +202,7 @@ case "$1" in
     join-cross|11) psql -d "$DATABASE" -f helper/08_demo_cross_join.sql ;;
     join-self|12) sql "SELECT Р1.название AS район, Р2.название AS соседний_к_северу, ROUND(Р2.широта - Р1.широта, 3) AS разница_широт FROM РАЙОНЫ Р1 JOIN РАЙОНЫ Р2 ON Р2.широта > Р1.широта AND Р2.широта - Р1.широта < 0.02 AND ABS(Р2.долгота - Р1.долгота) < 0.02 AND Р1.код != Р2.код ORDER BY Р1.название LIMIT 10;" ;;
     tables|16) sql "\d" ;;
+    columns) psql -d "$DATABASE" -f helper/16_show_table_structure.sql ;;
     top-areas|17) psql -d "$DATABASE" -f helper/17_top_10_areas_by_revenue.sql ;;
     top-drivers|18) psql -d "$DATABASE" -f helper/18_top_10_drivers_by_revenue.sql ;;
     by-month|19) sql "SELECT TO_CHAR(DATE_TRUNC('month', дата), 'YYYY-MM') AS месяц, COUNT(*) AS поездок, SUM(стоимость) AS выручка FROM ПОЕЗДКИ GROUP BY 1 ORDER BY 1;" ;;
