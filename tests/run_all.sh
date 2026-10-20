@@ -109,6 +109,16 @@ if [ "$(value "SELECT COUNT(*) FROM ПОЕЗДКИ")" != "$RIDES" ]; then
     exit 1
 fi
 
+echo "=== help.sh: каждый файл helper/ вызывается командой ==="
+# иначе запрос живёт в двух местах (файл и help.sh) и копии расходятся
+for f in helper/*.sql; do
+    if ! grep -qF "$f" help.sh; then
+        echo "FAIL  $f не вызывается ни одной командой help.sh" >&2
+        exit 1
+    fi
+done
+echo "  ok  все файлы helper/ используются"
+
 echo "=== help.sh: команды только для чтения ==="
 step "./help.sh без параметров (меню)" bash -c './help.sh; [ $? -eq 1 ]'
 for cmd in task1 task2 task3 \
