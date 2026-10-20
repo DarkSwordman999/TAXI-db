@@ -192,13 +192,13 @@ case "$1" in
     drivers|02) psql -d "$DATABASE" -f helper/02_show_all_drivers.sql ;;
     clients|03) psql -d "$DATABASE" -f helper/03_show_all_clients.sql ;;
     count|04) sql "SELECT COUNT(*) AS поездок, MIN(дата)::date AS с, MAX(дата)::date AS по FROM ПОЕЗДКИ;" ;;
-    latest|05) sql "SELECT код_поездки, дата, расстояние_км, стоимость, чаевые FROM ПОЕЗДКИ ORDER BY дата DESC LIMIT 10;" ;;
+    latest|05) psql -d "$DATABASE" -f helper/05_show_rides_sample.sql ;;
     clients-rides|06) sql "SELECT К.код, К.тип, К.описание, COUNT(П.код_поездки) AS поездок FROM КЛИЕНТЫ К LEFT JOIN ПОЕЗДКИ П ON П.клиент = К.код GROUP BY К.код ORDER BY поездок DESC;" ;;
     join-inner|07) sql "SELECT П.код_поездки, Т.название AS таксопарк, 'Водитель №' || В.код AS водитель, П.стоимость FROM ПОЕЗДКИ П INNER JOIN ТАКСОПАРКИ Т ON П.таксопарк = Т.код INNER JOIN ВОДИТЕЛИ В ON П.водитель = В.код LIMIT 10;" ;;
     join-left|08) sql "SELECT Р.название AS район, COUNT(П.код_поездки) AS поездок FROM РАЙОНЫ Р LEFT JOIN ПОЕЗДКИ П ON Р.код = П.откуда GROUP BY Р.код, Р.название ORDER BY поездок ASC LIMIT 10;" ;;
     join-right|09) sql "SELECT К.описание AS тип_клиента, COUNT(П.код_поездки) AS поездок FROM ПОЕЗДКИ П RIGHT JOIN КЛИЕНТЫ К ON П.клиент = К.код GROUP BY К.код, К.описание ORDER BY поездок DESC LIMIT 10;" ;;
     join-full|10) sql "SELECT Т.название AS таксопарк, К.описание AS тип_клиента FROM ТАКСОПАРКИ Т FULL JOIN КЛИЕНТЫ К ON Т.код = К.код LIMIT 10;" ;;
-    join-cross|11) sql "SELECT Т.название AS таксопарк, К.описание AS тип_клиента FROM ТАКСОПАРКИ Т CROSS JOIN КЛИЕНТЫ К LIMIT 10;" ;;
+    join-cross|11) psql -d "$DATABASE" -f helper/08_demo_cross_join.sql ;;
     join-self|12) sql "SELECT Р1.название AS район, Р2.название AS соседний_к_северу, ROUND(Р2.широта - Р1.широта, 3) AS разница_широт FROM РАЙОНЫ Р1 JOIN РАЙОНЫ Р2 ON Р2.широта > Р1.широта AND Р2.широта - Р1.широта < 0.02 AND ABS(Р2.долгота - Р1.долгота) < 0.02 AND Р1.код != Р2.код ORDER BY Р1.название LIMIT 10;" ;;
     tables|16) sql "\d" ;;
     top-areas|17) psql -d "$DATABASE" -f helper/17_top_10_areas_by_revenue.sql ;;
