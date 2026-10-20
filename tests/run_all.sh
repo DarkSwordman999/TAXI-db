@@ -162,7 +162,6 @@ param_for() {
 # файлы, меняющие данные, идут отдельно и в конце
 is_modifying() {
     case "$1" in
-        helper/09_*|helper/10_*|helper/11_*|helper/12_*|helper/13_*|helper/14_*) return 0 ;;
         helper/22_*|helper/23_*|helper/61_*|helper/62_*|helper/64_*|helper/65_*) return 0 ;;
         queries/delete/*|queries/insert/*|queries/update/*) return 0 ;;
     esac
