@@ -110,6 +110,7 @@ if [ -z "$1" ]; then
     echo ""
     echo "================== ЗАПРОСЫ С ПАРАМЕТРАМИ =================="
     echo "  ./help.sh find-company текст                  31  таксопарки по части названия"
+    echo "  ./help.sh find-area текст                         районы по части названия"
     echo "  ./help.sh driver код                          32  информация о водителе"
     echo "  ./help.sh driver-rides код                    33  последние поездки водителя"
     echo "  ./help.sh rides-above сумма                   34  поездки дороже суммы"
@@ -218,6 +219,7 @@ case "$1" in
     check-by-hour|29) sql "SELECT EXTRACT(HOUR FROM дата) AS час, ROUND(AVG(стоимость), 2) AS средний_чек FROM ПОЕЗДКИ GROUP BY час ORDER BY час;" ;;
     top-tips|30) sql "SELECT 'Водитель №' || В.код AS водитель, COUNT(*) AS поездок, SUM(П.чаевые) AS чаевые FROM ПОЕЗДКИ П JOIN ВОДИТЕЛИ В ON П.водитель = В.код GROUP BY В.код ORDER BY чаевые DESC LIMIT 10;" ;;
     find-company|31) if [ -z "$2" ]; then echo "Укажите часть названия: ./help.sh find-company Cab"; else sql_file helper/15_demo_with_param.sql "$2"; fi ;;
+    find-area) if [ -z "$2" ]; then echo "Укажите часть названия: ./help.sh find-area Park"; else sql_file helper/24_search_area.sql "$2"; fi ;;
     driver|32) if [ -z "$2" ]; then echo "Укажите код: ./help.sh driver 1"; else need_num "$2"; sql "SELECT В.код, В.taxi_id, COUNT(П.код_поездки) AS поездок, SUM(П.стоимость) AS выручка, MIN(П.дата)::date AS первая, MAX(П.дата)::date AS последняя FROM ВОДИТЕЛИ В LEFT JOIN ПОЕЗДКИ П ON П.водитель = В.код WHERE В.код = $2 GROUP BY В.код;"; fi ;;
     driver-rides|33) if [ -z "$2" ]; then echo "Укажите код: ./help.sh driver-rides 1"; else need_num "$2"; sql "SELECT * FROM v_rides_user WHERE водитель = 'Водитель №$2' ORDER BY дата DESC LIMIT 10;"; fi ;;
     rides-above|34) if [ -z "$2" ]; then echo "Укажите сумму: ./help.sh rides-above 100"; else need_num "$2"; sql "SELECT * FROM ПОЕЗДКИ WHERE стоимость > $2 ORDER BY стоимость DESC LIMIT 10;"; fi ;;
