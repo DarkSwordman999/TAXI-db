@@ -35,17 +35,25 @@ sql_str() {
     printf "%s" "${1//\'/\'\'}"
 }
 
-# SQL-файл с необязательным параметром arg1. Параметр задаётся командой \set
+# SQL-файл с необязательными параметрами arg1 и arg2. Они задаются командой \set
 # через stdin, а не psql -v: по той же причине кириллица в -v ломается
 sql_file() {
     if [ -z "$2" ]; then
         psql -d "$DATABASE" -f "$1"
         return
     fi
-    # в \set внутри '...' обратная косая черта — спецсимвол, кавычка удваивается
-    local value="${2//\\/\\\\}"
-    value="${value//\'/\'\'}"
-    { printf '\\set arg1 '"'"'%s'"'"'\n' "$value"; cat "$1"; } | psql -d "$DATABASE"
+    local file="$1" n=1 value
+    shift
+    {
+        for value in "$@"; do
+            # в \set внутри '...' обратная косая черта — спецсимвол, кавычка удваивается
+            value="${value//\\/\\\\}"
+            value="${value//\'/\'\'}"
+            printf '\\set arg%d '"'"'%s'"'"'\n' "$n" "$value"
+            n=$((n + 1))
+        done
+        cat "$file"
+    } | psql -d "$DATABASE"
 }
 
 if [ -z "$1" ]; then
@@ -91,6 +99,8 @@ if [ -z "$1" ]; then
     echo "  ./help.sh delete-before                       63  ДО DELETE"
     echo "  ./help.sh delete-do                           64  ВЫПОЛНИТЬ DELETE"
     echo "  ./help.sh delete-after                        65  ПОСЛЕ DELETE"
+    echo "  ./help.sh rename-demo код [название]              переименовать таксопарк и откатить (база не меняется)"
+    echo "  ./help.sh delete-demo код                         удалить водителя и откатить (база не меняется)"
     echo ""
     echo "================== АНАЛИТИКА =================="
     echo "  ./help.sh top-areas                           17  топ-10 районов по выручке"
@@ -155,7 +165,7 @@ fi
 
 if [[ "$1" == *.sql ]]; then
     if [ -f "$1" ]; then
-        sql_file "$1" "$2"
+        sql_file "$@"
         exit $?
     else
         echo "ОШИБКА: Файл $1 не найден"
@@ -237,6 +247,8 @@ case "$1" in
     delete-before|63) psql -d "$DATABASE" -f helper/63_before_delete.sql ;;
     delete-do|64) psql -d "$DATABASE" -f helper/64_do_delete.sql ;;
     delete-after|65) psql -d "$DATABASE" -f helper/65_after_delete.sql ;;
+    rename-demo) if [ -z "$2" ]; then echo "Использование: ./help.sh rename-demo код [название]"; else need_num "$2"; sql_file helper/22_quick_update.sql "$2" ${3:+"$3"}; fi ;;
+    delete-demo) if [ -z "$2" ]; then echo "Использование: ./help.sh delete-demo код"; else need_num "$2"; sql_file helper/23_quick_delete.sql "$2"; fi ;;
     view-user|100) psql -d "$DATABASE" -f queries/views/01_create_rides_view.sql ;;
     view-tech|101) psql -d "$DATABASE" -f queries/views/02_create_rides_tech.sql ;;
     view-check|102) psql -d "$DATABASE" -f queries/views/03_check_views.sql ;;

@@ -132,6 +132,9 @@ step_output "./help.sh find-company Flash" "Flash" ./help.sh find-company Flash
 step "./help.sh find-company с кавычкой" ./help.sh find-company "O'Hare"
 step_output "./help.sh find-area Park" "Park" ./help.sh find-area Park
 step "./help.sh find-area с кавычкой" ./help.sh find-area "O'Hare"
+step_output "./help.sh rename-demo" "Парк O'Brien" ./help.sh rename-demo 1 "Парк O'Brien"
+step "./help.sh rename-demo без названия" ./help.sh rename-demo 1
+step "./help.sh delete-demo $DRIVER" ./help.sh delete-demo "$DRIVER"
 step "./help.sh driver $DRIVER" ./help.sh driver "$DRIVER"
 step "./help.sh driver-rides $DRIVER" ./help.sh driver-rides "$DRIVER"
 step "./help.sh rides-above 100" ./help.sh rides-above 100

@@ -58,8 +58,10 @@
 | `./help.sh delete-before` | 63 | состояние до DELETE |
 | `./help.sh delete-do` | 64 | выполнить DELETE |
 | `./help.sh delete-after` | 65 | состояние после DELETE |
+| `./help.sh rename-demo код [название]` | | переименовать таксопарк, показать до и после, откатить |
+| `./help.sh delete-demo код` | | удалить водителя с поездками, показать до и после, откатить |
 
-Демонстрационные скрипты в `queries/update`, `queries/delete`, `queries/insert` и `helper/22–23` выполняются в транзакции с `ROLLBACK` и базу не меняют.
+`rename-demo`, `delete-demo` и демонстрационные скрипты в `queries/update`, `queries/delete`, `queries/insert` выполняются в транзакции с `ROLLBACK` и базу не меняют.
 
 ## Аналитика
 
