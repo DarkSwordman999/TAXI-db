@@ -1,0 +1,13 @@
+# Проверка Python-кода: ruff check .
+# Правила перечислены явно, чтобы новая версия ruff не меняла проверку:
+# E4/E7/E9 и F — ошибки pycodestyle и pyflakes (неиспользуемые импорты, опечатки в именах),
+# B (bugbear) — частые логические ошибки. Длина строк не ограничивается.
+target-version = "py39"
+extend-exclude = ["app/gui_old*.py", "app/gui_improved_old.py", "app/gui_before*.py"]
+
+[lint]
+select = ["E4", "E7", "E9", "F", "B"]
+
+[lint.per-file-ignores]
+# GUI переделывается отдельно (React-версия): пока не трогаем — переменная l в base.py
+"app/**" = ["E741"]
