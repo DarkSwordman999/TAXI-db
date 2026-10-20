@@ -15,6 +15,8 @@ show_help() {
     echo "  ./python_reports.sh 2 [тип_клиента]                 - сводная таблица"
     echo "  ./python_reports.sh 3 [--force]                  - график динамики"
     echo "  ./python_reports.sh 4 [код_водителя] [--force]    - круговая диаграмма"
+    echo "  ./python_reports.sh months [--force]             - выручка и цена километра по месяцам (вместо 3)"
+    echo "  ./python_reports.sh payments [код_водителя] [--force] - доли выручки по способам оплаты (вместо 4)"
     echo "  ./python_reports.sh all                          - выполнить всё"
     echo "  ./python_reports.sh save                         - сохранить все графики"
     echo "  ./python_reports.sh save --force                 - сохранить с перезаписью"
@@ -27,6 +29,8 @@ show_help() {
     echo "  ./python_reports.sh 2"
     echo "  ./python_reports.sh 3"
     echo "  ./python_reports.sh 4 1"
+    echo "  ./python_reports.sh months"
+    echo "  ./python_reports.sh payments 1"
 }
 
 case "$1" in
@@ -65,6 +69,12 @@ case "$1" in
     4)
         "$PYTHON" taxi_report.py task4 "${@:2}"
         ;;
+    months)
+        "$PYTHON" taxi_report.py months "${@:2}"
+        ;;
+    payments)
+        "$PYTHON" taxi_report.py payments "${@:2}"
+        ;;
     save)
         if [ "$2" = "--force" ]; then
             "$PYTHON" taxi_report.py save-all --force
@@ -91,6 +101,10 @@ case "$1" in
         echo ""
         echo "--- ЗАДАЧА 4: ДИАГРАММА ---"
         "$PYTHON" taxi_report.py task4 || exit 1
+        echo ""
+        echo "--- ГРАФИКИ ПО МЕСЯЦАМ И СПОСОБАМ ОПЛАТЫ ---"
+        "$PYTHON" taxi_report.py months || exit 1
+        "$PYTHON" taxi_report.py payments || exit 1
         ;;
     "")
         show_help

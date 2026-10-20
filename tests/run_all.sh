@@ -199,9 +199,12 @@ step "./python_reports.sh 2 Credit" ./python_reports.sh 2 Credit
 step "./python_reports.sh 3 --force" ./python_reports.sh 3 --force
 step "./python_reports.sh 4 --force" ./python_reports.sh 4 --force
 step "./python_reports.sh 4 $DRIVER --force" ./python_reports.sh 4 "$DRIVER" --force
+step "./python_reports.sh months --force" ./python_reports.sh months --force
+step "./python_reports.sh payments --force" ./python_reports.sh payments --force
+step "./python_reports.sh payments $DRIVER --force" ./python_reports.sh payments "$DRIVER" --force
 step "./python_reports.sh save --force" ./python_reports.sh save --force
 step "./python_reports.sh all" ./python_reports.sh all
-for png in task3_chart.png task4_chart.png "task4_chart_$DRIVER.png"; do
+for png in task3_chart.png task4_chart.png "task4_chart_$DRIVER.png"            months_chart.png payments_chart.png "payments_chart_$DRIVER.png"; do
     if [ ! -s "$TAXI_DOCS_DIR/$png" ]; then
         echo "FAIL  график $png не создан" >&2
         exit 1
