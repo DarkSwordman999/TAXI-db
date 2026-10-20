@@ -361,7 +361,7 @@ def task4_chart(driver_param=None, force=False):
     labels = [row[0] for row in rows]
     sizes = [float(row[1]) for row in rows]
     
-    filtered = [(l, s) for l, s in zip(labels, sizes) if s > 0]
+    filtered = [(label, s) for label, s in zip(labels, sizes) if s > 0]
     if not filtered:
         print("Нет положительной выручки для отображения")
         return
@@ -371,7 +371,7 @@ def task4_chart(driver_param=None, force=False):
     total = sum(sizes)
     small = sum(s for s in sizes if s < total * 0.03)
     if small:
-        labels, sizes = zip(*[(l, s) for l, s in zip(labels, sizes) if s >= total * 0.03])
+        labels, sizes = zip(*[(label, s) for label, s in zip(labels, sizes) if s >= total * 0.03])
         labels, sizes = list(labels) + ["Прочие"], list(sizes) + [small]
     
     plt.figure(figsize=(10, 8))

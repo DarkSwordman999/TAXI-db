@@ -178,7 +178,7 @@ class LoadRidesTest(unittest.TestCase):
         try:
             import load_rides
         except ImportError as e:  # без psycopg2 загрузчик не импортируется
-            raise unittest.SkipTest(f"нет зависимостей загрузчика: {e}")
+            raise unittest.SkipTest(f"нет зависимостей загрузчика: {e}") from e
         cls.load_rides = load_rides
 
     def test_staging_columns_match_fetched_fields(self):

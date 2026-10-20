@@ -7,7 +7,6 @@ docs/showcase/<имя>-light.png и <имя>-dark.png.
     python docs/make_showcase.py
 """
 
-import os
 import sys
 from pathlib import Path
 
