@@ -6,6 +6,7 @@
 
 [![Релиз](https://img.shields.io/github/v/release/DarkSwordman999/TAXI-db?label=релиз)](https://github.com/DarkSwordman999/TAXI-db/releases/latest)
 [![Автотесты](https://github.com/DarkSwordman999/TAXI-db/actions/workflows/tests.yml/badge.svg)](https://github.com/DarkSwordman999/TAXI-db/actions/workflows/tests.yml)
+[![Проверка кода](https://github.com/DarkSwordman999/TAXI-db/actions/workflows/lint.yml/badge.svg)](https://github.com/DarkSwordman999/TAXI-db/actions/workflows/lint.yml)
 [![Сбор поездок](https://github.com/DarkSwordman999/TAXI-db/actions/workflows/parser.yml/badge.svg)](https://github.com/DarkSwordman999/TAXI-db/actions/workflows/parser.yml)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-13%2B-336791?logo=postgresql&logoColor=white)
 ![Python 3](https://img.shields.io/badge/Python-3-3776AB?logo=python&logoColor=white)
@@ -146,7 +147,7 @@ flowchart LR
     DB --> GUI
 ```
 
-Сборщик сам докачивает пропущенные дни и сохраняет их в репозиторий. Загрузчик читает только дни, которых еще нет в базе, поэтому обновление занимает секунды. Каждое изменение проверяют автотесты: они поднимают чистый PostgreSQL, собирают базу с нуля и прогоняют все 56 запросов, 70 команд и отчеты.
+Сборщик сам докачивает пропущенные дни и сохраняет их в репозиторий. Загрузчик читает только дни, которых еще нет в базе, поэтому обновление занимает секунды. Каждое изменение проверяют автотесты: они поднимают чистый PostgreSQL, собирают базу с нуля и прогоняют все 44 SQL-файла, 74 команды и отчеты. Отдельно ruff и shellcheck проверяют код, а модульные тесты — сборщик и загрузчик.
 
 ## Что показывает проект
 
@@ -156,7 +157,7 @@ flowchart LR
 | 📜 **SQL и PL/pgSQL** | JOIN всех видов, подзапросы, оконные функции, представления, функции, сводные таблицы |
 | 🔄 **ETL** | сбор из REST API, отсев брака, загрузка без дублей |
 | 🐍 **Python** | `psycopg2`, графики `matplotlib`, настольное приложение на `tkinter` |
-| ⚙️ **Автоматизация** | ежедневный сбор и автотесты в GitHub Actions на Ubuntu 26.04 и PostgreSQL 18 |
+| ⚙️ **Автоматизация** | ежедневный сбор, автотесты, ruff, shellcheck и модульные тесты в GitHub Actions на Ubuntu 26.04 и PostgreSQL 18 |
 | 📚 **Документация** | описание базы в [Markdown](docs/DATABASE.md) и [Word](docs/DATABASE.docx), [справочник команд](docs/COMMANDS.md) |
 
 ## О данных
@@ -221,11 +222,11 @@ TAXI-db/
 ├── helper/, queries/              SQL-запросы, представления, функции
 ├── parser/                        сбор из API и загрузка в базу
 ├── schema/, setup/                таблицы, индексы, пересборка базы
-├── tests/run_all.sh               автотесты
-└── .github/workflows/             сбор данных и автотесты
+├── tests/                         автотесты (run_all.sh) и модульные тесты (unit/)
+└── .github/workflows/             сбор данных, автотесты, проверка кода
 ```
 
-Картинки для README строит `python docs/make_showcase.py`, Word-документацию — `python docs/make_docs.py`. Автотесты локально: `PGDATABASE=taxi_test tests/run_all.sh`.
+Картинки для README строит `python docs/make_showcase.py`, Word-документацию — `python docs/make_docs.py`. Автотесты локально: `PGDATABASE=taxi_test tests/run_all.sh`. Проверка кода: `pip install -r requirements-dev.txt`, затем `ruff check .`, `shellcheck *.sh */*.sh` и `python -m unittest discover -s tests/unit`.
 
 </details>
 
