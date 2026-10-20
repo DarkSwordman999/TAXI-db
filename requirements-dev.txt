@@ -1,0 +1,4 @@
+# Инструменты проверки кода (CI: .github/workflows/lint.yml)
+# Установка: pip install -r requirements-dev.txt
+ruff==0.17.1
+shellcheck-py==0.11.0.1

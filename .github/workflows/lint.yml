@@ -1,0 +1,39 @@
+name: Проверка кода
+
+# Быстрая проверка без базы: стиль и ошибки в Python (ruff) и bash (shellcheck),
+# модульные тесты сборщика и загрузчика поездок (tests/unit).
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-26.04
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Пакеты Python
+        run: pip install -r requirements.txt -r requirements-dev.txt
+
+      - name: ruff
+        run: ruff check --output-format github .
+
+      - name: shellcheck
+        run: git ls-files -z '*.sh' | xargs -0 shellcheck
+
+      - name: Модульные тесты
+        run: python -m unittest discover -s tests/unit -v
