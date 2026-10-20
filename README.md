@@ -12,7 +12,7 @@
 ![Python 3](https://img.shields.io/badge/Python-3-3776AB?logo=python&logoColor=white)
 [![Некоммерческая лицензия](https://img.shields.io/badge/license-noncommercial-orange)](#лицензия)
 
-| **730 000** | **365** | **3 059** | **77** | **157** |
+| **730 000** | **365** | **3 059** | **77** | **169** |
 |:---:|:---:|:---:|:---:|:---:|
 | поездок | дней подряд | машин такси | районов города | автопроверок |
 
@@ -137,7 +137,7 @@ flowchart LR
     GH["⚙️ GitHub Actions<br/>каждый день"]
     CSV["📦 data/chicago/rides<br/>файл на каждый день"]
     DB[("🐘 PostgreSQL<br/>6 таблиц")]
-    SQL["📜 SQL-аналитика<br/>70 команд, 56 запросов"]
+    SQL["📜 SQL-аналитика<br/>74 команды, 44 SQL-файла"]
     PY["📊 Python-отчеты<br/>и графики"]
     GUI["🖥️ Настольный GUI"]
 
