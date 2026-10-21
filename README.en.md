@@ -100,7 +100,7 @@ Six PL/pgSQL functions, each answering a question people ask such a database:
 | Question | Function | Answer on the data |
 |---|---|---|
 | How much did a driver earn? | `get_driver_revenue` | driver #543 — $26,476.61 |
-| …and how much of it in cash? | `get_driver_revenue_by_client` | $26,045.53, i.e. 98 % |
+| …and how much of it in cash? | `get_driver_revenue_by_payment` | $26,045.53, i.e. 98 % |
 | Who earned more than a threshold? | `drivers_above_revenue` | above $20,000 — 5 drivers |
 | What is a company's average check? | `get_company_avg_revenue` | Flash Cab — $22.37 |
 | When does a company earn the most? | `revenue_by_company_and_season` | Flash Cab — in autumn, $881,376 |
