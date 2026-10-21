@@ -1,5 +1,6 @@
 """Общая основа окна: подключение к БД, выполнение запросов, вывод таблиц, диалоги и графики."""
 
+from decimal import Decimal
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox
@@ -32,6 +33,10 @@ def monospace_font(size=11):
     fixed = tkfont.nametofont("TkFixedFont").copy()
     fixed.configure(size=size)
     return fixed
+
+
+def is_number(value):
+    return isinstance(value, (int, float, Decimal)) and not isinstance(value, bool)
 
 
 class BaseMixin:
@@ -92,15 +97,23 @@ class BaseMixin:
             for i, val in enumerate(row):
                 widths[i] = max(widths[i], len(val))
         widths = [min(w, 34) for w in widths]
+        # числовые столбцы — по правому краю, чтобы разряды стояли друг под другом
+        numeric = [all(v is None or is_number(v) for v in col) and any(v is not None for v in col)
+                   for col in zip(*rows[:MAX_SHOWN_ROWS])]
 
-        def line(values):
-            return "│" + "│".join(f" {str(v)[:w].ljust(w)} " for v, w in zip(values, widths)) + "│"
+        def cell(value, width, right):
+            text = str(value)[:width]
+            return text.rjust(width) if right else text.ljust(width)
+
+        def line(values, header=False):
+            return "│" + "│".join(f" {cell(v, w, r and not header)} "
+                                  for v, w, r in zip(values, widths, numeric)) + "│"
 
         out = []
         if title:
             out += [title, "=" * len(title)]
         out.append("┌" + "┬".join("─" * (w + 2) for w in widths) + "┐")
-        out.append(line(cols))
+        out.append(line(cols, header=True))
         out.append("├" + "┼".join("─" * (w + 2) for w in widths) + "┤")
         out += [line(row) for row in shown]
         out.append("└" + "┴".join("─" * (w + 2) for w in widths) + "┘")
