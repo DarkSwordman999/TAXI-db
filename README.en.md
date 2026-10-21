@@ -18,7 +18,7 @@
 |:---:|:---:|:---:|:---:|:---:|
 | trips | days in a row | taxi cabs | community areas | automated checks |
 
-**[⬇️ Download the database](https://github.com/DarkSwordman999/TAXI-db/releases/latest)** · **[📚 Docs (in Russian)](docs/DATABASE.md)** · **[▶️ Run it yourself](#run-it-yourself)**
+**[⬇️ Download the database](https://github.com/DarkSwordman999/TAXI-db/releases/latest)** · **[📚 Docs](docs/DATABASE.md)** · **[📖 User guide](docs/USER_GUIDE.md)** (both in Russian) · **[▶️ Run it yourself](#run-it-yourself)**
 
 </div>
 
