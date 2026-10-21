@@ -40,7 +40,7 @@
 
 ### What the data shows
 
-✈️ **The airport feeds the taxis.** O'Hare accounts for 19 % of all pickups. One trip in five starts or ends at the airport, and its average fare is **$57.93** against **$17.25** citywide.
+✈️ **The airport feeds the taxis.** O'Hare accounts for 19 % of all pickups. One trip in five starts or ends at the airport, and its average fare is **$57.93** against **$17.25** for all other trips.
 
 🏙️ **The city runs on downtown.** Near North Side, the Loop and Near West Side give more than half of all pickups; the most frequent route is Loop ↔ Near North Side.
 
@@ -148,7 +148,7 @@ Chicago has about 18,000 taxi trips a day; the database keeps an even sample of 
 |---|---:|---:|
 | trips | 730,000 | 6,546,819 |
 | metered revenue | $15.6 M | $139.3 M |
-| revenue with tips and extras | $19.1 M | $171.4 M |
+| total with tips, tolls and surcharges | $19.1 M | $171.4 M |
 
 Period: 1 October 2025 – 30 September 2026.
 
