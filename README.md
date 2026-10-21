@@ -2,6 +2,8 @@
 
 # 🚕 TAXI DB
 
+🇷🇺 **Русский** · 🇬🇧 [English](README.en.md)
+
 **Год реальных поездок такси Чикаго в PostgreSQL:<br>от открытого API мэрии до SQL-аналитики, графиков и собственного GUI.**
 
 [![Релиз](https://img.shields.io/github/v/release/DarkSwordman999/TAXI-db?label=релиз)](https://github.com/DarkSwordman999/TAXI-db/releases/latest)

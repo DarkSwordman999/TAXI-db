@@ -2,6 +2,8 @@
 
 # 🚕 TAXI DB
 
+🇷🇺 [Русский](README.md) · 🇬🇧 **English**
+
 **A year of real Chicago taxi trips in PostgreSQL:<br>from the city's open API to SQL analytics, charts and a desktop GUI.**
 
 [![Release](https://img.shields.io/github/v/release/DarkSwordman999/TAXI-db?label=release)](https://github.com/DarkSwordman999/TAXI-db/releases/latest)
