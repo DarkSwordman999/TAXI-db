@@ -10,6 +10,7 @@ import matplotlib
 matplotlib.use("TkAgg")
 import matplotlib.pyplot as plt  # noqa: E402
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg  # noqa: E402
+from matplotlib.ticker import FuncFormatter  # noqa: E402
 
 import psycopg2  # noqa: E402
 
@@ -263,6 +264,10 @@ class BaseMixin:
 
     # ------------------------- графики -------------------------
     def _chart_window(self, title, size, fig):
+        # суммы по оси Y — целыми числами с пробелами между разрядами, а не 1.45 и множитель 1e6
+        for ax in fig.axes:
+            if ax.name == "rectilinear":
+                ax.yaxis.set_major_formatter(FuncFormatter(lambda v, _: f"{v:,.0f}".replace(",", " ")))
         win = tk.Toplevel(self.root)
         win.title(title)
         win.geometry(size)
