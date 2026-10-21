@@ -1,4 +1,4 @@
--- ./help.sh tips-by-client — средние чаевые по типам клиентов
+-- ./help.sh tips-by-payment (прежнее имя tips-by-client) — средние чаевые по типам клиентов
 SELECT
     О.описание AS способ_оплаты,
     ROUND(AVG(П.чаевые), 2) AS средние_чаевые,

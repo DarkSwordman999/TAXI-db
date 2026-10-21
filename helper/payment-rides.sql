@@ -1,4 +1,4 @@
--- ./help.sh clients-rides — способы оплаты с числом поездок
+-- ./help.sh payment-rides (прежнее имя clients-rides) — способы оплаты с числом поездок
 SELECT
     О.код,
     О.тип,

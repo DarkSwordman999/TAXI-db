@@ -56,6 +56,7 @@ if [ -z "$1" ]; then
     echo "============================================="
     echo "  Число перед описанием - прежний номер команды, он тоже работает:"
     echo "  ./help.sh companies и ./help.sh 01 делают одно и то же."
+    echo "  В скобках - прежнее имя команды (до версии 2.0), оно тоже работает."
     echo ""
     echo "================== ДАННЫЕ =================="
     echo "  ./help.sh fetch [дней]                            скачать недостающие дни из открытых данных Чикаго"
@@ -71,10 +72,10 @@ if [ -z "$1" ]; then
     echo "================== ПРОСМОТР ДАННЫХ =================="
     echo "  ./help.sh companies                           01  все таксопарки"
     echo "  ./help.sh drivers                             02  водители (первые 50)"
-    echo "  ./help.sh clients                             03  типы клиентов"
+    echo "  ./help.sh payment-types                       03  способы оплаты (clients)"
     echo "  ./help.sh count                               04  количество поездок"
     echo "  ./help.sh latest                              05  последние поездки"
-    echo "  ./help.sh clients-rides                       06  типы клиентов с числом поездок"
+    echo "  ./help.sh payment-rides                       06  способы оплаты с числом поездок (clients-rides)"
     echo "  ./help.sh tables                              16  список таблиц и представлений"
     echo "  ./help.sh columns                                 колонки и типы всех таблиц"
     echo ""
@@ -104,9 +105,9 @@ if [ -z "$1" ]; then
     echo "  ./help.sh by-hour                             21  поездки по часам"
     echo "  ./help.sh company-stats                       22  статистика по таксопаркам"
     echo "  ./help.sh driver-load                         23  загруженность водителей"
-    echo "  ./help.sh tips-by-client                      24  средние чаевые по типам клиентов"
+    echo "  ./help.sh tips-by-payment                     24  средние чаевые по способам оплаты (tips-by-client)"
     echo "  ./help.sh by-weekday                          25  выручка по дням недели"
-    echo "  ./help.sh revenue-by-client                   26  выручка по типам клиентов"
+    echo "  ./help.sh revenue-by-payment                  26  выручка по способам оплаты (revenue-by-client)"
     echo "  ./help.sh distance-by-company                 27  средний пробег по таксопаркам"
     echo "  ./help.sh hour-share                          28  распределение поездок по часам"
     echo "  ./help.sh check-by-hour                       29  средний чек по часам"
@@ -120,7 +121,7 @@ if [ -z "$1" ]; then
     echo "  ./help.sh rides-above сумма                   34  поездки дороже суммы"
     echo "  ./help.sh drivers-above сумма                 35  водители с выручкой выше суммы"
     echo "  ./help.sh rename-company код название         40  переименовать таксопарк"
-    echo "  ./help.sh client-desc код описание            41  изменить описание типа клиента"
+    echo "  ./help.sh payment-desc код описание           41  изменить описание способа оплаты (client-desc)"
     echo "  ./help.sh delete-driver код                   42  удалить водителя вместе с поездками"
     echo "  ./help.sh add-company название                43  добавить таксопарк"
     echo "  ./help.sh add-driver taxi_id                  44  добавить водителя"
@@ -196,10 +197,10 @@ case "$1" in
         ;;
     companies|01) psql -d "$DATABASE" -f helper/companies.sql ;;
     drivers|02) psql -d "$DATABASE" -f helper/drivers.sql ;;
-    clients|03) psql -d "$DATABASE" -f helper/clients.sql ;;
+    payment-types|clients|03) psql -d "$DATABASE" -f helper/payment-types.sql ;;
     count|04) psql -d "$DATABASE" -f helper/count.sql ;;
     latest|05) psql -d "$DATABASE" -f helper/latest.sql ;;
-    clients-rides|06) psql -d "$DATABASE" -f helper/clients-rides.sql ;;
+    payment-rides|clients-rides|06) psql -d "$DATABASE" -f helper/payment-rides.sql ;;
     join-inner|07) psql -d "$DATABASE" -f helper/join-inner.sql ;;
     join-left|08) psql -d "$DATABASE" -f helper/join-left.sql ;;
     join-right|09) psql -d "$DATABASE" -f helper/join-right.sql ;;
@@ -215,9 +216,9 @@ case "$1" in
     by-hour|21) psql -d "$DATABASE" -f helper/by-hour.sql ;;
     company-stats|22) psql -d "$DATABASE" -f helper/company-stats.sql ;;
     driver-load|23) psql -d "$DATABASE" -f helper/driver-load.sql ;;
-    tips-by-client|24) psql -d "$DATABASE" -f helper/tips-by-client.sql ;;
+    tips-by-payment|tips-by-client|24) psql -d "$DATABASE" -f helper/tips-by-payment.sql ;;
     by-weekday|25) psql -d "$DATABASE" -f helper/by-weekday.sql ;;
-    revenue-by-client|26) psql -d "$DATABASE" -f helper/revenue-by-client.sql ;;
+    revenue-by-payment|revenue-by-client|26) psql -d "$DATABASE" -f helper/revenue-by-payment.sql ;;
     distance-by-company|27) psql -d "$DATABASE" -f helper/distance-by-company.sql ;;
     hour-share|28) psql -d "$DATABASE" -f helper/hour-share.sql ;;
     check-by-hour|29) psql -d "$DATABASE" -f helper/check-by-hour.sql ;;
@@ -229,7 +230,7 @@ case "$1" in
     rides-above|34) if [ -z "$2" ]; then echo "Укажите сумму: ./help.sh rides-above 100"; else need_num "$2"; sql_file helper/rides-above.sql "$2"; fi ;;
     drivers-above|35) if [ -z "$2" ]; then echo "Укажите сумму: ./help.sh drivers-above 10000"; else need_num "$2"; sql_file helper/drivers-above.sql "$2"; fi ;;
     rename-company|40) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh rename-company код название"; else need_num "$2"; sql_file helper/rename-company.sql "$2" "$3"; fi ;;
-    client-desc|41) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh client-desc код описание"; else need_num "$2"; sql_file helper/client-desc.sql "$2" "$3"; fi ;;
+    payment-desc|client-desc|41) if [ -z "$2" ] || [ -z "$3" ]; then echo "Использование: ./help.sh payment-desc код описание"; else need_num "$2"; sql_file helper/payment-desc.sql "$2" "$3"; fi ;;
     delete-driver|42) if [ -z "$2" ]; then echo "Использование: ./help.sh delete-driver код"; else need_num "$2"; sql_file helper/delete-driver.sql "$2" && echo "Водитель удалён"; fi ;;
     add-company|43) if [ -z "$2" ]; then echo "Использование: ./help.sh add-company название"; else sql_file helper/add-company.sql "$2"; fi ;;
     add-driver|44) if [ -z "$2" ]; then echo "Использование: ./help.sh add-driver taxi_id"; else sql_file helper/add-driver.sql "$2"; fi ;;

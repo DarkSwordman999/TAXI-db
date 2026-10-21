@@ -35,10 +35,10 @@ HELP_SECTIONS = [
     ("Просмотр данных", [
         ("companies", "Все таксопарки", None),
         ("drivers", "Водители (первые 50)", None),
-        ("clients", "Типы клиентов", None),
+        ("payment-types", "Способы оплаты", None),
         ("count", "Количество поездок", None),
         ("latest", "Последние поездки", None),
-        ("clients-rides", "Типы клиентов с числом поездок", None),
+        ("payment-rides", "Способы оплаты с числом поездок", None),
         ("tables", "Структура таблиц", None),
     ]),
     ("JOIN", [
@@ -65,9 +65,9 @@ HELP_SECTIONS = [
         ("by-hour", "Поездки по часам", None),
         ("company-stats", "Статистика по таксопаркам", None),
         ("driver-load", "Загруженность водителей", None),
-        ("tips-by-client", "Средние чаевые по типам клиентов", None),
+        ("tips-by-payment", "Средние чаевые по способам оплаты", None),
         ("by-weekday", "Выручка по дням недели", None),
-        ("revenue-by-client", "Выручка по типам клиентов", None),
+        ("revenue-by-payment", "Выручка по способам оплаты", None),
         ("distance-by-company", "Средний пробег по таксопаркам", None),
         ("hour-share", "Распределение поездок по часам", None),
         ("check-by-hour", "Средний чек по часам", None),
@@ -80,7 +80,7 @@ HELP_SECTIONS = [
         ("rides-above", "Поездки дороже суммы", [("amount", "Сумма $", "100")]),
         ("drivers-above", "Водители с выручкой выше суммы", [("amount", "Сумма $", "10000")]),
         ("rename-company", "Переименовать таксопарк", [("code", "Код таксопарка", "1"), ("name", "Новое название", "")]),
-        ("client-desc", "Изменить описание типа клиента", [("code", "Код типа клиента", "1"), ("desc", "Новое описание", "")]),
+        ("payment-desc", "Изменить описание способа оплаты", [("code", "Код способа оплаты", "1"), ("desc", "Новое описание", "")]),
         ("delete-driver", "Удалить водителя вместе с поездками", [("code", "Код водителя", "32")]),
         ("add-company", "Добавить таксопарк", [("name", "Название", "Новый таксопарк")]),
         ("add-driver", "Добавить водителя", [("taxi_id", "taxi_id (до 16 символов)", "manual00000001")]),
@@ -116,7 +116,7 @@ HELP_TIMEOUTS = {"fetch": 1800, "load": 600}
 HELP_CONFIRM = {"delete-driver": "Удалить водителя с кодом {0} вместе с его поездками?"}
 
 DRIVER_OPT = ("driver", "Код водителя, можно пусто", "")
-CLIENT_OPT = ("cls", "Тип клиента, можно пусто", "")
+CLIENT_OPT = ("cls", "Способ оплаты, можно пусто", "")
 
 
 def find_bash():
@@ -513,11 +513,11 @@ class ScriptsMixin:
         ).pack(anchor="w", pady=(0, 8))
         p = "./python_reports.sh"
         self.add_command_section(body, "Отчёты", [
-            ("python_reports.sh 1", "Отчёт по водителям и типам клиентов; оба параметра необязательны",
+            ("python_reports.sh 1", "Отчёт по водителям и способам оплаты; оба параметра необязательны",
              self._python_with_fields("1", f"{p} 1", [DRIVER_OPT, CLIENT_OPT])),
             ("python_reports.sh 1s", "Отчёт со звёздочкой * в углу",
              self._python_with_fields("1s", f"{p} 1s", [DRIVER_OPT, CLIENT_OPT])),
-            ("python_reports.sh 2", "Сводная таблица; тип клиента необязателен",
+            ("python_reports.sh 2", "Сводная таблица; способ оплаты необязателен",
              self._python_with_fields("2", f"{p} 2", [CLIENT_OPT])),
             # из GUI график всегда строится заново, без вопроса о перезаписи
             ("python_reports.sh 3", "График динамики",

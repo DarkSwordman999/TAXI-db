@@ -122,10 +122,10 @@ echo "  ok  все файлы helper/ используются"
 echo "=== help.sh: команды только для чтения ==="
 step "./help.sh без параметров (меню)" bash -c './help.sh; [ $? -eq 1 ]'
 for cmd in task1 task2 task3 \
-           companies drivers clients count latest clients-rides tables columns \
+           companies drivers payment-types count latest payment-rides tables columns \
            join-inner join-left join-right join-full join-cross join-self \
            top-areas top-drivers by-month avg-check by-hour company-stats driver-load \
-           tips-by-client by-weekday revenue-by-client distance-by-company hour-share \
+           tips-by-payment by-weekday revenue-by-payment distance-by-company hour-share \
            check-by-hour top-tips \
            view-user view-tech view-check \
            sub-deviation sub-company-rating sub-above-company-avg sub-company-stats sub-top3 \
@@ -153,6 +153,9 @@ step "./help.sh sub-above-driver-avg $DRIVER" ./help.sh sub-above-driver-avg "$D
 step "./help.sh func-drivers-above 5000" ./help.sh func-drivers-above 5000
 step "./help.sh 01 (номер вместо имени)" ./help.sh 01
 step "./help.sh 203 (номер вместо имени)" ./help.sh 203
+for cmd in clients clients-rides tips-by-client revenue-by-client; do
+    step "./help.sh $cmd (прежнее имя, до версии 2.0)" ./help.sh "$cmd"
+done
 
 echo "=== help.sh: ошибки должны давать ненулевой код ==="
 BAD_SQL="$TMP_DIR/bad.sql"
@@ -181,7 +184,7 @@ param_for() {
 # их проверяют сами команды (add-company, set-tips и т. д.) в конце теста
 command_only() {
     case "$1" in
-        helper/rename-company.sql|helper/client-desc.sql|helper/delete-driver.sql) return 0 ;;
+        helper/rename-company.sql|helper/payment-desc.sql|helper/delete-driver.sql) return 0 ;;
         helper/add-company.sql|helper/add-driver.sql|helper/set-ride-company.sql|helper/set-tips.sql) return 0 ;;
     esac
     return 1
@@ -239,7 +242,8 @@ CLIENT=$(value "SELECT MIN(код) FROM ОПЛАТА")
 step_output "./help.sh add-company" "Тестовый парк" ./help.sh add-company "Тестовый парк"
 step "./help.sh add-driver" ./help.sh add-driver "test-driver-$$"
 step_output "./help.sh rename-company" "Парк O'Brien" ./help.sh rename-company "$COMPANY" "Парк O'Brien"
-step_output "./help.sh client-desc" "Тестовое описание" ./help.sh client-desc "$CLIENT" "Тестовое описание"
+step_output "./help.sh payment-desc" "Тестовое описание" ./help.sh payment-desc "$CLIENT" "Тестовое описание"
+step_output "./help.sh client-desc (прежнее имя)" "Описание 2" ./help.sh client-desc "$CLIENT" "Описание 2"
 step "./help.sh set-ride-company" ./help.sh set-ride-company "$RIDE" "$COMPANY"
 step_output "./help.sh set-tips" "1.50" ./help.sh set-tips "$RIDE" 1.50
 DRIVER_TO_DELETE=$(value "SELECT MAX(водитель) FROM ПОЕЗДКИ")

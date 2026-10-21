@@ -1,4 +1,4 @@
--- ./help.sh revenue-by-client — выручка по типам клиентов
+-- ./help.sh revenue-by-payment (прежнее имя revenue-by-client) — выручка по типам клиентов
 SELECT
     О.описание AS способ_оплаты,
     COUNT(*) AS поездок,
