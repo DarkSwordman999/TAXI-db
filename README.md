@@ -160,7 +160,7 @@ flowchart LR
 | 🔄 **ETL** | сбор из REST API, отсев брака, загрузка без дублей |
 | 🐍 **Python** | `psycopg2`, графики `matplotlib`, настольное приложение на `tkinter` |
 | ⚙️ **Автоматизация** | ежедневный сбор, автотесты, ruff, shellcheck и модульные тесты в GitHub Actions на Ubuntu 26.04 и PostgreSQL 18 |
-| 📚 **Документация** | описание базы в [Markdown](docs/DATABASE.md) и [Word](docs/DATABASE.docx), [справочник команд](docs/COMMANDS.md), [инструкция пользователя](docs/USER_GUIDE.md) |
+| 📚 **Документация** | описание базы в [Markdown](docs/DATABASE.md) и [Word](docs/DATABASE.docx), [справочник команд](docs/COMMANDS.md) ([Word](docs/COMMANDS.docx)), [инструкция пользователя](docs/USER_GUIDE.md) ([Word](docs/USER_GUIDE.docx)); Word-версии оформлены по ГОСТ 7.32 |
 
 ## О данных
 
