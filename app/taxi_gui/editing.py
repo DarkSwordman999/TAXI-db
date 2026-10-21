@@ -82,14 +82,16 @@ class EditingMixin:
     def edit_record_window(self):
         actions = {
             "company_name": self.update_company_name,
-            "client_description": self.update_client_description,
+            "payment_description": self.update_payment_description,
             "ride_tips": self.update_ride_tips,
             "ride_company": self.update_ride_company,
         }
         answer = simpledialog.askstring("Редактирование", "Что изменить? " + " / ".join(actions))
         if not answer:
             return
-        action = actions.get(answer.lower().strip())
+        answer = answer.lower().strip()
+        # client_description — прежнее имя (до версии 2.0), тоже работает
+        action = actions.get("payment_description" if answer == "client_description" else answer)
         if action:
             action()
         else:
@@ -101,7 +103,7 @@ class EditingMixin:
             self._change(sql.RENAME_COMPANY, [data["name"], data["id"]],
                          "Переименование таксопарка", "Таксопарк переименован", True)
 
-    def update_client_description(self):
+    def update_payment_description(self):
         data = self.ask_fields("Изменить описание способа оплаты", [("id", "Код способа оплаты", "1"), ("desc", "Новое описание", "")])
         if data:
             self._change(sql.UPDATE_CLIENT_DESC, [data["desc"], data["id"]],
