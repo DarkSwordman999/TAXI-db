@@ -149,7 +149,7 @@
 | `./help.sh файл.sql [параметры]` | выполнить SQL-файл; параметры доступны в нем как `:arg1`, `:arg2`… (строкой — `:'arg1'`) |
 | `./help.sh h1 файл.sql [параметр]` | то же через `run_sql.sh` |
 
-Пример: `./help.sh helper/24_search_area.sql Park` — районы, в названии которых есть «Park».
+Пример: `./help.sh helper/find-area.sql Park` — районы, в названии которых есть «Park».
 
 ## Python-отчеты
 

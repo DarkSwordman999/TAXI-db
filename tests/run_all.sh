@@ -168,8 +168,8 @@ echo "=== Все SQL-файлы только для чтения ==="
 # параметр arg1 для файлов, которые его ждут
 param_for() {
     case "$1" in
-        helper/15_demo_with_param.sql) echo "Flash" ;;
-        helper/24_search_area.sql) echo "Park" ;;
+        helper/find-company.sql) echo "Flash" ;;
+        helper/find-area.sql) echo "Park" ;;
         queries/subqueries/06_rides_above_avg_param.sql) echo "$DRIVER" ;;
         queries/tasks/04_revenue_by_driver_for_day.sql) echo "3" ;;
     esac
@@ -177,7 +177,7 @@ param_for() {
 # файлы, меняющие данные, идут отдельно и в конце
 is_modifying() {
     case "$1" in
-        helper/22_*|helper/23_*|helper/61_*|helper/62_*|helper/64_*|helper/65_*) return 0 ;;
+        helper/rename-demo.sql|helper/delete-demo.sql|helper/update-*.sql|helper/delete-do.sql|helper/delete-after.sql) return 0 ;;
         queries/delete/*|queries/insert/*|queries/update/*) return 0 ;;
     esac
     return 1
@@ -186,7 +186,7 @@ for f in helper/*.sql queries/*/*.sql; do
     is_modifying "$f" && continue
     step "$f" ./help.sh "$f" "$(param_for "$f")"
 done
-step "./help.sh h1 (run_sql.sh) с параметром" ./help.sh h1 helper/15_demo_with_param.sql Flash
+step "./help.sh h1 (run_sql.sh) с параметром" ./help.sh h1 helper/find-company.sql Flash
 
 echo "=== python_reports.sh ==="
 step "./python_reports.sh без параметров (справка)" ./python_reports.sh
