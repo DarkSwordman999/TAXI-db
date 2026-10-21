@@ -2,7 +2,7 @@
 
 # 🚕 TAXI DB
 
-🇷🇺 [Русский](README.md) · 🇬🇧 **English**
+[Русский](README.md) · **English**
 
 **A year of real Chicago taxi trips in PostgreSQL:<br>from the city's open API to SQL analytics, charts and a desktop GUI.**
 
