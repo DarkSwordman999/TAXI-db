@@ -4,6 +4,8 @@
 
 Справочник всех команд — [COMMANDS.md](COMMANDS.md), устройство базы — [DATABASE.md](DATABASE.md).
 
+Версия Word: [USER_GUIDE.docx](USER_GUIDE.docx). Обе версии собираются из этого файла командой `python docs/make_docs.py`.
+
 ## 1. Что понадобится
 
 <!-- Таблица: Необходимые программы -->

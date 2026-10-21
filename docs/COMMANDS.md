@@ -2,6 +2,8 @@
 
 Полный справочник команд `./help.sh` и `./python_reports.sh`. Краткий обзор — в [README](../README.md), устройство базы — в [DATABASE.md](DATABASE.md), установка и частые проблемы — в [USER_GUIDE.md](USER_GUIDE.md).
 
+Версия Word: [COMMANDS.docx](COMMANDS.docx). Обе версии собираются из этого файла командой `python docs/make_docs.py`.
+
 В Windows вместо `./help.sh` пишите `.\help.cmd`, вместо `./python_reports.sh` — `.\python_reports.cmd`, параметры те же. `./help.sh` без параметров печатает меню.
 
 У каждой SQL-команды есть имя и прежний номер, оба работают одинаково: `./help.sh companies` = `./help.sh 01`. Имена команд до версии 2.0 (`clients`, `clients-rides`, `tips-by-client`, `revenue-by-client`, `client-desc`) тоже работают как синонимы.
