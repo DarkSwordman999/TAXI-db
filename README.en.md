@@ -14,7 +14,7 @@
 ![Python 3](https://img.shields.io/badge/Python-3-3776AB?logo=python&logoColor=white)
 [![Noncommercial license](https://img.shields.io/badge/license-noncommercial-orange)](#license)
 
-| **730,000** | **365** | **3,059** | **77** | **172** |
+| **730,000** | **365** | **3,059** | **77** | **204** |
 |:---:|:---:|:---:|:---:|:---:|
 | trips | days in a row | taxi cabs | community areas | automated checks |
 
@@ -116,7 +116,7 @@ flowchart LR
     GH["⚙️ GitHub Actions<br/>daily"]
     CSV["📦 data/chicago/rides<br/>one file per day"]
     DB[("🐘 PostgreSQL<br/>6 tables")]
-    SQL["📜 SQL analytics<br/>74 commands, 44 SQL files"]
+    SQL["📜 SQL analytics<br/>74 commands, 78 SQL files"]
     PY["📊 Python reports<br/>and charts"]
     GUI["🖥️ Desktop GUI"]
 
@@ -126,7 +126,7 @@ flowchart LR
     DB --> GUI
 ```
 
-The collector fetches missing days on its own and commits them to the repository. The loader reads only the days that are not in the database yet, so an update takes seconds. Every change is checked in CI: the tests start a clean PostgreSQL, build the database from scratch and run all 44 SQL files, 74 commands and the reports; ruff and shellcheck check the code, and unit tests cover the collector and the loader.
+The collector fetches missing days on its own and commits them to the repository. The loader reads only the days that are not in the database yet, so an update takes seconds. Every change is checked in CI: the tests start a clean PostgreSQL, build the database from scratch and run all 78 SQL files, 74 commands and the reports; ruff and shellcheck check the code, and unit tests cover the collector and the loader.
 
 ## What the project demonstrates
 
