@@ -6,6 +6,9 @@ DATABASE="${PGDATABASE:-taxi}"
 # Windows: psql выводит свои русские надписи («(1 строка)») в кодировке ANSI,
 # в консоли UTF-8 они нечитаемы — там они на английском, данные остаются русскими
 case "$OSTYPE" in msys*|cygwin*) export LC_MESSAGES=C ;; esac
+# SQL-файлы проекта в UTF-8. Без этой строки psql в Windows иногда берет кодировку
+# консоли (WIN1251), например при выводе в /dev/null, и ломает кириллицу в запросах
+export PGCLIENTENCODING="${PGCLIENTENCODING:-UTF8}"
 PYTHON=python3
 # в Windows python3 бывает заглушкой Microsoft Store, которая не запускается
 "$PYTHON" -c "" 2>/dev/null || PYTHON=python
