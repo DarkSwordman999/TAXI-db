@@ -1,6 +1,6 @@
 # Команды проекта
 
-Полный справочник команд `./help.sh` и `./python_reports.sh`. Краткий обзор — в [README](../README.md), устройство базы — в [DATABASE.md](DATABASE.md).
+Полный справочник команд `./help.sh` и `./python_reports.sh`. Краткий обзор — в [README](../README.md), устройство базы — в [DATABASE.md](DATABASE.md), установка и частые проблемы — в [USER_GUIDE.md](USER_GUIDE.md).
 
 В Windows вместо `./help.sh` пишите `.\help.cmd`, вместо `./python_reports.sh` — `.\python_reports.cmd`, параметры те же. `./help.sh` без параметров печатает меню.
 

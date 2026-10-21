@@ -160,7 +160,7 @@ flowchart LR
 | 🔄 **ETL** | сбор из REST API, отсев брака, загрузка без дублей |
 | 🐍 **Python** | `psycopg2`, графики `matplotlib`, настольное приложение на `tkinter` |
 | ⚙️ **Автоматизация** | ежедневный сбор, автотесты, ruff, shellcheck и модульные тесты в GitHub Actions на Ubuntu 26.04 и PostgreSQL 18 |
-| 📚 **Документация** | описание базы в [Markdown](docs/DATABASE.md) и [Word](docs/DATABASE.docx), [справочник команд](docs/COMMANDS.md) |
+| 📚 **Документация** | описание базы в [Markdown](docs/DATABASE.md) и [Word](docs/DATABASE.docx), [справочник команд](docs/COMMANDS.md), [инструкция пользователя](docs/USER_GUIDE.md) |
 
 ## О данных
 
@@ -205,7 +205,7 @@ python3 -m pip install -r requirements.txt
 
 Подключение к PostgreSQL берется из стандартных переменных `PGDATABASE`, `PGHOST`, `PGPORT`, `PGUSER`, `PGPASSWORD` или из файла `.env` (образец — `.env.example`). Без них используется локальный сервер и база `taxi`.
 
-Новые месяцы данных приходят сами: `git pull` и `./help.sh load`. Все команды — в [docs/COMMANDS.md](docs/COMMANDS.md).
+Новые месяцы данных приходят сами: `git pull` и `./help.sh load`. Все команды — в [docs/COMMANDS.md](docs/COMMANDS.md), подробная инструкция с решением частых проблем — в [docs/USER_GUIDE.md](docs/USER_GUIDE.md).
 
 </details>
 
