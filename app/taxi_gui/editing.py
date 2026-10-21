@@ -10,10 +10,13 @@ from . import sql
 KINDS = {
     "company": "company", "таксопарк": "company",
     "driver": "driver", "водитель": "driver",
-    "client": "client", "клиент": "client",
+    # способ оплаты; client и клиент — прежние имена (до версии 2.0), тоже работают
+    "payment": "client", "оплата": "client", "client": "client", "клиент": "client",
     "ride": "ride", "поездка": "ride",
 }
 PRIMARY_KEYS = {"ПОЕЗДКИ": "код_поездки", "СЕЗОН": "месяц"}
+# как назвать запись в вопросе «Удалить … с кодом N?»
+KIND_NAMES = {"company": "таксопарк", "driver": "водителя", "client": "способ оплаты", "ride": "поездку"}
 
 
 class EditingMixin:
@@ -24,7 +27,7 @@ class EditingMixin:
             return None
         kind = KINDS.get(answer.lower().strip())
         if not kind:
-            messagebox.showerror("Ошибка", "Введите: company, driver, client или ride")
+            messagebox.showerror("Ошибка", "Введите: company, driver, payment или ride")
         return kind
 
     def _change(self, query, params, title, status, refresh_names=False):
@@ -34,7 +37,7 @@ class EditingMixin:
 
     # ------------------------- добавление -------------------------
     def add_record_window(self):
-        kind = self._ask_kind("Добавление", "Что добавить? company / driver / client / ride")
+        kind = self._ask_kind("Добавление", "Что добавить? company / driver / payment / ride")
         actions = {"company": self.add_company, "driver": self.add_driver,
                    "client": self.add_client, "ride": self.add_ride}
         if kind:
@@ -51,18 +54,18 @@ class EditingMixin:
             self._change(sql.ADD_DRIVER, [data["taxi_id"]], "Добавление водителя", "Водитель добавлен")
 
     def add_client(self):
-        data = self.ask_fields("Добавить тип клиента", [
+        data = self.ask_fields("Добавить способ оплаты", [
             ("type", "Тип (как в данных города)", "Voucher"),
             ("desc", "Описание", "Ваучер"),
         ])
         if data:
             self._change(sql.ADD_CLIENT, [data["type"], data["desc"]],
-                         "Добавление типа клиента", "Тип клиента добавлен", True)
+                         "Добавление способа оплаты", "Способ оплаты добавлен", True)
 
     def add_ride(self):
         fields = [
             ("driver", "Код водителя", "1"),
-            ("client", "Код типа клиента", "1"),
+            ("client", "Код способа оплаты", "1"),
             ("company", "Код таксопарка", "1"),
             ("from", "Код района посадки (1-77, можно пусто)", "32"),
             ("to", "Код района высадки (1-77, можно пусто)", "8"),
@@ -99,10 +102,10 @@ class EditingMixin:
                          "Переименование таксопарка", "Таксопарк переименован", True)
 
     def update_client_description(self):
-        data = self.ask_fields("Изменить описание типа клиента", [("id", "Код типа клиента", "1"), ("desc", "Новое описание", "")])
+        data = self.ask_fields("Изменить описание способа оплаты", [("id", "Код способа оплаты", "1"), ("desc", "Новое описание", "")])
         if data:
             self._change(sql.UPDATE_CLIENT_DESC, [data["desc"], data["id"]],
-                         "Изменение описания типа клиента", "Описание изменено", True)
+                         "Изменение описания способа оплаты", "Описание изменено", True)
 
     def update_ride_tips(self):
         data = self.ask_fields("Изменить чаевые поездки", [("id", "Код поездки", "1"), ("tips", "Чаевые $", "2.00")])
@@ -149,13 +152,13 @@ class EditingMixin:
 
     # ------------------------- удаление -------------------------
     def delete_record_window(self):
-        kind = self._ask_kind("Удаление", "Что удалить? company / driver / client / ride")
+        kind = self._ask_kind("Удаление", "Что удалить? company / driver / payment / ride")
         if not kind:
             return
         code = simpledialog.askinteger("Код", "Введите код записи")
         if not code:
             return
-        if not messagebox.askyesno("Подтверждение", f"Удалить {kind} с кодом {code} вместе с его поездками?"):
+        if not messagebox.askyesno("Подтверждение", f"Удалить {KIND_NAMES[kind]} с кодом {code} вместе с поездками?"):
             return
         if kind == "ride":
             self._change(sql.DELETE_RIDE, [code], "Удаление поездки", "Удалено")

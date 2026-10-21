@@ -235,7 +235,7 @@ for f in helper/*.sql queries/*/*.sql; do
 done
 RIDE=$(value "SELECT MIN(код_поездки) FROM ПОЕЗДКИ")
 COMPANY=$(value "SELECT MIN(код) FROM ТАКСОПАРКИ")
-CLIENT=$(value "SELECT MIN(код) FROM КЛИЕНТЫ")
+CLIENT=$(value "SELECT MIN(код) FROM ОПЛАТА")
 step_output "./help.sh add-company" "Тестовый парк" ./help.sh add-company "Тестовый парк"
 step "./help.sh add-driver" ./help.sh add-driver "test-driver-$$"
 step_output "./help.sh rename-company" "Парк O'Brien" ./help.sh rename-company "$COMPANY" "Парк O'Brien"

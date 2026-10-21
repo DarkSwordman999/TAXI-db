@@ -81,12 +81,12 @@ DRIVERS_SQL = """
     )
     SELECT
         'Водитель №' || d.код AS водитель,
-        к.описание AS тип_клиента,
+        к.описание AS способ_оплаты,
         COALESCE(SUM(p.стоимость), 0) AS выручка,
         COUNT(p.код_поездки) AS количество_поездок
     FROM водители d
-    CROSS JOIN КЛИЕНТЫ к
-    LEFT JOIN ПОЕЗДКИ p ON p.водитель = d.код AND p.клиент = к.код
+    CROSS JOIN ОПЛАТА к
+    LEFT JOIN ПОЕЗДКИ p ON p.водитель = d.код AND p.оплата = к.код
     WHERE %(client)s::text IS NULL
        OR к.описание ILIKE %(client)s OR к.тип ILIKE %(client)s
     GROUP BY d.код, к.описание
@@ -120,14 +120,14 @@ def task1_report(driver_param=None, class_param=None, star_bottom=False):
     print()
     print('=' * 70)
     if star_bottom:
-        print('  ОТЧЁТ: ВЫРУЧКА ПО ВОДИТЕЛЯМ И ТИПАМ КЛИЕНТОВ *')
+        print('  ОТЧЁТ: ВЫРУЧКА ПО ВОДИТЕЛЯМ И СПОСОБАМ ОПЛАТЫ *')
     else:
-        print('  ОТЧЁТ: ВЫРУЧКА ПО ВОДИТЕЛЯМ И ТИПАМ КЛИЕНТОВ')
+        print('  ОТЧЁТ: ВЫРУЧКА ПО ВОДИТЕЛЯМ И СПОСОБАМ ОПЛАТЫ')
     print('=' * 70)
     if driver_param:
         print(f'  Параметр: водитель = {driver_param}')
     if class_param:
-        print(f'  Параметр: тип клиента = {class_param}')
+        print(f'  Параметр: способ оплаты = {class_param}')
     if not driver_param:
         print('  15 водителей с наибольшей выручкой, суммы в $')
     print('-' * 70)
@@ -139,7 +139,7 @@ def task1_report(driver_param=None, class_param=None, star_bottom=False):
         return
     
     col_widths = [4, 16, 22, 14, 8]
-    headers = ['№', 'Водитель (x)', 'Тип клиента (y)', 'Выручка (F)', 'Поездок']
+    headers = ['№', 'Водитель (x)', 'Способ оплаты (y)', 'Выручка (F)', 'Поездок']
     alignments = ['r', 'l', 'l', 'r', 'r']
     
     print_header(col_widths, headers, alignments)
@@ -216,7 +216,7 @@ def task2_pivot_table(class_param=None):
     print('  СВОДНАЯ ТАБЛИЦА: ВЫРУЧКА (T) И КОЛИЧЕСТВО ПОЕЗДОК (nT)')
     print('=' * 70)
     if class_param:
-        print(f'  Параметр: тип клиента = {class_param}')
+        print(f'  Параметр: способ оплаты = {class_param}')
     print('  15 водителей с наибольшей выручкой, суммы в $')
     print('-' * 70)
     
@@ -337,18 +337,18 @@ def task4_chart(driver_param=None, force=False):
     code = driver_code(driver_param)
     cur.execute("""
         SELECT к.описание, COALESCE(SUM(p.стоимость), 0) AS выручка
-        FROM КЛИЕНТЫ к
-        LEFT JOIN ПОЕЗДКИ p ON p.клиент = к.код
+        FROM ОПЛАТА к
+        LEFT JOIN ПОЕЗДКИ p ON p.оплата = к.код
          AND (%(driver)s::int IS NULL OR p.водитель = %(driver)s::int)
         GROUP BY к.описание
         ORDER BY выручка DESC
     """, {"driver": code})
     if code:
         filename = os.path.join(DOCS_DIR, f'task4_chart_{code}.png')
-        title = f'Распределение выручки по типам клиентов (водитель №{code})'
+        title = f'Распределение выручки по способам оплаты (водитель №{code})'
     else:
         filename = os.path.join(DOCS_DIR, 'task4_chart.png')
-        title = 'Распределение выручки по типам клиентов (все водители)'
+        title = 'Распределение выручки по способам оплаты (все водители)'
     
     rows = cur.fetchall()
     cur.close()
@@ -546,7 +546,7 @@ def payments_chart(driver_param=None, force=False):
     cur = conn.cursor()
     cur.execute("""
         SELECT к.описание, SUM(p.стоимость)::float AS выручка
-        FROM ПОЕЗДКИ p JOIN КЛИЕНТЫ к ON к.код = p.клиент
+        FROM ПОЕЗДКИ p JOIN ОПЛАТА к ON к.код = p.оплата
         WHERE %(driver)s::int IS NULL OR p.водитель = %(driver)s::int
         GROUP BY к.описание
         HAVING SUM(p.стоимость) > 0
@@ -600,9 +600,9 @@ def show_help():
     print("=" * 60)
     print()
     print("Использование:")
-    print("  python taxi_report.py task1 [код_водителя] [тип_клиента]")
-    print("  python taxi_report.py task1s [код_водителя] [тип_клиента]   - со звездочкой *")
-    print("  python taxi_report.py task2 [тип_клиента]")
+    print("  python taxi_report.py task1 [код_водителя] [способ_оплаты]")
+    print("  python taxi_report.py task1s [код_водителя] [способ_оплаты]   - со звездочкой *")
+    print("  python taxi_report.py task2 [способ_оплаты]")
     print("  python taxi_report.py task3 [--force]")
     print("  python taxi_report.py task4 [код_водителя] [--force]")
     print("  python taxi_report.py months [--force]                    - выручка и цена километра по месяцам")

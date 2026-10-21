@@ -1,6 +1,6 @@
 """SQL-запросы GUI. Представления и функции GUI не создаёт: они берутся из queries/."""
 
-TABLES = ["ТАКСОПАРКИ", "ВОДИТЕЛИ", "КЛИЕНТЫ", "РАЙОНЫ", "ПОЕЗДКИ", "СЕЗОН"]
+TABLES = ["ТАКСОПАРКИ", "ВОДИТЕЛИ", "ОПЛАТА", "РАЙОНЫ", "ПОЕЗДКИ", "СЕЗОН"]
 
 # Проектные файлы, которые GUI выполняет вместо собственных CREATE VIEW / FUNCTION
 VIEW_FILES = ["queries/views/01_create_rides_view.sql", "queries/views/02_create_rides_tech.sql"]
@@ -21,7 +21,7 @@ CHECK_VIEWS = """
 
 AUTOCOMPLETE = {
     "таксопарк": "SELECT название FROM ТАКСОПАРКИ ORDER BY название",
-    "тип клиента": "SELECT описание FROM КЛИЕНТЫ ORDER BY описание",
+    "способ оплаты": "SELECT описание FROM ОПЛАТА ORDER BY описание",
     "район": "SELECT название FROM РАЙОНЫ ORDER BY название",
 }
 
@@ -29,7 +29,7 @@ AUTOCOMPLETE = {
 DB_STATS = """
     SELECT 'ТАКСОПАРКИ' AS таблица, COUNT(*) AS записей FROM ТАКСОПАРКИ
     UNION ALL SELECT 'ВОДИТЕЛИ', COUNT(*) FROM ВОДИТЕЛИ
-    UNION ALL SELECT 'КЛИЕНТЫ', COUNT(*) FROM КЛИЕНТЫ
+    UNION ALL SELECT 'ОПЛАТА', COUNT(*) FROM ОПЛАТА
     UNION ALL SELECT 'РАЙОНЫ', COUNT(*) FROM РАЙОНЫ
     UNION ALL SELECT 'ПОЕЗДКИ', COUNT(*) FROM ПОЕЗДКИ
     UNION ALL SELECT 'СЕЗОН', COUNT(*) FROM СЕЗОН
@@ -40,7 +40,7 @@ STRUCTURE = """
     SELECT table_name AS таблица, column_name AS столбец, data_type AS тип
     FROM information_schema.columns
     WHERE table_schema = 'public'
-      AND table_name IN ('ТАКСОПАРКИ','ВОДИТЕЛИ','КЛИЕНТЫ','РАЙОНЫ','ПОЕЗДКИ','СЕЗОН')
+      AND table_name IN ('ТАКСОПАРКИ','ВОДИТЕЛИ','ОПЛАТА','РАЙОНЫ','ПОЕЗДКИ','СЕЗОН')
     ORDER BY table_name, ordinal_position
 """
 
@@ -56,7 +56,7 @@ RIDES_FILTERED = """
            p.расстояние_км, p.время_мин, p.стоимость, p.чаевые
     FROM ПОЕЗДКИ p
     JOIN ВОДИТЕЛИ v ON v.код = p.водитель
-    JOIN КЛИЕНТЫ k ON k.код = p.клиент
+    JOIN ОПЛАТА k ON k.код = p.оплата
     JOIN ТАКСОПАРКИ t ON t.код = p.таксопарк
     LEFT JOIN РАЙОНЫ ro ON ro.код = p.откуда
     LEFT JOIN РАЙОНЫ rk ON rk.код = p.куда
@@ -86,10 +86,10 @@ TRIGRAM_SEARCH = """
 
         UNION ALL
 
-        SELECT 'тип клиента', k.код::text, k.описание || ' (' || k.тип || ')',
+        SELECT 'способ оплаты', k.код::text, k.описание || ' (' || k.тип || ')',
                ROUND(GREATEST(similarity(LOWER(k.описание), q.term),
                               similarity(LOWER(k.тип), q.term))::numeric, 3)
-        FROM КЛИЕНТЫ k CROSS JOIN q
+        FROM ОПЛАТА k CROSS JOIN q
         WHERE GREATEST(similarity(LOWER(k.описание), q.term),
                        similarity(LOWER(k.тип), q.term)) >= q.threshold
            OR k.описание ILIKE q.like_term
@@ -115,7 +115,7 @@ DASHBOARD_VALUES = [
     ("Период данных", "SELECT MIN(дата)::date || ' — ' || MAX(дата)::date FROM ПОЕЗДКИ"),
     ("Водителей (такси)", "SELECT COUNT(*) FROM ВОДИТЕЛИ"),
     ("Таксопарков", "SELECT COUNT(*) FROM ТАКСОПАРКИ"),
-    ("Типов клиентов", "SELECT COUNT(*) FROM КЛИЕНТЫ"),
+    ("Способов оплаты", "SELECT COUNT(*) FROM ОПЛАТА"),
 ]
 
 DASHBOARD_TABLES = [
@@ -163,8 +163,8 @@ TOP_CLIENTS = """
            ROUND(COALESCE(SUM(p.стоимость),0), 2) AS сумма,
            ROUND(COALESCE(AVG(p.стоимость),0), 2) AS средний_чек,
            ROUND(COALESCE(AVG(p.чаевые),0), 2) AS средние_чаевые
-    FROM КЛИЕНТЫ k
-    LEFT JOIN ПОЕЗДКИ p ON p.клиент = k.код
+    FROM ОПЛАТА k
+    LEFT JOIN ПОЕЗДКИ p ON p.оплата = k.код
     GROUP BY k.код
     ORDER BY сумма DESC, поездок DESC
     LIMIT %s
@@ -314,7 +314,7 @@ CHART_MONTHLY = """
 CHART_PAYMENT = """
     SELECT k.описание, COUNT(*) AS поездок
     FROM ПОЕЗДКИ p
-    JOIN КЛИЕНТЫ k ON k.код = p.клиент
+    JOIN ОПЛАТА k ON k.код = p.оплата
     GROUP BY k.описание
     ORDER BY поездок DESC
 """
@@ -340,13 +340,13 @@ CHART_WEEKDAY = """
 """
 
 # ------------------------- функции из queries/functions -------------------------
-# get_driver_revenue, get_company_avg_revenue, get_driver_revenue_by_client создаёт
+# get_driver_revenue, get_company_avg_revenue, get_driver_revenue_by_payment создаёт
 # ./help.sh rebuild (или кнопка «Создать функции»). Оценка стоимости — обычный запрос:
 # средняя цена километра и минуты в таксопарке по его реальным поездкам.
 FUNCTIONS_DEMO = """
     SELECT get_driver_revenue(%(driver)s::int) AS выручка_водителя,
            ROUND(get_company_avg_revenue(%(company)s), 2) AS средний_чек_таксопарка,
-           get_driver_revenue_by_client(%(driver)s::int, %(client)s) AS выручка_водителя_по_оплате,
+           get_driver_revenue_by_payment(%(driver)s::int, %(client)s) AS выручка_водителя_по_оплате,
            (SELECT ROUND(AVG(p.стоимость / p.расстояние_км) * %(km)s::numeric * 0.5
                        + AVG(p.стоимость / p.время_мин) * %(minutes)s::int * 0.5, 2)
             FROM ПОЕЗДКИ p
@@ -357,10 +357,10 @@ FUNCTIONS_DEMO = """
 # ------------------------- правка записей -------------------------
 ADD_COMPANY = "INSERT INTO ТАКСОПАРКИ (название) VALUES (%s)"
 ADD_DRIVER = "INSERT INTO ВОДИТЕЛИ (taxi_id) VALUES (%s)"
-ADD_CLIENT = "INSERT INTO КЛИЕНТЫ (тип, описание) VALUES (%s, %s)"
+ADD_CLIENT = "INSERT INTO ОПЛАТА (тип, описание) VALUES (%s, %s)"
 # введённые вручную поездки получают trip_id с префиксом manual
 ADD_RIDE = """
-    INSERT INTO ПОЕЗДКИ (trip_id, дата, водитель, клиент, таксопарк, откуда, куда,
+    INSERT INTO ПОЕЗДКИ (trip_id, дата, водитель, оплата, таксопарк, откуда, куда,
                          расстояние_км, время_мин, стоимость, чаевые)
     VALUES ('manual' || LPAD((SELECT COUNT(*) + 1 FROM ПОЕЗДКИ)::text, 10, '0'), NOW(),
             %s::int, %s::int, %s::int, NULLIF(%s,'')::int, NULLIF(%s,'')::int,
@@ -368,14 +368,14 @@ ADD_RIDE = """
 """
 
 RENAME_COMPANY = "UPDATE ТАКСОПАРКИ SET название=%s WHERE код=%s::int"
-UPDATE_CLIENT_DESC = "UPDATE КЛИЕНТЫ SET описание=%s WHERE код=%s::int"
+UPDATE_CLIENT_DESC = "UPDATE ОПЛАТА SET описание=%s WHERE код=%s::int"
 UPDATE_RIDE_TIPS = "UPDATE ПОЕЗДКИ SET чаевые=%s::numeric WHERE код_поездки=%s::int"
 UPDATE_RIDE_COMPANY = "UPDATE ПОЕЗДКИ SET таксопарк=%s::int WHERE код_поездки=%s::int"
 
 DELETE_RIDE = "DELETE FROM ПОЕЗДКИ WHERE код_поездки=%s"
 # справочник удаляется вместе с его поездками
 DELETE_WITH_RIDES = {
-    "client": ("DELETE FROM ПОЕЗДКИ WHERE клиент=%s; DELETE FROM КЛИЕНТЫ WHERE код=%s", "Удаление типа клиента"),
+    "client": ("DELETE FROM ПОЕЗДКИ WHERE оплата=%s; DELETE FROM ОПЛАТА WHERE код=%s", "Удаление способа оплаты"),
     "driver": ("DELETE FROM ПОЕЗДКИ WHERE водитель=%s; DELETE FROM ВОДИТЕЛИ WHERE код=%s", "Удаление водителя"),
     "company": ("DELETE FROM ПОЕЗДКИ WHERE таксопарк=%s; DELETE FROM ТАКСОПАРКИ WHERE код=%s", "Удаление таксопарка"),
 }

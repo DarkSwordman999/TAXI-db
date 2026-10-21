@@ -1,7 +1,7 @@
 -- ./help.sh join-full — FULL JOIN
 SELECT
     Т.название AS таксопарк,
-    К.описание AS тип_клиента
+    О.описание AS способ_оплаты
 FROM ТАКСОПАРКИ Т
-FULL JOIN КЛИЕНТЫ К ON Т.код = К.код
+FULL JOIN ОПЛАТА О ON Т.код = О.код
 LIMIT 10;

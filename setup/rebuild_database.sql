@@ -30,13 +30,15 @@ DROP FUNCTION IF EXISTS get_company_avg_revenue(VARCHAR);
 DROP FUNCTION IF EXISTS drivers_above_revenue(NUMERIC);
 DROP FUNCTION IF EXISTS get_driver_revenue_by_class(INT, VARCHAR);
 DROP FUNCTION IF EXISTS get_driver_revenue_by_client(INT, VARCHAR);
+DROP FUNCTION IF EXISTS get_driver_revenue_by_payment(INT, VARCHAR);
 DROP FUNCTION IF EXISTS get_driver_revenue(INT);
 DROP FUNCTION IF EXISTS random_date(DATE, DATE);
 
--- включая таблицы прежней схемы (АВТОМОБИЛИ, ТАРИФЫ)
+-- включая таблицы прежней схемы (АВТОМОБИЛИ, ТАРИФЫ, КЛИЕНТЫ — до версии 2.0)
 DROP TABLE IF EXISTS ПОЕЗДКИ_АРХИВ;
 DROP TABLE IF EXISTS ПОЕЗДКИ;
 DROP TABLE IF EXISTS СЕЗОН;
+DROP TABLE IF EXISTS ОПЛАТА;
 DROP TABLE IF EXISTS КЛИЕНТЫ;
 DROP TABLE IF EXISTS ВОДИТЕЛИ;
 DROP TABLE IF EXISTS АВТОМОБИЛИ;
@@ -47,7 +49,7 @@ DROP TABLE IF EXISTS РАЙОНЫ;
 \echo '=== TAXI: создание таблиц ==='
 \ir ../schema/tables/01_create_companies.sql
 \ir ../schema/tables/02_create_drivers.sql
-\ir ../schema/tables/03_create_clients.sql
+\ir ../schema/tables/03_create_payments.sql
 \ir ../schema/tables/04_create_areas.sql
 \ir ../schema/tables/05_create_rides.sql
 \ir ../schema/tables/06_create_season.sql

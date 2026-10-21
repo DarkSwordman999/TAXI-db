@@ -1,9 +1,9 @@
 -- ./help.sh join-right — RIGHT JOIN
 SELECT
-    К.описание AS тип_клиента,
+    О.описание AS способ_оплаты,
     COUNT(П.код_поездки) AS поездок
 FROM ПОЕЗДКИ П
-RIGHT JOIN КЛИЕНТЫ К ON П.клиент = К.код
-GROUP BY К.код, К.описание
+RIGHT JOIN ОПЛАТА О ON П.оплата = О.код
+GROUP BY О.код, О.описание
 ORDER BY поездок DESC
 LIMIT 10;

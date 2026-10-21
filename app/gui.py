@@ -95,7 +95,7 @@ class TaxiApp(BrowseMixin, AnalyticsMixin, EditingMixin, ScriptsMixin, BaseMixin
         ])
         self.add_button_group(left, "Рейтинги и отчёты", [
             ("Топ водителей", self.top_drivers),
-            ("Типы клиентов", self.top_clients),
+            ("Способы оплаты", self.top_clients),
             ("Доход по таксопаркам", self.revenue_by_company),
             ("Статистика таксопарков", self.company_stats),
             ("По сезонам", self.season_stats),
@@ -192,7 +192,7 @@ class TaxiApp(BrowseMixin, AnalyticsMixin, EditingMixin, ScriptsMixin, BaseMixin
             "О программе",
             "TAXI: поездки такси Чикаго\n"
             "Реальные открытые данные города (Chicago Data Portal, Taxi Trips).\n"
-            "Таблицы: таксопарки, водители, типы клиентов, районы, поездки, сезон.\n\n"
+            "Таблицы: таксопарки, водители, способы оплаты, районы, поездки, сезон.\n\n"
             "Реализовано: просмотр, фильтры, поиск, рейтинги, аналитика, графики, CRUD,\n"
             "UPDATE/DELETE до-после, экспорт, бэкап и запуск SQL-файлов."
         )

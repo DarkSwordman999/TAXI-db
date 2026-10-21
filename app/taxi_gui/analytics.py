@@ -16,7 +16,7 @@ class AnalyticsMixin:
         self._report(sql.TOP_DRIVERS, "Топ водителей", with_limit=True)
 
     def top_clients(self):
-        self._report(sql.TOP_CLIENTS, "Типы клиентов (способы оплаты)", "Типы клиентов", with_limit=True)
+        self._report(sql.TOP_CLIENTS, "Способы оплаты", "Способы оплаты", with_limit=True)
 
     def revenue_by_company(self):
         self._report(sql.REVENUE_BY_COMPANY, "Доход по таксопаркам")

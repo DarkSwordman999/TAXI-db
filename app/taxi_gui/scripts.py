@@ -170,7 +170,7 @@ class ScriptsMixin:
         self.display(f"Ошибка SQL: {error}\n" if error else
                      "Функции из queries/functions/ созданы: get_driver_revenue, drivers_above_revenue,\n"
                      "get_company_avg_revenue, revenue_by_company_and_season,\n"
-                     "get_driver_revenue_by_client, display_pivot_table.\n")
+                     "get_driver_revenue_by_payment, display_pivot_table.\n")
         self.set_status("Функции созданы" if not error else "Ошибка создания функций")
 
     def functions_demo(self):

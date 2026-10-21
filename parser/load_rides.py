@@ -6,7 +6,7 @@
 сборщик может докачать пропущенный день в середине периода.
 Каждый файл — полный день, и загрузка идет одной транзакцией, поэтому день в базе
 либо есть целиком, либо отсутствует. Повтор по trip_id все равно пропускается.
-Таксопарки, водители (taxi_id) и типы клиентов (способы оплаты) пополняются из тех же файлов.
+Таксопарки, водители (taxi_id) и способы оплаты пополняются из тех же файлов.
 
 Запуск из корня проекта: python3 parser/load_rides.py [--all]
   --all  перечитать все файлы (например, после ручного удаления части поездок)
@@ -27,7 +27,7 @@ RIDES_DIR = ROOT / "data" / "chicago" / "rides"
 MILE_KM = 1.609344
 
 # Русские названия способов оплаты; неизвестный новый тип получит описание = тип
-CLIENT_TYPES = {
+PAYMENT_TYPES = {
     "Credit Card": "Банковская карта",
     "Cash": "Наличные",
     "Mobile": "Мобильное приложение",
@@ -60,15 +60,15 @@ INSERT INTO ВОДИТЕЛИ (taxi_id)
 SELECT DISTINCT taxi_id FROM staging
 ON CONFLICT (taxi_id) DO NOTHING;
 
-INSERT INTO КЛИЕНТЫ (тип, описание)
+INSERT INTO ОПЛАТА (тип, описание)
 SELECT DISTINCT s.тип, COALESCE(m.описание, s.тип)
 FROM (SELECT COALESCE(payment_type, 'Unknown') AS тип FROM staging) s
-LEFT JOIN client_types m ON m.тип = s.тип
+LEFT JOIN payment_types m ON m.тип = s.тип
 ON CONFLICT (тип) DO NOTHING;
 
-INSERT INTO ПОЕЗДКИ (trip_id, дата, окончание, водитель, клиент, таксопарк, откуда, куда,
+INSERT INTO ПОЕЗДКИ (trip_id, дата, окончание, водитель, оплата, таксопарк, откуда, куда,
                      расстояние_км, время_мин, стоимость, чаевые, сборы)
-SELECT s.trip_id, s.trip_start_timestamp, s.trip_end_timestamp, В.код, К.код, Т.код,
+SELECT s.trip_id, s.trip_start_timestamp, s.trip_end_timestamp, В.код, О.код, Т.код,
        s.pickup_community_area, s.dropoff_community_area,
        ROUND(s.trip_miles * %(mile_km)s, 2),
        GREATEST(1, ROUND(s.trip_seconds / 60.0)),
@@ -77,7 +77,7 @@ SELECT s.trip_id, s.trip_start_timestamp, s.trip_end_timestamp, В.код, К.к
        GREATEST(COALESCE(s.tolls, 0) + COALESCE(s.extras, 0), 0)
 FROM staging s
 JOIN ВОДИТЕЛИ В ON В.taxi_id = s.taxi_id
-JOIN КЛИЕНТЫ К ON К.тип = COALESCE(s.payment_type, 'Unknown')
+JOIN ОПЛАТА О ON О.тип = COALESCE(s.payment_type, 'Unknown')
 JOIN ТАКСОПАРКИ Т ON lower(Т.название) = lower(s.company)
 -- поездку, которая кончается раньше начала, отклонил бы CHECK и остановил всю загрузку
 WHERE s.trip_end_timestamp IS NULL OR s.trip_end_timestamp >= s.trip_start_timestamp
@@ -108,8 +108,8 @@ def main():
             files = [p for p in all_files if file_day(p) not in loaded]
         if files:
             cur.execute(STAGING)
-            cur.execute("CREATE TEMP TABLE client_types (тип TEXT, описание TEXT) ON COMMIT DROP")
-            cur.executemany("INSERT INTO client_types VALUES (%s, %s)", CLIENT_TYPES.items())
+            cur.execute("CREATE TEMP TABLE payment_types (тип TEXT, описание TEXT) ON COMMIT DROP")
+            cur.executemany("INSERT INTO payment_types VALUES (%s, %s)", PAYMENT_TYPES.items())
             for path in files:
                 with gzip.open(path, "rt", encoding="utf-8") as f:
                     cur.copy_expert("COPY staging FROM STDIN WITH (FORMAT csv, HEADER true)", f)

@@ -24,8 +24,8 @@ SELECT get_company_avg_revenue('Flash Cab');
 SELECT * FROM revenue_by_company_and_season();
 
 \echo ''
-\echo '--- ЗАДАЧА 3.1: get_driver_revenue_by_client(1, ''Credit Card'') ---'
-SELECT get_driver_revenue_by_client(1, 'Credit Card');
+\echo '--- ЗАДАЧА 3.1: get_driver_revenue_by_payment(1, ''Credit Card'') ---'
+SELECT get_driver_revenue_by_payment(1, 'Credit Card');
 
 \echo ''
 \echo '--- ЗАДАЧА 3.2: display_pivot_table() ---'

@@ -5,7 +5,7 @@ CREATE TABLE ПОЕЗДКИ (
     дата TIMESTAMP NOT NULL,              -- начало поездки (город округляет до 15 минут)
     окончание TIMESTAMP,
     водитель INTEGER NOT NULL REFERENCES ВОДИТЕЛИ(код) ON DELETE RESTRICT,
-    клиент INTEGER NOT NULL REFERENCES КЛИЕНТЫ(код) ON DELETE RESTRICT,
+    оплата INTEGER NOT NULL REFERENCES ОПЛАТА(код) ON DELETE RESTRICT,
     таксопарк INTEGER NOT NULL REFERENCES ТАКСОПАРКИ(код) ON DELETE RESTRICT,
     -- район не указан, если поездка началась или закончилась за пределами города
     откуда INTEGER REFERENCES РАЙОНЫ(код),

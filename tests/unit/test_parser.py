@@ -191,7 +191,7 @@ class LoadRidesTest(unittest.TestCase):
         self.assertEqual(self.load_rides.file_day(Path("rides/2026/2026-01-31.csv.gz")), "2026-01-31")
 
     def test_every_payment_type_has_russian_description(self):
-        for kind, text in self.load_rides.CLIENT_TYPES.items():
+        for kind, text in self.load_rides.PAYMENT_TYPES.items():
             self.assertTrue(text and text != kind, kind)
 
 

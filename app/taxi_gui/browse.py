@@ -14,7 +14,7 @@ PG_TRGM_MISSING = (
 )
 
 FILTER_FIELDS = [
-    "без фильтра", "таксопарк", "водитель", "тип клиента",
+    "без фильтра", "таксопарк", "водитель", "способ оплаты",
     "откуда", "куда", "дата",
     "стоимость >=", "стоимость <=", "расстояние >=", "расстояние <=",
     "время >=", "время <=",
@@ -95,7 +95,7 @@ class BrowseMixin:
             "таксопарк": ("t.название ILIKE %s", [like_value]),
             # водитель задаётся кодом (12) или частью taxi_id
             "водитель": ("(v.код::text = %s OR v.taxi_id ILIKE %s)", [value.lstrip("№ "), like_value]),
-            "тип клиента": ("(k.тип ILIKE %s OR k.описание ILIKE %s)", [like_value, like_value]),
+            "способ оплаты": ("(k.тип ILIKE %s OR k.описание ILIKE %s)", [like_value, like_value]),
             "откуда": ("ro.название ILIKE %s", [like_value]),
             "куда": ("rk.название ILIKE %s", [like_value]),
         }
@@ -120,7 +120,7 @@ class BrowseMixin:
         return "", []
 
     def load_autocomplete_data(self):
-        """Списки названий для подсказок (таксопарки, типы клиентов, районы)."""
+        """Списки названий для подсказок (таксопарки, способы оплаты, районы)."""
         self.autocomplete = {key: [] for key in sql.AUTOCOMPLETE}
         for key, query in sql.AUTOCOMPLETE.items():
             rows, _ = self.fetch_rows(query, show_error=False)
@@ -155,7 +155,7 @@ class BrowseMixin:
         return found
 
     def quick_search(self):
-        """Триграммный поиск по таксопаркам, районам, типам клиентов и водителям."""
+        """Триграммный поиск по таксопаркам, районам, способам оплаты и водителям."""
         text = self.search_var.get().strip()
         if not text:
             messagebox.showinfo("Поиск", "Введите текст для триграммного поиска")
