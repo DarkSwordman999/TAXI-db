@@ -3,6 +3,7 @@
 from pathlib import Path
 import tkinter as tk
 from tkinter import ttk, messagebox
+import tkinter.font as tkfont
 
 import matplotlib
 matplotlib.use("TkAgg")
@@ -16,6 +17,21 @@ from scripts.db_config import DB_CONFIG  # noqa: E402
 # корень проекта: app/taxi_gui/base.py -> на два уровня выше
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 MAX_SHOWN_ROWS = 1000
+
+# Таблицы рисуются символами, поэтому нужен моноширинный шрифт: у Menlo (macOS)
+# в Windows нет замены, и Tk подставлял обычный шрифт — столбцы разъезжались.
+MONOSPACE_FAMILIES = ("Consolas", "Menlo", "DejaVu Sans Mono", "Liberation Mono", "Courier New")
+
+
+def monospace_font(size=11):
+    """Первый установленный моноширинный шрифт; если ни одного нет — системный TkFixedFont."""
+    installed = set(tkfont.families())
+    for family in MONOSPACE_FAMILIES:
+        if family in installed:
+            return (family, size)
+    fixed = tkfont.nametofont("TkFixedFont").copy()
+    fixed.configure(size=size)
+    return fixed
 
 
 class BaseMixin:

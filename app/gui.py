@@ -12,7 +12,7 @@ import tkinter as tk
 from tkinter import ttk, messagebox, scrolledtext
 
 from taxi_gui.analytics import AnalyticsMixin
-from taxi_gui.base import BaseMixin
+from taxi_gui.base import BaseMixin, monospace_font
 from taxi_gui.browse import BrowseMixin, FILTER_FIELDS
 from taxi_gui.editing import EditingMixin
 from taxi_gui.scripts import ScriptsMixin
@@ -182,7 +182,7 @@ class TaxiApp(BrowseMixin, AnalyticsMixin, EditingMixin, ScriptsMixin, BaseMixin
         grid(ttk.Button(filters, text="Искать похоже", command=self.quick_search), 2, 5)
         grid(ttk.Button(filters, text="Проверить pg_trgm", command=self.ensure_pg_trgm), 2, 6)
 
-        self.result = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=("Menlo", 11), state=tk.DISABLED)
+        self.result = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=monospace_font(11), state=tk.DISABLED)
         self.result.pack(fill=tk.BOTH, expand=True)
 
         ttk.Label(right, textvariable=self.status_var, anchor="w").pack(fill=tk.X, pady=(5, 0))

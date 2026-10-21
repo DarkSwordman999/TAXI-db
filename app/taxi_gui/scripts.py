@@ -15,6 +15,7 @@ from psycopg2 import sql as psql
 from scripts.db_config import DB_CONFIG
 
 from . import sql
+from .base import monospace_font
 
 SQL_DIRS = ["schema", "data", "helper", "queries", "setup"]
 
@@ -353,13 +354,13 @@ class ScriptsMixin:
         body.add(left, weight=1)
         body.add(right, weight=2)
 
-        listbox = tk.Listbox(left, font=("Menlo", 10), exportselection=False)
+        listbox = tk.Listbox(left, font=monospace_font(10), exportselection=False)
         list_scroll = ttk.Scrollbar(left, orient=tk.VERTICAL, command=listbox.yview)
         listbox.configure(yscrollcommand=list_scroll.set)
         listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         list_scroll.pack(side=tk.RIGHT, fill=tk.Y)
 
-        preview = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=("Menlo", 11))
+        preview = scrolledtext.ScrolledText(right, wrap=tk.NONE, font=monospace_font(11))
         preview.pack(fill=tk.BOTH, expand=True)
 
         all_files = self.find_project_sql_files()
