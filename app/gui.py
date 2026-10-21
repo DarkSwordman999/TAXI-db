@@ -80,9 +80,7 @@ class TaxiApp(BrowseMixin, AnalyticsMixin, EditingMixin, ScriptsMixin, BaseMixin
         main = ttk.Frame(self.root, padding=6)
         main.pack(fill=tk.BOTH, expand=True)
 
-        left = ttk.Frame(main, width=260)
-        left.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
-        left.pack_propagate(False)
+        left = self.create_scrollable_panel(main, width=260)
 
         ttk.Label(left, text="TAXI GUI", font=("Arial", 15, "bold")).pack(anchor="w", pady=(0, 8))
 
@@ -186,6 +184,41 @@ class TaxiApp(BrowseMixin, AnalyticsMixin, EditingMixin, ScriptsMixin, BaseMixin
         self.result.pack(fill=tk.BOTH, expand=True)
 
         ttk.Label(right, textvariable=self.status_var, anchor="w").pack(fill=tk.X, pady=(5, 0))
+
+    def create_scrollable_panel(self, parent, width):
+        """Левая панель кнопок с прокруткой: на невысоком экране нижние группы иначе обрезаются."""
+        outer = ttk.Frame(parent, width=width)
+        outer.pack(side=tk.LEFT, fill=tk.Y, padx=(0, 8))
+        canvas = tk.Canvas(outer, width=width - 18, highlightthickness=0, borderwidth=0,
+                           background=ttk.Style().lookup("TFrame", "background"))
+        scrollbar = ttk.Scrollbar(outer, orient=tk.VERTICAL, command=canvas.yview)
+        inner = ttk.Frame(canvas)
+        window = canvas.create_window((0, 0), window=inner, anchor="nw")
+        inner.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        canvas.bind("<Configure>", lambda e: canvas.itemconfigure(window, width=e.width))
+        canvas.configure(yscrollcommand=scrollbar.set)
+        canvas.pack(side=tk.LEFT, fill=tk.Y, expand=True)
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        def on_wheel(event):
+            if event.num == 4 or event.delta > 0:
+                canvas.yview_scroll(-1, "units")
+            else:
+                canvas.yview_scroll(1, "units")
+
+        # колесо мыши прокручивает панель, только пока курсор над ней
+        def bind_wheel(_):
+            canvas.bind_all("<MouseWheel>", on_wheel)
+            canvas.bind_all("<Button-4>", on_wheel)
+            canvas.bind_all("<Button-5>", on_wheel)
+
+        def unbind_wheel(_):
+            for seq in ("<MouseWheel>", "<Button-4>", "<Button-5>"):
+                canvas.unbind_all(seq)
+
+        outer.bind("<Enter>", bind_wheel)
+        outer.bind("<Leave>", unbind_wheel)
+        return inner
 
     def show_about(self):
         messagebox.showinfo(
