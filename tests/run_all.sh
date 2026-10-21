@@ -170,9 +170,21 @@ param_for() {
     case "$1" in
         helper/find-company.sql) echo "Flash" ;;
         helper/find-area.sql) echo "Park" ;;
+        helper/driver.sql|helper/driver-rides.sql) echo "$DRIVER" ;;
+        helper/rides-above.sql) echo "100" ;;
+        helper/drivers-above.sql) echo "10000" ;;
         queries/subqueries/06_rides_above_avg_param.sql) echo "$DRIVER" ;;
         queries/tasks/04_revenue_by_driver_for_day.sql) echo "3" ;;
     esac
+}
+# файлы команд, которым нужны несколько параметров и которые меняют данные:
+# их проверяют сами команды (add-company, set-tips и т. д.) в конце теста
+command_only() {
+    case "$1" in
+        helper/rename-company.sql|helper/client-desc.sql|helper/delete-driver.sql) return 0 ;;
+        helper/add-company.sql|helper/add-driver.sql|helper/set-ride-company.sql|helper/set-tips.sql) return 0 ;;
+    esac
+    return 1
 }
 # файлы, меняющие данные, идут отдельно и в конце
 is_modifying() {
@@ -184,6 +196,7 @@ is_modifying() {
 }
 for f in helper/*.sql queries/*/*.sql; do
     is_modifying "$f" && continue
+    command_only "$f" && continue
     step "$f" ./help.sh "$f" "$(param_for "$f")"
 done
 step "./help.sh h1 (run_sql.sh) с параметром" ./help.sh h1 helper/find-company.sql Flash
